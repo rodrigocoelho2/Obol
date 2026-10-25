@@ -17,10 +17,15 @@
 
 <p align="center">
   <a href="#features">Features</a> ·
+  <a href="#screenshots">Screenshots</a> ·
   <a href="#quick-start-docker-on-the-nas">Quick start</a> ·
   <a href="#connecting-trading-212">Trading 212</a> ·
   <a href="#how-the-numbers-work">The numbers</a> ·
   <a href="#development">Development</a>
+</p>
+
+<p align="center">
+  <img src="docs/images/hero.png" alt="Obol: the overview on the computer and on the phone" width="100%">
 </p>
 
 > An obol was the small silver coin of ancient Greece. Obol only reads your account: it can't place orders or move
@@ -69,6 +74,22 @@
   design: lime on ink-green, Bricolage Grotesque, Geist and Geist Mono.
 - Several accounts on one server (the first is the admin), each with its own portfolio.
 - **Demo mode**: a sample portfolio in memory, no SQL Server or Trading 212 needed.
+
+## Screenshots
+
+### On the phone
+
+<p align="center"><img src="docs/images/phone.png" alt="Overview, holdings, a position, income and sync on the phone" width="100%"></p>
+
+### On the computer
+
+| Holdings | A position |
+| --- | --- |
+| <img src="docs/images/holdings.png" alt="Holdings"> | <img src="docs/images/position.png" alt="A position with its trades and average price"> |
+| **Income** | **Activity** |
+| <img src="docs/images/income.png" alt="Income calendar and next payouts"> | <img src="docs/images/activity.png" alt="Activity"> |
+| **Sync** | **Welcome** |
+| <img src="docs/images/sync.png" alt="Trading 212 sync and CSV import"> | <img src="docs/images/landing.png" alt="The landing page"> |
 
 ## Quick start (Docker on the NAS)
 
