@@ -1,4 +1,6 @@
-<h1 align="center">Obol</h1>
+<p align="center">
+  <img src="docs/images/banner.png" alt="Obol — Every coin of your portfolio, minted into one view." width="100%">
+</p>
 
 <p align="center">
   A <b>self-hosted</b> portfolio tracker for <b>Trading 212</b>: what everything is worth today and every day before,<br>
@@ -28,8 +30,8 @@
   <img src="docs/images/hero.png" alt="Obol: the overview on the computer and on the phone" width="100%">
 </p>
 
-> An obol was the small silver coin of ancient Greece. Obol only reads your account: it can't place orders or move
-> money, and nothing it shows is financial advice.
+> Obol only reads your account: it can't place orders or move money, and nothing it shows is financial advice.
+> (An obol was the small silver coin of ancient Greece.)
 
 ---
 
@@ -68,28 +70,48 @@
 - **Price history** from Yahoo Finance (daily closes, exchange rates) so the charts are exact; optional.
 - The sync log of the last 30 runs, the switches for what to read, and **Start over**.
 
-**Everywhere**
+**Built to self-host**
 
-- Phone (a dock at the bottom, installable from Safari or Chrome) and computer (a top bar, two columns), one dark
-  design: lime on ink-green, Bricolage Grotesque, Geist and Geist Mono.
-- Several accounts on one server (the first is the admin), each with its own portfolio.
-- **Demo mode**: a sample portfolio in memory, no SQL Server or Trading 212 needed.
+- One `docker-compose.yml`: **SQL Server 2022 Express**, a one-shot **database deploy** (tables and stored procedures
+  from a dacpac, applied again on every update), the **WebApi** and the **Website**.
+- **Accounts for the house**: everyone sees only their own portfolio; the first account (protected by a setup key) is
+  the admin. Sign-ups can be closed.
+- **Phone and computer**: the same pages, a dock on the phone and a top bar on the computer; adds to the Home Screen
+  like an app. One dark look: lime on ink-green, Bricolage Grotesque, Geist and Geist Mono.
+- **Demo mode**: a year of a believable sample portfolio in memory, no SQL Server or Trading 212 needed — to try it, or
+  to take screenshots.
+- **Read-only by design**: Obol never asks for the trading permissions, and the fonts and icons ship with the app.
 
 ## Screenshots
 
-### On the phone
+### Your portfolio
+<img src="docs/images/portfolio.png" alt="Phone: overview, holdings, a position and income">
 
-<p align="center"><img src="docs/images/phone.png" alt="Overview, holdings, a position, income and sync on the phone" width="100%"></p>
+### Activity, sync and settings
+<img src="docs/images/tracking.png" alt="Phone: activity, sync, a position in dollars and settings">
 
 ### On the computer
+<table>
+<tr>
+<td width="50%"><b>Overview, all time</b><br><img src="docs/images/desktop-overview-all.png" alt="The overview since the first deposit: value against money put in"></td>
+<td width="50%"><b>Holdings</b><br><img src="docs/images/desktop-holdings.png" alt="Every position with its weight, average cost, today and return"></td>
+</tr>
+<tr>
+<td width="50%"><b>A position</b><br><img src="docs/images/desktop-position.png" alt="The price over a year with every buy marked and the average price paid"></td>
+<td width="50%"><b>In dollars</b><br><img src="docs/images/desktop-position-usd.png" alt="A US stock priced in dollars, valued in euros at each day's rate"></td>
+</tr>
+<tr>
+<td width="50%"><b>Income</b><br><img src="docs/images/desktop-income.png" alt="The calendar of dividends and interest, the year's progress and the next payouts"></td>
+<td width="50%"><b>Activity</b><br><img src="docs/images/desktop-activity.png" alt="Every buy, sell, dividend, deposit and interest, newest first"></td>
+</tr>
+<tr>
+<td width="50%"><b>Sync</b><br><img src="docs/images/desktop-sync.png" alt="Trading 212 connected, what syncs, the CSV import and the last run"></td>
+<td width="50%"><b>Settings</b><br><img src="docs/images/desktop-settings.png" alt="Password, accounts and the version"></td>
+</tr>
+</table>
 
-| Holdings | A position |
-| --- | --- |
-| <img src="docs/images/holdings.png" alt="Holdings"> | <img src="docs/images/position.png" alt="A position with its trades and average price"> |
-| **Income** | **Activity** |
-| <img src="docs/images/income.png" alt="Income calendar and next payouts"> | <img src="docs/images/activity.png" alt="Activity"> |
-| **Sync** | **Welcome** |
-| <img src="docs/images/sync.png" alt="Trading 212 sync and CSV import"> | <img src="docs/images/landing.png" alt="The landing page"> |
+### Welcome
+<img src="docs/images/welcome.png" alt="The landing page on the computer and the phone, and creating an account">
 
 ## Quick start (Docker on the NAS)
 
