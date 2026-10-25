@@ -1,3 +1,4 @@
+using Obol.Library.Enums;
 using Microsoft.Extensions.Options;
 using Obol.WebApi.Extensions.Time;
 using Obol.WebApi.Features.Connections.Repositories;
@@ -93,7 +94,9 @@ internal sealed class PortfolioLoader(
                 continue;
             }
 
-            var day = clock.LocalDay(holding.UpdatedAt);
+            // At the weekend the price Trading 212 gives is Friday's close: it belongs to Friday, so the day change
+            // stays Friday against Thursday instead of a flat 0% (crypto trades every day).
+            var day = instrument.Class == AssetClass.Crypto ? clock.LocalDay(holding.UpdatedAt) : MarketDay(clock.LocalDay(holding.UpdatedAt));
             book.AddPrice(holding.InstrumentID, day, holding.CurrentPrice);
             if (holding.Quantity > 0 && holding.Value > 0 && !string.Equals(instrument.Currency, currency, StringComparison.OrdinalIgnoreCase))
             {
@@ -116,6 +119,18 @@ internal sealed class PortfolioLoader(
             LocalDay = clock.LocalDay,
         };
     }
+
+    /// <summary>
+    /// The trading day a weekend date's prices belong to (the Friday before).
+    /// </summary>
+    /// <param name="day">The day.</param>
+    /// <returns>The day, or the Friday before a Saturday or Sunday.</returns>
+    internal static DateOnly MarketDay(DateOnly day) => day.DayOfWeek switch
+    {
+        DayOfWeek.Saturday => day.AddDays(-1),
+        DayOfWeek.Sunday => day.AddDays(-2),
+        _ => day,
+    };
 
     /// <summary>
     /// A trade price in the instrument's currency (pence and pounds converted), or null when the currencies differ.

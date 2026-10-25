@@ -56,4 +56,12 @@ public sealed class PriceServiceTests
     [InlineData(12.5, "USD", "EUR", null)]
     public void TradePricesInPoundsOrPenceCountAsPrices(double price, string from, string to, double? expected) =>
         Assert.Equal(expected is { } value ? (decimal?)value : null, PortfolioLoader.SameCurrencyPrice((decimal)price, from, to));
+
+    [Theory]
+    [InlineData("2026-10-23", "2026-10-23")]
+    [InlineData("2026-10-24", "2026-10-23")]
+    [InlineData("2026-10-25", "2026-10-23")]
+    [InlineData("2026-10-26", "2026-10-26")]
+    public void WeekendPricesBelongToFriday(string day, string expected) =>
+        Assert.Equal(DateOnly.Parse(expected, System.Globalization.CultureInfo.InvariantCulture), PortfolioLoader.MarketDay(DateOnly.Parse(day, System.Globalization.CultureInfo.InvariantCulture)));
 }

@@ -106,7 +106,7 @@ public static class Fmt
     /// <summary>Shares: up to six decimals, trailing zeros dropped ("42.18", "0.004512").</summary>
     /// <param name="value">The shares.</param>
     /// <returns>The text.</returns>
-    public static string Qty(decimal? value) => value is { } shares ? shares.ToString(Math.Abs(shares) >= 100 ? "#,0.##" : "#,0.######", English) : "—";
+    public static string Qty(decimal? value) => value is { } shares ? shares.ToString(Math.Abs(shares) >= 100 ? "#,0.##" : Math.Abs(shares) >= 1 ? "#,0.####" : "#,0.######", English) : "—";
 
     /// <summary>A price in its currency, with up to four decimals for small prices.</summary>
     /// <param name="value">The price.</param>

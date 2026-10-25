@@ -224,6 +224,8 @@ img { display: block; max-width: 100%; }
 
 /* ----- Charts ----- */
 .chart { position: relative; margin-top: 18px; touch-action: pan-y; }
+/* Room on the right for the dot at the end of a full-width chart. */
+@media (min-width: 900px) { .minted .chart { margin-right: 16px; } }
 .chart svg { display: block; width: 100%; height: var(--h, 230px); overflow: visible; }
 @media (max-width: 899px) { .chart svg { height: var(--hp, 150px); } }
 .chart .area { fill: url(#fade); }

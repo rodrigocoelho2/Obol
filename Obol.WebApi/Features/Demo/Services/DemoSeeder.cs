@@ -160,9 +160,9 @@ internal sealed class DemoSyncRunner(IConnectionRepository connectionRepository,
         {
             $"Account 31415926 · EUR (demo data)",
             $"{positions} positions",
-            first is null ? "Orders: 1 page, no new trades" : $"Orders: {first.Trades.Count / 50 + 1} pages, {first.Trades.Count} new trades",
-            first is null ? "Dividends: 1 page, no new dividends" : $"Dividends: {first.Dividends.Count / 50 + 1} pages, {first.Dividends.Count} new dividends",
-            first is null ? "Deposits, withdrawals and interest: 1 page, no new transfers" : $"Deposits, withdrawals and interest: {first.Cash.Count / 50 + 1} pages, {first.Cash.Count} new transfers",
+            first is null ? "Orders: 1 page, no new trades" : $"Orders: {Pages(first.Trades.Count)}, {first.Trades.Count} new trades",
+            first is null ? "Dividends: 1 page, no new dividends" : $"Dividends: {Pages(first.Dividends.Count)}, {first.Dividends.Count} new dividends",
+            first is null ? "Deposits, withdrawals and interest: 1 page, no new transfers" : $"Deposits, withdrawals and interest: {Pages(first.Cash.Count)}, {first.Cash.Count} new transfers",
         };
         await connectionRepository.MarkAsync(userId, (byte)SyncState.Ok, summary, now, now, 31415926, DemoData.Currency);
         await connectionRepository.SaveRunAsync(userId, new SyncRunRow
@@ -174,6 +174,12 @@ internal sealed class DemoSyncRunner(IConnectionRepository connectionRepository,
             Summary = summary,
             Lines = JsonSerializer.Serialize(lines),
         });
+    }
+
+    private static string Pages(int items)
+    {
+        var pages = (items / 50) + 1;
+        return pages == 1 ? "1 page" : $"{pages} pages";
     }
 }
 

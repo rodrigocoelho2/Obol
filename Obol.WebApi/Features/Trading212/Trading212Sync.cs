@@ -168,12 +168,14 @@ internal sealed class Trading212Sync(
                     row.InstrumentID, position.Quantity, position.AveragePricePaid, position.CurrentPrice,
                     wallet?.CurrentValue ?? 0m, wallet?.TotalCost ?? 0m, wallet?.UnrealizedProfitLoss ?? 0m, wallet?.FxImpact,
                     position.CreatedAt is { } created ? DbTime.Time(created.UtcDateTime) : null));
-                prices.Add(new PriceInput(row.InstrumentID, DbTime.Day(today), position.CurrentPrice, (byte)DataSource.Trading212));
+                // At the weekend the price is Friday's close (crypto trades every day).
+                var priceDay = row.Class == AssetClass.Crypto ? today : PortfolioLoader.MarketDay(today);
+                prices.Add(new PriceInput(row.InstrumentID, DbTime.Day(priceDay), position.CurrentPrice, (byte)DataSource.Trading212));
                 if (!string.Equals(row.Currency, currency, StringComparison.OrdinalIgnoreCase) && wallet is { CurrentValue: > 0 } && position.CurrentPrice > 0)
                 {
                     var rate = wallet.CurrentValue / (position.Quantity * position.CurrentPrice);
                     var fxCurrency = row.Currency == "GBX" ? "GBP" : row.Currency;
-                    rates.Add(new FxInput(fxCurrency, currency, DbTime.Day(today), row.Currency == "GBX" ? rate * 100m : rate));
+                    rates.Add(new FxInput(fxCurrency, currency, DbTime.Day(PortfolioLoader.MarketDay(today)), row.Currency == "GBX" ? rate * 100m : rate));
                 }
             }
 
