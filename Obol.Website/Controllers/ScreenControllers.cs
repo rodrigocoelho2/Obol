@@ -31,7 +31,7 @@ public sealed class DashboardController(ObolClient apiClient, IOptions<WebsiteOp
         }
 
         var page = Shell(new OverviewPageModel { Range = Fmt.ParseRange(range) }, AppSection.Overview);
-        return View("Index", await Screens.OverviewAsync(page, UserId));
+        return Screen("Index", await Screens.OverviewAsync(page, UserId));
     }
 
     /// <summary>
@@ -57,7 +57,7 @@ public sealed class HoldingController(ObolClient apiClient) : WebsiteBaseControl
     /// <returns>The view.</returns>
     [HttpGet("/holdings")]
     public async Task<IActionResult> Index() =>
-        View("Index", await Screens.HoldingsAsync(Shell(new HoldingsPageModel(), AppSection.Holdings), UserId));
+        Screen("Index", await Screens.HoldingsAsync(Shell(new HoldingsPageModel(), AppSection.Holdings), UserId));
 
     /// <summary>One position (or an instrument held before).</summary>
     /// <param name="key">The instrument key.</param>
@@ -73,7 +73,7 @@ public sealed class HoldingController(ObolClient apiClient) : WebsiteBaseControl
             return NotFound();
         }
 
-        return View("Position", page);
+        return Screen("Position", page);
     }
 }
 
@@ -88,7 +88,7 @@ public sealed class IncomeController(ObolClient apiClient) : WebsiteBaseControll
     /// <returns>The view.</returns>
     [HttpGet("/income")]
     public async Task<IActionResult> Index(int? year = null) =>
-        View("Index", await Screens.IncomeAsync(Shell(new IncomePageModel(), AppSection.Income), UserId, year));
+        Screen("Index", await Screens.IncomeAsync(Shell(new IncomePageModel(), AppSection.Income), UserId, year));
 }
 
 /// <summary>
@@ -109,7 +109,7 @@ public sealed class ActivityController(ObolClient apiClient) : WebsiteBaseContro
             Kind = Enum.TryParse<ActivityKind>(kind, ignoreCase: true, out var only) ? only : null,
             Page = Math.Max(1, page),
         }, AppSection.Activity);
-        return View("Index", await Screens.ActivityAsync(model, UserId));
+        return Screen("Index", await Screens.ActivityAsync(model, UserId));
     }
 }
 

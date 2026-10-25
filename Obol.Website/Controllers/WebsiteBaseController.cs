@@ -36,4 +36,14 @@ public abstract class WebsiteBaseController(ObolClient apiClient) : Controller
         page.Section = section;
         return page;
     }
+
+    /// <summary>
+    /// The view of a screen, or the "engine isn't answering" card when its data couldn't be read (the screen's own view
+    /// needs its data).
+    /// </summary>
+    /// <param name="viewName">The screen's view.</param>
+    /// <param name="page">The filled page.</param>
+    /// <returns>The view.</returns>
+    protected ViewResult Screen(string viewName, AppPageModel page) =>
+        View(page.Unavailable is null ? viewName : "~/Views/Shared/Unavailable.cshtml", page);
 }

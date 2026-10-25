@@ -20,7 +20,7 @@ public sealed class SettingController(ObolClient apiClient, IOptions<WebsiteOpti
     /// <summary>The Settings screen.</summary>
     /// <returns>The view.</returns>
     [HttpGet("/settings")]
-    public async Task<IActionResult> Index() => View("Index", await Screens.SettingsAsync(Shell(new SettingsPageModel(), AppSection.Settings), UserId));
+    public async Task<IActionResult> Index() => Screen("Index", await Screens.SettingsAsync(Shell(new SettingsPageModel(), AppSection.Settings), UserId));
 
     /// <summary>Changes the password (other devices are signed out; this one stays).</summary>
     /// <param name="currentPassword">The current password.</param>

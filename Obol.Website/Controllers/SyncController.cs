@@ -17,7 +17,7 @@ public sealed class SyncController(ObolClient apiClient, ILogger<SyncController>
     /// <summary>The Sync screen.</summary>
     /// <returns>The view.</returns>
     [HttpGet("/sync")]
-    public async Task<IActionResult> Index() => View("Index", await Screens.SyncAsync(Shell(new SyncPageModel(), AppSection.Sync), UserId));
+    public async Task<IActionResult> Index() => Screen("Index", await Screens.SyncAsync(Shell(new SyncPageModel(), AppSection.Sync), UserId));
 
     /// <summary>The connection, for the page to follow a running sync.</summary>
     /// <returns>The connection.</returns>

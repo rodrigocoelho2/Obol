@@ -1,0 +1,6 @@
+@model AppPageModel
+@{
+    // A screen whose data couldn't be read: the shell (_App) shows the "engine isn't answering" card instead of a body.
+    Layout = "_App";
+    ViewData["Title"] = Model.Section.ToString();
+}
