@@ -41,17 +41,17 @@ public sealed class PriceServiceTests
     }
 
     [Theory]
-    [InlineData("EUR", "EUR", 1)]
-    [InlineData("GBp", "GBX", 1)]
+    [InlineData("EUR", "EUR", 1.0)]
+    [InlineData("GBp", "GBX", 1.0)]
     [InlineData("GBp", "GBP", 0.01)]
-    [InlineData("GBP", "GBX", 100)]
+    [InlineData("GBP", "GBX", 100.0)]
     [InlineData("USD", "EUR", null)]
     public void PricesAreTurnedIntoTheInstrumentsCurrency(string yahoo, string instrument, double? expected) =>
         Assert.Equal(expected is { } value ? (decimal?)value : null, PriceService.Factor(yahoo, instrument));
 
     [Theory]
-    [InlineData(100, "GBP", "GBX", 10000)]
-    [InlineData(1500, "GBX", "GBP", 15)]
+    [InlineData(100.0, "GBP", "GBX", 10000.0)]
+    [InlineData(1500.0, "GBX", "GBP", 15.0)]
     [InlineData(12.5, "EUR", "EUR", 12.5)]
     [InlineData(12.5, "USD", "EUR", null)]
     public void TradePricesInPoundsOrPenceCountAsPrices(double price, string from, string to, double? expected) =>

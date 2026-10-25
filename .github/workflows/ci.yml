@@ -101,7 +101,7 @@ jobs:
           set -e
           base=http://localhost:5095
           for i in $(seq 1 60); do curl -fs -o /dev/null $base/about && break; sleep 2; done
-          curl -fs $base/about | grep -q "<title>Obol</title>"
+          curl -fs $base/about | grep -q "<title>Obol</title>" && echo "landing: ok"
           # Every stylesheet, script and image the pages link must be served.
           for page in /about /sign-in /create-account; do
             for f in $(curl -fs $base$page | grep -oE '(href|src)="/(css|js|fonts|img)/[^"?]+' | cut -d'"' -f2 | sort -u); do
@@ -109,8 +109,9 @@ jobs:
             done
           done
           for f in /manifest.webmanifest /sw.js /js/app.js; do curl -fs -o /dev/null "$base$f" || { echo "missing: $f"; exit 1; }; done
-          # Signed out, the app screens send you to sign in.
-          test "$(curl -s -o /dev/null -w '%{http_code}' $base/holdings)" = "302"
+          # Signed out, the app screens send a browser to sign in, and the page script gets a 401.
+          code=$(curl -s -o /dev/null -w '%{http_code}' -H 'Accept: text/html' $base/holdings); echo "holdings (browser): $code"; test "$code" = "302"
+          code=$(curl -s -o /dev/null -w '%{http_code}' $base/sync/status); echo "sync/status (script): $code"; test "$code" = "401"
           echo ok
 
       - name: Install Playwright
