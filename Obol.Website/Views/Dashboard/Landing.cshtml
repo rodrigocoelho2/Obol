@@ -1,0 +1,104 @@
+@model LandingModel
+@{
+    ViewData["Title"] = "Obol";
+}
+@section Head {
+    <link rel="stylesheet" href="~/css/public.css" asp-append-version="true" />
+}
+
+<div class="lp">
+    <header class="lp-top">
+        <a class="brand" href="/">@Icons.Logo(34)Obol</a>
+        <nav class="row">
+            @if (Model.SignedIn)
+            {
+                <a class="btn small" href="/">Open Obol @Icons.Get("arrow")</a>
+            }
+            else
+            {
+                <a class="btn ghost small" href="/sign-in">Sign in</a>
+                @if (Model.CanCreateAccount)
+                {
+                    <a class="btn small desk-only" href="/create-account">Get started</a>
+                }
+            }
+        </nav>
+    </header>
+
+    <section class="lp-hero">
+        <div class="lp-copy">
+            <span class="pill soft">@Icons.Get("shield")Self-hosted · read-only</span>
+            <h1>Every coin of your portfolio, <span class="lime">minted into one view.</span></h1>
+            <p>Obol connects to Trading 212 with a read-only key and follows what you own: the value of every day, each position against what you paid, the dividends that came in and the ones on their way. On your phone and your computer, from your own server.</p>
+            <div class="row wrap">
+                @if (Model.SignedIn)
+                {
+                    <a class="btn" href="/">Open Obol @Icons.Get("arrow")</a>
+                }
+                else
+                {
+                    <a class="btn" href="@(Model.CanCreateAccount ? "/create-account" : "/sign-in")">@(Model.CanCreateAccount ? "Create an account" : "Sign in") @Icons.Get("arrow")</a>
+                    <a class="btn ghost" href="/sign-in">I have an account</a>
+                }
+            </div>
+        </div>
+
+        <div class="lp-phone" aria-hidden="true">
+            <div class="lp-screen">
+                <div class="row" style="justify-content: space-between">
+                    <div class="greet">@Icons.Logo(30)<div><small>Good evening</small><b>Rodas</b></div></div>
+                    <span class="icon-btn" style="width: 36px; height: 36px">@Icons.Get("sync")</span>
+                </div>
+                <div class="card minted" style="padding: 16px 0 10px; margin-top: 12px">
+                    @Icons.Rings()
+                    <div class="pad" style="padding: 0 16px">
+                        <span class="eyebrow">Net worth</span>
+                        <div class="num" style="font-size: 34px; margin-top: 4px">€11,880<span class="c">.34</span></div>
+                        <span class="pill solid" style="margin-top: 8px; height: 24px; font-size: 11.5px">▲ €48.12 · 0.41%</span>
+                    </div>
+                    <svg viewBox="0 0 300 80" preserveAspectRatio="none" style="display: block; width: 100%; height: 80px; margin-top: 8px">
+                        <defs><linearGradient id="lpfade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C6F36D" stop-opacity="0.24" /><stop offset="1" stop-color="#C6F36D" stop-opacity="0" /></linearGradient></defs>
+                        <path d="M0,66 C22,62 32,70 46,60 S72,54 86,58 S112,46 126,48 S152,38 166,42 S192,30 206,34 S232,22 246,26 S272,14 286,17 L300,12 L300,80 L0,80 Z" fill="url(#lpfade)" />
+                        <path d="M0,66 C22,62 32,70 46,60 S72,54 86,58 S112,46 126,48 S152,38 166,42 S192,30 206,34 S232,22 246,26 S272,14 286,17 L300,12" fill="none" stroke="#C6F36D" stroke-width="2.2" />
+                    </svg>
+                </div>
+                <div class="treemap" style="height: 92px; margin-top: 12px">
+                    <div class="tile lead bg-eq" style="flex: 55.6"><span>Equity ETFs</span><b style="font-size: 20px">55.6%</b></div>
+                    <div class="col" style="flex: 44.4">
+                        <div class="tile bg-stock" style="flex: 25.6; padding: 8px 10px"><span>Stocks</span><b style="font-size: 13px">25.6%</b></div>
+                        <div class="split" style="flex: 18.8"><div class="tile bg-bond" style="flex: 17; padding: 6px 8px"><b style="font-size: 12px">17%</b></div><div class="tile bg-cash tiny" style="flex: 2"></div></div>
+                    </div>
+                </div>
+                <div class="lp-dock"><span class="on">@Icons.Get("overview")Overview</span>@Icons.Get("holdings")@Icons.Get("income")@Icons.Get("sync")</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="lp-grid">
+        <article class="card">
+            <span class="ico-chip">@Icons.Get("sync")</span>
+            <h3>Trading 212, synced</h3>
+            <p>Positions and cash every 30 minutes; every order, dividend and deposit since day one. Read-only: Obol can't trade or move money.</p>
+        </article>
+        <article class="card">
+            <span class="ico-chip">@Icons.Get("overview")</span>
+            <h3>Value of every day</h3>
+            <p>Your portfolio day by day with daily closing prices, against what you put in, so the gain is the real one.</p>
+        </article>
+        <article class="card">
+            <span class="ico-chip">@Icons.Get("income")</span>
+            <h3>Dividends, ahead of time</h3>
+            <p>A calendar of what each month paid, what the year should bring and the next payouts, worked out from your own shares.</p>
+        </article>
+        <article class="card">
+            <span class="ico-chip">@Icons.Get("upload")</span>
+            <h3>CSV import too</h3>
+            <p>No API key, or history the API doesn't reach? Drop Trading 212's CSV export. Importing twice never doubles anything.</p>
+        </article>
+    </section>
+
+    <footer class="lp-foot">
+        <span>@Icons.Logo(22) Obol @AppPageModel.CurrentVersion · self-hosted</span>
+        <span class="muted">Not affiliated with Trading 212. Not financial advice.</span>
+    </footer>
+</div>

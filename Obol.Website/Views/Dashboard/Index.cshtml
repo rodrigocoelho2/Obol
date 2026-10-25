@@ -1,0 +1,261 @@
+@model OverviewPageModel
+@{
+    Layout = "_App";
+    ViewData["Title"] = "Overview";
+    var data = Model.Data!;
+    var currency = data.Currency;
+    var logos = Model.Connection?.Logos == true;
+    var series = data.Series;
+    var chart = Charts.Line(
+        series.Select(static point => point.Value).ToList(),
+        series.Select(static point => Fmt.ShortDate(point.Day)).ToList(),
+        series.Select(point => Fmt.Money(point.Value, currency)).ToList(),
+        250,
+        data.NetDeposits is null ? null : series.Select(static point => point.Deposits).ToList(),
+        data.NetDeposits is null ? null : series.Select(point => "Deposited " + Fmt.Money(point.Deposits, currency, 0)).ToList());
+    var axis = series.Count < 2 ? [] : Enumerable.Range(0, 6).Select(i => series[(int)Math.Round(i * (series.Count - 1) / 5.0)].Day).ToList();
+    string AxisLabel(DateOnly day) => Model.Range is ChartRange.Week or ChartRange.Month ? Fmt.ShortDate(day) : day.ToString("MMM yy", System.Globalization.CultureInfo.GetCultureInfo("en-IE"));
+    var down = data.RangeChange is < 0;
+}
+
+@* Phone: the greeting, and the sync button. *@
+<header class="head phone-only">
+    <div class="greet">
+        <a href="/settings" aria-label="Settings">@Icons.Logo(40)</a>
+        <div>
+            <small>@Model.Greeting</small>
+            <b>@Model.DisplayName</b>
+        </div>
+    </div>
+    <a class="icon-btn" href="/sync" aria-label="Sync: @Model.SyncLabel">@Icons.Get("sync")<span class="dot @Model.SyncDot"></span></a>
+</header>
+
+@if (!data.HasData)
+{
+    <section class="card empty minted">
+        @Icons.Rings()
+        <div class="pad" style="display: flex; flex-direction: column; gap: 12px">
+            <span class="ico-chip">@Icons.Get("link")</span>
+            <h2>Bring your portfolio in</h2>
+            <p>Connect Trading 212 with a read-only API key and Obol syncs your positions, every order, dividend and deposit, and keeps them up to date. Or import the CSV export from Trading 212's History.</p>
+            <div class="row wrap">
+                <a class="btn" href="/sync">@Icons.Get("link")Connect Trading 212</a>
+                <a class="btn ghost" href="/sync#csv">@Icons.Get("upload")Import a CSV</a>
+            </div>
+        </div>
+    </section>
+}
+else
+{
+    <section class="card minted" aria-labelledby="worth">
+        @Icons.Rings()
+        <div class="pad hero-top">
+            <div>
+                <div class="eyebrow" id="worth">Net worth<span class="desk-only"> · @Fmt.LongDate(Clock.Today)</span></div>
+                <div class="big" style="margin-top: 8px">@Ui.BigMoney(data.TotalValue, currency)</div>
+                <div class="hero-chips">
+                    @if (data.DayChange != 0)
+                    {
+                        <span class="pill solid@(data.DayChange < 0 ? " loss" : string.Empty)">@(data.DayChange >= 0 ? "▲" : "▼") @Fmt.Money(Math.Abs(data.DayChange), currency) · @Fmt.Pct(data.DayChangePct is { } d ? Math.Abs(d) : null, 2) <span class="desk-only">&nbsp;today</span></span>
+                    }
+                    @if (data.RangeChange is { } change)
+                    {
+                        <span class="pill soft@(change < 0 ? " loss" : string.Empty)">@(change >= 0 ? "▲" : "▼") @Fmt.Money(Math.Abs(change), currency, 0)@(data.RangeChangePct is { } pct ? " · " + Fmt.Pct(Math.Abs(pct)) : string.Empty) <span>&nbsp;@Fmt.RangeWords(Model.Range)</span></span>
+                    }
+                </div>
+            </div>
+            <nav class="seg desk-only" aria-label="Range">
+                @foreach (var range in ScreenModel.Ranges)
+                {
+                    <a href="/?range=@Fmt.RangeQuery(range)" aria-current="@(range == Model.Range ? "page" : null)">@Fmt.Range(range)</a>
+                }
+            </nav>
+        </div>
+
+        @if (chart.HasLine)
+        {
+            ViewData["Height"] = 250;
+            ViewData["PhoneHeight"] = 140;
+            ViewData["Down"] = down;
+            ViewData["Label"] = $"Portfolio value {Fmt.RangeWords(Model.Range)}, from {Fmt.Money(series[0].Value, currency)} to {Fmt.Money(series[^1].Value, currency)}";
+            <partial name="_Chart" model="chart" view-data="ViewData" />
+            <div class="axis desk-only">
+                @foreach (var day in axis)
+                {
+                    <span>@AxisLabel(day)</span>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="no-chart">The chart fills in after the first days of syncs.</p>
+        }
+
+        <nav class="seg full phone-only" aria-label="Range" style="margin: 10px 14px 0; width: auto">
+            @foreach (var range in ScreenModel.Ranges)
+            {
+                <a href="/?range=@Fmt.RangeQuery(range)" aria-current="@(range == Model.Range ? "page" : null)">@Fmt.Range(range)</a>
+            }
+        </nav>
+
+        <div class="pad desk-only">
+            @if (data.NetDeposits is not null && chart.HasLine)
+            {
+                <div class="legend">
+                    <span><i class="ln"></i>Value</span>
+                    <span><i class="ln dash"></i>Net deposits</span>
+                </div>
+            }
+            <div class="hero-stats">
+                <div><small>Net deposits</small><b>@(data.NetDeposits is { } put ? Fmt.Money(put, currency) : "—")</b></div>
+                <div><small>Total return</small><b class="@Fmt.Trend(data.TotalReturn)">@(data.TotalReturn is { } ret ? Fmt.SignedMoney(ret, currency) + (data.TotalReturnPct is { } rp ? " · " + Fmt.Pct(Math.Abs(rp)) : string.Empty) : "—")</b></div>
+                <div><small>Unrealised</small><b class="@Fmt.Trend(data.Unrealized)">@Fmt.SignedMoney(data.Unrealized, currency) · @Fmt.Pct(data.UnrealizedPct is { } u ? Math.Abs(u) : null)</b></div>
+                <div><small>Cash</small><b>@Fmt.Money(data.Cash, currency)</b></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="kpis phone-only">
+        <div class="kpi"><small>Net deposits</small><b>@(data.NetDeposits is { } put2 ? Fmt.Money(put2, currency, 0) : "—")</b></div>
+        <div class="kpi"><small>Total return</small><b class="@Fmt.Trend(data.TotalReturn)">@(data.TotalReturnPct is { } rp2 ? Fmt.SignedPct(rp2, 1) : data.TotalReturn is { } r2 ? Fmt.SignedMoney(r2, currency, 0) : "—")</b></div>
+        <div class="kpi"><small>Income this year</small><b>@Fmt.Money(data.IncomeThisYear, currency)</b></div>
+        <div class="kpi"><small>Cash</small><b>@Fmt.Money(data.Cash, currency)</b></div>
+    </section>
+
+    <div class="bento">
+        <div class="wide" style="display: flex; flex-direction: column; gap: 16px">
+            <section class="card">
+                <div class="card-head">
+                    <h2>Holdings</h2>
+                    <a href="/holdings">@data.Positions.Count position@(data.Positions.Count == 1 ? string.Empty : "s") →</a>
+                </div>
+                @if (data.Positions.Count == 0)
+                {
+                    <p class="muted" style="margin-top: 10px">No open positions.</p>
+                }
+                else
+                {
+                    <div class="table-box desk-only">
+                        <table class="table">
+                            <thead>
+                                <tr><th scope="col">Asset</th><th scope="col" style="text-align: left">Weight</th><th scope="col">Shares</th><th scope="col">Avg cost</th><th scope="col">Price</th><th scope="col">Value</th><th scope="col">Return</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var position in data.Positions.Take(8))
+                                {
+                                    var top = data.Positions[0].Weight;
+                                    <tr class="link" data-href="@Ui.Href(position.Instrument)">
+                                        <td><a class="who" href="@Ui.Href(position.Instrument)">@Ui.Asset(position.Instrument, logos, "sm")<span class="ellipsis" style="max-width: 240px">@position.Instrument.Name</span></a></td>
+                                        <td class="wcell"><div class="weight" style="margin: 0"><span class="bar"><i class="bg-@Fmt.ClassCss(position.Instrument.Class)" style="width: @Charts.N(top > 0 ? (double)(position.Weight / top) * 100 : 0)%"></i></span><small>@Fmt.Pct(position.Weight)</small></div></td>
+                                        <td>@Fmt.Qty(position.Quantity)</td>
+                                        <td>@Fmt.Price(position.AveragePrice, position.Instrument.Currency)</td>
+                                        <td>@Fmt.Price(position.Price, position.Instrument.Currency)</td>
+                                        <td class="strong">@Fmt.Money(position.Value, currency)</td>
+                                        <td class="strong @Fmt.Trend(position.Unrealized)">@Fmt.Arrow(position.UnrealizedPct, 1)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="list phone-only" style="margin-top: 4px">
+                        @foreach (var position in data.Positions.Take(5))
+                        {
+                            var top = data.Positions[0].Weight;
+                            <a class="item" href="@Ui.Href(position.Instrument)">
+                                @Ui.Asset(position.Instrument, logos)
+                                <div class="grow">
+                                    <div class="name">@position.Instrument.Name</div>
+                                    <div class="weight"><span class="bar"><i class="bg-@Fmt.ClassCss(position.Instrument.Class)" style="width: @Charts.N(top > 0 ? (double)(position.Weight / top) * 100 : 0)%"></i></span><small>@Fmt.Pct(position.Weight)</small></div>
+                                </div>
+                                <div class="end"><b>@Fmt.Money(position.Value, currency)</b><small class="@Fmt.Trend(position.Unrealized)">@Fmt.Arrow(position.UnrealizedPct, 1)</small></div>
+                            </a>
+                        }
+                    </div>
+                }
+            </section>
+
+            @if (data.Movers.Count > 0)
+            {
+                <section>
+                    <div class="card-head" style="padding: 0 2px">
+                        <h2 class="h2">Today's movers</h2>
+                        <span class="aside">since the last close</span>
+                    </div>
+                    <div class="movers">
+                        @foreach (var mover in data.Movers)
+                        {
+                            var trend = Fmt.Trend(mover.DayChangePct);
+                            <a class="mover" href="@Ui.Href(mover.Instrument)">
+                                <div class="row" style="justify-content: space-between">
+                                    <span class="mono" style="font-size: 12px; font-weight: 600">@mover.Instrument.Symbol</span>
+                                    @Ui.Change(mover.DayChangePct, small: true)
+                                </div>
+                                <svg class="spark @trend" viewBox="0 0 112 30" preserveAspectRatio="none" aria-hidden="true"><path d="@Charts.Spark(mover.Spark)" /></svg>
+                                <small>@Fmt.Price(mover.Price, mover.Instrument.Currency)</small>
+                            </a>
+                        }
+                    </div>
+                </section>
+            }
+        </div>
+
+        <div class="side">
+            @if (data.Allocation.Count > 0)
+            {
+                <section class="card">
+                    <div class="card-head">
+                        <h2>Allocation</h2>
+                        <span class="aside">@Fmt.Money(data.TotalValue, currency, 0)</span>
+                    </div>
+                    <partial name="_Treemap" model="data.Allocation" />
+                    <div class="alloc-list desk-only">
+                        @foreach (var slice in data.Allocation)
+                        {
+                            <div class="row"><span class="bg-@Fmt.ClassCss(slice.Key)"></span><span class="grow" style="color: var(--text-2)">@slice.Label</span><span class="muted">@Fmt.Money(slice.Value, currency, 0)</span><b style="width: 54px; text-align: right">@Fmt.Pct(slice.Percent)</b></div>
+                        }
+                    </div>
+                </section>
+            }
+
+            <section class="card">
+                <div class="card-head">
+                    <h2>Income @Clock.Today.Year</h2>
+                    <a href="/income">Calendar →</a>
+                </div>
+                <div class="row" style="margin-top: 14px; gap: 16px">
+                    <div class="ring-box" style="width: 84px; height: 84px">
+                        <svg width="84" height="84" viewBox="0 0 104 104" role="img" aria-label="@Fmt.Pct(data.IncomeProgress, 0) of this year's expected income received">
+                            <circle cx="52" cy="52" r="44" fill="none" stroke="var(--track)" stroke-width="11" />
+                            <circle cx="52" cy="52" r="44" fill="none" stroke="var(--lime)" stroke-width="11" stroke-linecap="round" stroke-dasharray="@Charts.Ring((double)(data.IncomeProgress ?? 0), 44)" />
+                        </svg>
+                        <div class="center"><b style="font-size: 17px">@Fmt.Pct(data.IncomeProgress, 0)</b></div>
+                    </div>
+                    <div>
+                        <div class="num" style="font-size: 28px">@Fmt.Money(data.IncomeThisYear, currency)</div>
+                        <div class="muted" style="font-size: 12px">received · ≈ @Fmt.Money(data.IncomeNext12, currency, 0) next 12 months</div>
+                    </div>
+                </div>
+                @if (data.Upcoming.Count > 0)
+                {
+                    <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 8px">
+                        @foreach (var payment in data.Upcoming.Take(2))
+                        {
+                            var (month, day) = Fmt.Tile(payment.Day);
+                            <div class="payout">
+                                <div class="when"><small>@month</small><b>@day</b></div>
+                                <div class="grow"><div class="mono" style="font-size: 13px; font-weight: 600">@payment.Instrument.Symbol</div><div class="muted ellipsis" style="font-size: 11.5px">Expected, from last year's</div></div>
+                                <b>≈ @Fmt.Money(payment.Amount, currency)</b>
+                            </div>
+                        }
+                    </div>
+                }
+            </section>
+
+            <a class="card flat row" href="/activity" style="color: var(--text)">
+                <span class="ico-chip" style="display: grid; place-items: center; width: 40px; height: 40px; border-radius: 13px; background: var(--lime-soft); color: var(--lime)">@Icons.Get("activity")</span>
+                <span class="grow"><b style="display: block">Activity</b><small class="muted">Every buy, sell, dividend and deposit</small></span>
+                @Icons.Get("right")
+            </a>
+        </div>
+    </div>
+}

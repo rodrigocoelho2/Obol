@@ -1,0 +1,14 @@
+Action,Time,ISIN,Ticker,Name,Notes,ID,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Currency conversion fee,Currency (Currency conversion fee)
+Deposit,2025-01-02 09:15:00,,,,"Bank Transfer",dep-1,,,,,,,3000.00,EUR,,,,
+Market buy,2025-01-03 14:30:12,IE00B4L5Y983,IWDA,"iShares Core MSCI World UCITS ETF (Acc)",,EOF1,10,95.50,EUR,1.00,,,955.00,EUR,,,,
+Market buy,2025-01-06 15:31:00.123,US0378331005,AAPL,Apple,,EOF2,2,240.00,USD,0.96,,,461.52,EUR,,,0.69,EUR
+Market buy,2025-02-10 10:02:44,IE00B8GKDB10,VHYL,"Vanguard FTSE All-World High Dividend Yield UCITS ETF (Dist)",,EOF3,8,64.10,EUR,1.00,,,512.80,EUR,,,,
+Deposit,2025-03-01 09:00:00,,,,"Bank Transfer",dep-2,,,,,,,500.00,EUR,,,,
+Market buy,2025-03-03 09:30:00,IE00B4WXJJ64,IEGA,"iShares Core € Govt Bond UCITS ETF (Dist)",,EOF4,4,110.20,EUR,1.00,,,440.80,EUR,,,,
+Market sell,2025-03-10 15:00:00,US0378331005,AAPL,Apple,,EOF5,0.5,250.00,USD,0.92,4.10,EUR,114.90,EUR,,,0.17,EUR
+Dividend (Dividend),2025-03-20 10:00:00,US0378331005,AAPL,Apple,,,1.5,0.25,USD,0.92,,,0.30,EUR,0.06,USD,,
+Dividend (Dividend),2025-03-26 10:00:00,IE00B8GKDB10,VHYL,"Vanguard FTSE All-World High Dividend Yield UCITS ETF (Dist)",,,8,0.38,EUR,1.00,,,3.04,EUR,,,,
+Interest on cash,2025-03-31 23:59:59,,,,,int-1,,,,,,,1.23,EUR,,,,
+Market buy,2025-04-08 14:00:00,PTGAL0AM0009,GALP,"Galp Energia, SGPS",,EOF6,12,14.80,EUR,1.00,,,177.60,EUR,,,,
+Withdrawal,2025-04-15 09:00:00,,,,,wd-1,,,,,,,-100.00,EUR,,,,
+Stock split open,2025-04-20 09:00:00,US0378331005,AAPL,Apple,,,1,1,USD,,,,0,EUR,,,,

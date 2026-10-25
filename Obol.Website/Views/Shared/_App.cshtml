@@ -1,0 +1,62 @@
+@model AppPageModel
+@{
+    Layout = "_Layout";
+    ViewData["App"] = true;
+    var section = Model.Section;
+    string? Current(AppSection s) => s == section ? "page" : null;
+    var tabs = new[]
+    {
+        (AppSection.Overview, "/", "overview", "Overview"),
+        (AppSection.Holdings, "/holdings", "holdings", "Holdings"),
+        (AppSection.Income, "/income", "income", "Income"),
+        (AppSection.Activity, "/activity", "activity", "Activity"),
+        (AppSection.Sync, "/sync", "sync", "Sync"),
+    };
+}
+<div class="app sec-@section.ToString().ToLowerInvariant()">
+    <header class="topbar">
+        <div class="topbar-in">
+            <a class="brand" href="/">@Icons.Logo(34)Obol</a>
+            <nav class="nav" aria-label="Obol">
+                @foreach (var (s, href, _, name) in tabs)
+                {
+                    <a href="@href" aria-current="@Current(s)">@name</a>
+                }
+            </nav>
+            <div class="top-acts">
+                <a class="chip-sync" href="/sync"><span class="dot @Model.SyncDot"></span>@(Model.Connection is { Connected: true } ? "Trading 212 · " : string.Empty)@Model.SyncLabel</a>
+                <a class="avatar" href="/settings" aria-label="Settings (@Model.UserName)" aria-current="@Current(AppSection.Settings)">@Model.Initials</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="page">
+        @if (Model.Unavailable is { } problem)
+        {
+            <section class="card empty">
+                <span class="ico-chip">@Icons.Get("server")</span>
+                <h2>Obol's engine isn't answering</h2>
+                <p>@problem</p>
+                <a class="btn ghost" href="">Try again</a>
+            </section>
+        }
+        else
+        {
+            @RenderBody()
+        }
+    </main>
+
+    <nav class="dock" aria-label="Obol">
+        @foreach (var (s, href, icon, name) in tabs.Where(static tab => tab.Item1 != AppSection.Activity))
+        {
+            <a href="@href" aria-current="@Current(s)" aria-label="@name">@Icons.Get(icon)<span class="lbl">@name</span></a>
+        }
+    </nav>
+</div>
+@section Head {
+    @await RenderSectionAsync("Head", required: false)
+}
+@section Scripts {
+    <script src="~/js/app.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+}

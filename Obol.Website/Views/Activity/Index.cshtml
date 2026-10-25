@@ -1,0 +1,110 @@
+@model ActivityPageModel
+@{
+    Layout = "_App";
+    ViewData["Title"] = "Activity";
+    var data = Model.Data!;
+    var currency = data.Currency;
+    var logos = Model.Connection?.Logos == true;
+    var kinds = new (ActivityKind? Kind, string Label)[]
+    {
+        (null, "All"), (ActivityKind.Buy, "Buys"), (ActivityKind.Sell, "Sells"), (ActivityKind.Dividend, "Dividends"),
+        (ActivityKind.Deposit, "Deposits"), (ActivityKind.Withdrawal, "Withdrawals"), (ActivityKind.Interest, "Interest"), (ActivityKind.Fee, "Fees"),
+    };
+    var pages = Math.Max(1, (int)Math.Ceiling(data.Total / (double)ActivityPageModel.PageSize));
+    string Link(ActivityKind? kind, int page) => "/activity?" + (kind is { } only ? "kind=" + only.ToString().ToLowerInvariant() + "&" : string.Empty) + "page=" + page;
+    string Month(DateTimeOffset at) => TimeZoneInfo.ConvertTime(at, Clock.Zone).ToString("MMMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("en-IE"));
+    string? lastMonth = null;
+}
+
+<header class="head">
+    <div>
+        <h1>Activity</h1>
+        <div class="sub">@data.Total line@(data.Total == 1 ? string.Empty : "s") · newest first</div>
+    </div>
+</header>
+
+<nav class="chips" aria-label="Show">
+    @foreach (var (kind, label) in kinds)
+    {
+        <a href="@Link(kind, 1)" aria-current="@(kind == Model.Kind ? "page" : null)">@label</a>
+    }
+</nav>
+
+<section class="card">
+    @if (data.Items.Count == 0)
+    {
+        <p class="muted">Nothing here yet.</p>
+    }
+    else
+    {
+        foreach (var item in data.Items)
+        {
+            var month = Month(item.At);
+            if (month != lastMonth)
+            {
+                lastMonth = month;
+                <div class="day-head">@month</div>
+            }
+
+            var (css, icon) = item.Kind switch
+            {
+                ActivityKind.Buy => ("buy", "plus"),
+                ActivityKind.Sell => ("sell", "minus"),
+                ActivityKind.Dividend => ("div", "income"),
+                ActivityKind.Interest => ("int", "percent"),
+                ActivityKind.Deposit => ("buy", "bank"),
+                ActivityKind.Withdrawal => ("sell", "bank"),
+                _ => (string.Empty, "info"),
+            };
+            var line = item.Instrument is { } instrument
+                ? item.Kind switch
+                {
+                    ActivityKind.Buy or ActivityKind.Sell => $"{Fmt.Kind(item.Kind)} {Fmt.Qty(item.Quantity)} {instrument.Symbol}",
+                    _ => $"{Fmt.Kind(item.Kind)} · {instrument.Symbol}",
+                }
+                : item.Note ?? Fmt.Kind(item.Kind);
+            var detail = item.Kind is ActivityKind.Buy or ActivityKind.Sell && item.Price is { } price
+                ? $"at {Fmt.Price(price, item.PriceCurrency)} · {Fmt.When(item.At)}"
+                : Fmt.When(item.At);
+            if (item.Instrument is { } link)
+            {
+                <a class="act" href="@Ui.Href(link)">
+                    @Ui.Asset(link, logos, "sm")
+                    <div class="grow" style="min-width: 0"><b class="ellipsis" style="display: block">@line</b><small class="ellipsis">@detail@(item.Note is { } note && item.Kind == ActivityKind.Sell ? " · " + note : string.Empty)</small></div>
+                    <span class="amt @(item.Amount >= 0 ? "up" : string.Empty)">@Fmt.SignedMoney(item.Amount, currency)</span>
+                </a>
+            }
+            else
+            {
+                <div class="act">
+                    <span class="k @css">@Icons.Get(icon)</span>
+                    <div class="grow" style="min-width: 0"><b class="ellipsis" style="display: block">@line</b><small>@detail</small></div>
+                    <span class="amt @(item.Amount >= 0 ? "up" : string.Empty)">@Fmt.SignedMoney(item.Amount, currency)</span>
+                </div>
+            }
+        }
+
+        if (pages > 1)
+        {
+            <div class="pager">
+                @if (Model.Page > 1)
+                {
+                    <a class="btn ghost small" href="@Link(Model.Kind, Model.Page - 1)">@Icons.Get("left")Newer</a>
+                }
+                else
+                {
+                    <span></span>
+                }
+                <span>Page @Model.Page of @pages</span>
+                @if (Model.Page < pages)
+                {
+                    <a class="btn ghost small" href="@Link(Model.Kind, Model.Page + 1)">Older@Icons.Get("right")</a>
+                }
+                else
+                {
+                    <span></span>
+                }
+            </div>
+        }
+    }
+</section>

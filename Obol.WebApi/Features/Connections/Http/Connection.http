@@ -1,0 +1,40 @@
+@HostAddress = http://127.0.0.1:5096
+@apiKey = devkey
+@userId = 00000000000000000000000000000000
+
+### The connection, the sync log and the next sync
+GET {{HostAddress}}/connection?userId={{userId}}
+x-api-key: {{apiKey}}
+
+### Connect Trading 212 (checked with Trading 212 unless DemoMode)
+POST {{HostAddress}}/connection
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{ "userId": "{{userId}}", "apiKey": "<key>", "apiSecret": "<secret>", "environment": "live" }
+
+### What the sync reads
+POST {{HostAddress}}/connection/options
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{ "userId": "{{userId}}", "syncPositions": true, "syncOrders": true, "syncDividends": true, "syncTransactions": true }
+
+### Sync now
+POST {{HostAddress}}/connection/sync?userId={{userId}}
+x-api-key: {{apiKey}}
+
+### Import a Trading 212 CSV export (the raw file as the body)
+POST {{HostAddress}}/connection/csv?userId={{userId}}
+Content-Type: text/csv
+x-api-key: {{apiKey}}
+
+< ../../../../.github/scripts/sample-export.csv
+
+### Forget the key
+DELETE {{HostAddress}}/connection?userId={{userId}}
+x-api-key: {{apiKey}}
+
+### Delete everything imported
+DELETE {{HostAddress}}/connection/data?userId={{userId}}
+x-api-key: {{apiKey}}

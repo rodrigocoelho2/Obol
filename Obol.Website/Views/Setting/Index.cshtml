@@ -1,0 +1,77 @@
+@model SettingsPageModel
+@{
+    Layout = "_App";
+    ViewData["Title"] = "Settings";
+}
+
+<header class="head">
+    <div>
+        <h1>Settings</h1>
+        <div class="sub">@Model.DisplayName · @(Model.IsAdmin ? "admin" : "member")</div>
+    </div>
+    <form method="post" action="/sign-out">
+        @Html.AntiForgeryToken()
+        <button class="btn ghost small" type="submit">@Icons.Get("logout")Sign out</button>
+    </form>
+</header>
+
+<div class="bento">
+    <div class="wide" style="display: flex; flex-direction: column; gap: 16px">
+        <section class="card">
+            <div class="card-head"><h2>Password</h2><span class="aside">other devices are signed out</span></div>
+            <form class="form-grid" style="margin-top: 14px" data-password-form>
+                <label class="field">Current password<input class="input" name="currentPassword" type="password" autocomplete="current-password" required /></label>
+                <label class="field">New password<input class="input" name="newPassword" type="password" autocomplete="new-password" minlength="8" required /></label>
+                <div class="field" style="grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 12px">
+                    <button class="btn" type="submit">Change password</button>
+                    <span class="hint" data-password-result></span>
+                </div>
+            </form>
+        </section>
+
+        @if (Model.IsAdmin)
+        {
+            <section class="card">
+                <div class="card-head"><h2>Accounts</h2><span class="aside">@Model.Users.Count</span></div>
+                <div class="list set-list" style="margin-top: 6px">
+                    @foreach (var user in Model.Users)
+                    {
+                        <div class="item">
+                            <span class="avatar" style="width: 36px; height: 36px; font-size: 12px">@(user.UserName.Length > 1 ? user.UserName[..2].ToUpperInvariant() : user.UserName.ToUpperInvariant())</span>
+                            <div class="grow">
+                                <div class="name">@user.UserName@(user.Id == Model.UserId ? " (you)" : string.Empty)</div>
+                                <div class="meta">@(user.Role == UserRole.Admin ? "Admin" : "Member") · last sign-in @(user.LastSignInAt is { } at ? Fmt.When(at) : "never")</div>
+                            </div>
+                            @if (user.Id != Model.UserId)
+                            {
+                                <button class="btn danger small" type="button" data-delete-user="@user.Id" data-name="@user.UserName">@Icons.Get("trash")<span class="desk-only">Delete</span></button>
+                            }
+                        </div>
+                    }
+                </div>
+                <p class="hint" style="margin-top: 8px">New people create their account at /create-account (unless OBOL_ALLOW_REGISTRATION is false). Each account has its own portfolio and its own Trading 212 key.</p>
+            </section>
+        }
+    </div>
+
+    <div class="side">
+        <section class="card flat">
+            <div class="card-head"><h2>Obol</h2><span class="aside">@AppPageModel.CurrentVersion</span></div>
+            <div class="list" style="margin-top: 6px; font-size: 13px">
+                <a class="item" href="/sync"><span class="grow">Trading 212 and CSV import</span><span class="muted">@Model.SyncLabel</span>@Icons.Get("right")</a>
+                <a class="item" href="/activity"><span class="grow">Activity</span>@Icons.Get("right")</a>
+                <a class="item" href="/about"><span class="grow">About Obol</span>@Icons.Get("right")</a>
+            </div>
+            <p class="hint" style="margin-top: 10px">Add Obol to the Home Screen (Safari › Share › Add to Home Screen) to open it like an app.</p>
+        </section>
+
+        @if (!Model.IsAdmin || Model.Users.Count(static user => user.Role == UserRole.Admin) > 1)
+        {
+            <section class="card danger-zone">
+                <div class="card-head"><h2>Delete my account</h2></div>
+                <p class="muted" style="margin-top: 8px; font-size: 13px">Deletes your account, your portfolio and your Trading 212 key from this server.</p>
+                <button class="btn danger small" type="button" style="margin-top: 12px" data-delete-user="" data-name="your account">@Icons.Get("trash")Delete my account</button>
+            </section>
+        }
+    </div>
+</div>

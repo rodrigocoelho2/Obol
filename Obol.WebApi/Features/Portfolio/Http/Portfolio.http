@@ -1,0 +1,24 @@
+@HostAddress = http://127.0.0.1:5096
+@apiKey = devkey
+# The id from GET user/list (demo mode: the demo account).
+@userId = 00000000000000000000000000000000
+
+### Overview (range: Week, Month, Quarter, YearToDate, Year, All)
+GET {{HostAddress}}/portfolio/overview?userId={{userId}}&range=Year
+x-api-key: {{apiKey}}
+
+### Holdings
+GET {{HostAddress}}/portfolio/holdings?userId={{userId}}
+x-api-key: {{apiKey}}
+
+### One position (key: the ISIN, or T212:<ticker>)
+GET {{HostAddress}}/portfolio/position?userId={{userId}}&key=IE00B4L5Y983&range=Year
+x-api-key: {{apiKey}}
+
+### Activity (kind: Buy, Sell, Dividend, Interest, Deposit, Withdrawal, Fee)
+GET {{HostAddress}}/portfolio/activity?userId={{userId}}&skip=0&take=40
+x-api-key: {{apiKey}}
+
+### Income of a year
+GET {{HostAddress}}/portfolio/income?userId={{userId}}&year=2026
+x-api-key: {{apiKey}}

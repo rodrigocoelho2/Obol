@@ -1,0 +1,81 @@
+/* Obol — the public pages: the landing page, sign in and create account. Built on the tokens of app.css. */
+
+.lime { color: var(--lime); }
+
+/* ----- Sign in / create account ----- */
+.au { display: flex; min-height: 100vh; }
+.au-side {
+  position: relative; overflow: hidden; flex: 1 1 46%; display: flex; flex-direction: column; gap: 18px; justify-content: center;
+  padding: 48px clamp(28px, 5vw, 72px); background: var(--surface); border-right: 1px solid var(--line);
+}
+.au-side .rings { position: absolute; width: 640px; height: 640px; right: -260px; top: -240px; color: var(--lime); opacity: 0.07; pointer-events: none; }
+.au-side > * { position: relative; }
+.au-top { position: absolute; top: 28px; left: clamp(28px, 5vw, 72px); right: clamp(28px, 5vw, 72px); display: flex; justify-content: space-between; align-items: center; }
+.au-back { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; font-weight: 600; }
+.au-back .ic { width: 16px; height: 16px; }
+.au-side h2 { font-family: var(--display); font-size: clamp(34px, 4vw, 52px); font-weight: 700; letter-spacing: -0.035em; line-height: 1.02; max-width: 520px; }
+.au-side p { color: var(--text-2); max-width: 460px; font-size: 16px; }
+.au-card {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 6px; width: min(360px, 100%); margin-top: 12px; padding: 18px 18px 12px;
+  border-radius: var(--r-lg); background: var(--bg-2); border: 1px solid var(--lime-line);
+}
+.au-card .num { font-size: 34px; }
+.au-card svg { width: 100%; height: 64px; margin-top: 6px; }
+.au-card small { font-size: 11px; }
+.au-main { flex: 1 1 54%; display: grid; place-items: center; padding: 48px 24px; }
+.au-form { width: min(420px, 100%); display: flex; flex-direction: column; gap: 16px; }
+.au-form h1 { font-family: var(--display); font-size: 34px; font-weight: 700; letter-spacing: -0.03em; }
+.au-tabs { display: grid; grid-template-columns: 1fr 1fr; }
+.au-in {
+  display: flex; align-items: center; gap: 10px; height: 50px; padding: 0 14px; border-radius: 14px; border: 1px solid var(--line-2);
+  background: var(--bg-2); color: var(--muted);
+}
+.au-in:focus-within { border-color: var(--lime); color: var(--text); }
+.au-in input { flex: 1; min-width: 0; height: 100%; border: 0; background: transparent; outline: none; color: var(--text); font-size: 15px; font-weight: 500; }
+.password-toggle { display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); cursor: pointer; }
+.password-toggle[aria-pressed="true"] { color: var(--lime); }
+.au-check { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-2); cursor: pointer; }
+.au-check input { width: 18px; height: 18px; accent-color: #C6F36D; }
+.au-fine { font-size: 13px; color: var(--muted); text-align: center; }
+.au-demo { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; background: var(--lime-soft); color: var(--lime-2); font-size: 13px; }
+.au-demo span { flex: 1; }
+@media (max-width: 899px) {
+  .au { flex-direction: column; }
+  .au-side { flex: none; padding: calc(84px + var(--safe-t)) 22px 26px; border-right: 0; border-bottom: 1px solid var(--line); gap: 10px; }
+  .au-top { top: calc(20px + var(--safe-t)); left: 22px; right: 22px; }
+  .au-side h2 { font-size: 30px; }
+  .au-side p { font-size: 14px; }
+  .au-card { display: none; }
+  .au-main { padding: 26px 20px 48px; place-items: start center; }
+}
+
+/* ----- Landing ----- */
+.lp { max-width: 1200px; margin: 0 auto; padding: 0 32px 48px; }
+.lp-top { display: flex; justify-content: space-between; align-items: center; padding: 22px 0; }
+.lp-top nav { gap: 8px; }
+.lp-hero { display: flex; flex-wrap: wrap; align-items: center; gap: 48px; padding: 36px 0 56px; }
+.lp-copy { flex: 1 1 480px; display: flex; flex-direction: column; align-items: flex-start; gap: 22px; }
+.lp-copy .pill .ic { width: 15px; height: 15px; }
+.lp-copy h1 { font-family: var(--display); font-size: clamp(40px, 5.6vw, 68px); font-weight: 700; letter-spacing: -0.04em; line-height: 0.98; }
+.lp-copy p { color: var(--text-2); font-size: 17px; max-width: 560px; }
+.lp-phone { flex: 0 1 360px; margin: 0 auto; padding: 12px; border-radius: 46px; background: #050807; border: 1px solid var(--line-2); box-shadow: 0 40px 80px rgba(0, 0, 0, 0.55), 0 0 0 10px rgba(198, 243, 109, 0.04); }
+.lp-screen { position: relative; overflow: hidden; padding: 20px 16px 84px; border-radius: 36px; background: var(--bg); }
+.lp-screen .greet b { font-size: 16px; }
+.lp-dock { position: absolute; left: 12px; right: 12px; bottom: 14px; display: flex; justify-content: space-between; align-items: center; height: 54px; padding: 0 10px; border-radius: 18px; background: var(--surface-2); color: var(--muted); }
+.lp-dock .ic { width: 19px; height: 19px; margin: 0 10px; }
+.lp-dock .on { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 12px; border-radius: 12px; background: var(--lime); color: var(--ink); font-size: 12px; font-weight: 700; }
+.lp-dock .on .ic { margin: 0; width: 17px; height: 17px; }
+.lp-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.lp-grid .card { display: flex; flex-direction: column; gap: 10px; }
+.lp-grid h3 { font-family: var(--display); font-size: 19px; font-weight: 700; }
+.lp-grid p { color: var(--text-2); font-size: 14px; }
+.ico-chip { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: var(--lime-soft); color: var(--lime); }
+.lp-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-top: 40px; padding-top: 22px; border-top: 1px solid var(--line); font-size: 13px; }
+.lp-foot span:first-child { display: inline-flex; align-items: center; gap: 8px; }
+@media (max-width: 899px) {
+  .lp { padding: 0 20px 40px; }
+  .lp-hero { padding: 16px 0 36px; gap: 36px; }
+  .lp-copy p { font-size: 15px; }
+  .lp-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (min-width: 900px) and (max-width: 1100px) { .lp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

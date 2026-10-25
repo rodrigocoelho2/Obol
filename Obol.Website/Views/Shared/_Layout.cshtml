@@ -1,0 +1,41 @@
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    var antiforgeryToken = Antiforgery.GetAndStoreTokens(Context).RequestToken;
+    var title = ViewData["Title"] as string;
+}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="request-verification-token" content="@antiforgeryToken" />
+    <meta name="color-scheme" content="dark" />
+    <title>@(string.IsNullOrEmpty(title) || title == "Obol" ? "Obol" : $"{title} · Obol")</title>
+    <meta name="description" content="Obol follows your Trading 212 portfolio: what it's worth, every holding, the dividends and the history behind them. Self-hosted, on your phone and your computer." />
+    <meta name="theme-color" content="#0B0F0E" />
+    <meta name="application-name" content="Obol" />
+    <meta name="apple-mobile-web-app-title" content="Obol" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="icon" href="~/img/obol.svg" type="image/svg+xml" />
+    <link rel="icon" href="~/img/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="~/img/apple-touch-icon.png" />
+    <link rel="manifest" href="~/manifest.webmanifest" />
+    <link rel="preload" href="~/fonts/geist-latin-wght.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="~/fonts/bricolage-grotesque-latin-wght.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
+    @if (ViewData["App"] is true)
+    {
+        @* Pages are fetched as soon as a finger lands on a link, so they open at once. *@
+        <script type="speculationrules">
+            { "prefetch": [ { "where": { "and": [ { "href_matches": "/*" }, { "not": { "href_matches": "/about" } }, { "not": { "href_matches": "/logo/*" } }, { "not": { "selector_matches": "[data-no-prefetch]" } } ] }, "eagerness": "moderate" } ] }
+        </script>
+    }
+    @await RenderSectionAsync("Head", required: false)
+</head>
+<body>
+    @RenderBody()
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

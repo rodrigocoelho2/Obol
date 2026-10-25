@@ -1,0 +1,9 @@
+{
+  "Website": {
+    "SetupKey": ""
+  },
+  "ObolApi": {
+    "Url": "http://127.0.0.1:5096/",
+    "ApiKey": "devkey"
+  }
+}

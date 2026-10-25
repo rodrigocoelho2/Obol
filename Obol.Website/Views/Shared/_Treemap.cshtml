@@ -1,0 +1,43 @@
+@model List<AllocationSliceDTO>
+@{
+    // The allocation as a treemap: the biggest slice on the left, the next one on top of the right column, the rest
+    // side by side under it. Tiny slices are drawn without text.
+    var slices = Model.Where(static slice => slice.Percent > 0).OrderByDescending(static slice => slice.Percent).ToList();
+    string Flex(decimal percent) => Charts.N((double)Math.Max(percent, 0.012m) * 100);
+    string Pct(decimal percent) => Fmt.Pct(percent, percent < 0.1m ? 1 : 1);
+    var lead = slices.FirstOrDefault();
+    var second = slices.Skip(1).FirstOrDefault();
+    var rest = slices.Skip(2).ToList();
+    var restSum = rest.Sum(static slice => slice.Percent);
+    var label = string.Join(", ", slices.Select(slice => $"{slice.Label} {Fmt.Pct(slice.Percent)}"));
+}
+@if (lead is not null)
+{
+    <div class="treemap" role="img" aria-label="Allocation: @label">
+        <div class="tile lead bg-@Fmt.ClassCss(lead.Key)" style="flex: @Flex(lead.Percent)">
+            <span>@lead.Label</span>
+            <b>@Pct(lead.Percent)</b>
+        </div>
+        @if (second is not null)
+        {
+            <div class="col" style="flex: @Flex(second.Percent + restSum)">
+                <div class="tile bg-@Fmt.ClassCss(second.Key)@(second.Percent < 0.05m ? " tiny" : string.Empty)" style="flex: @Flex(second.Percent)">
+                    <span>@second.Label</span>
+                    <b>@Pct(second.Percent)</b>
+                </div>
+                @if (rest.Count > 0)
+                {
+                    <div class="split" style="flex: @Flex(restSum)">
+                        @foreach (var slice in rest)
+                        {
+                            <div class="tile bg-@Fmt.ClassCss(slice.Key)@(slice.Percent < 0.05m ? " tiny" : string.Empty)" style="flex: @Flex(slice.Percent)" title="@slice.Label @Fmt.Pct(slice.Percent)">
+                                <span>@slice.Label</span>
+                                <b>@Pct(slice.Percent)</b>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}

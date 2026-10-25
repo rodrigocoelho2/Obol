@@ -1,0 +1,49 @@
+@model LineChart
+@{
+    // A line chart with the area under it, an optional dashed second line (deposits) or guide (average price), and the
+    // cursor the page script moves (data-points). ViewData: Height / PhoneHeight (px), Down (coral), Label (for screen readers).
+    var height = ViewData["Height"] as int? ?? 230;
+    var phoneHeight = ViewData["PhoneHeight"] as int? ?? 150;
+    var down = ViewData["Down"] is true;
+    var label = ViewData["Label"] as string ?? "Chart";
+    var h = Charts.N(Model.Height);
+    var last = Model.Last;
+}
+<div class="chart@(down ? " down" : string.Empty)" data-chart data-points="@Model.PointsJson" style="--h: @(height)px; --hp: @(phoneHeight)px">
+    <svg viewBox="0 0 1000 @h" preserveAspectRatio="none" role="img" aria-label="@label">
+        <defs>
+            <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C6F36D" stop-opacity="0.22" /><stop offset="1" stop-color="#C6F36D" stop-opacity="0" /></linearGradient>
+            <linearGradient id="fade-down" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF8F7F" stop-opacity="0.2" /><stop offset="1" stop-color="#FF8F7F" stop-opacity="0" /></linearGradient>
+        </defs>
+        <line class="grid" x1="0" y1="@Charts.N(Model.Height * 0.25)" x2="1000" y2="@Charts.N(Model.Height * 0.25)" />
+        <line class="grid" x1="0" y1="@Charts.N(Model.Height * 0.5)" x2="1000" y2="@Charts.N(Model.Height * 0.5)" />
+        <line class="grid" x1="0" y1="@Charts.N(Model.Height * 0.75)" x2="1000" y2="@Charts.N(Model.Height * 0.75)" />
+        <path class="area" d="@Model.Area" />
+        @if (Model.Second.Length > 0)
+        {
+            <path class="second" d="@Model.Second" />
+        }
+        @if (Model.GuideY is { } guide)
+        {
+            <line class="guide" x1="0" y1="@Charts.N(guide)" x2="1000" y2="@Charts.N(guide)" />
+        }
+        <path class="line" d="@Model.Line" />
+    </svg>
+    @if (Model.GuideY is { } flag && ViewData["Flag"] is string flagText)
+    {
+        <span class="flag" style="top: @Charts.N(flag / Model.Height * 100)%">@flagText</span>
+    }
+    @if (ViewData["Marks"] is IEnumerable<(double X, bool Buy)> marks)
+    {
+        foreach (var (x, buy) in marks)
+        {
+            <span class="mark@(buy ? string.Empty : " sell")" style="left: @Charts.N(x)%" aria-hidden="true"></span>
+        }
+    }
+    <span class="cross" aria-hidden="true"></span>
+    <span class="tip" aria-hidden="true"><small></small><b></b><i></i></span>
+    @if (last is not null)
+    {
+        <span class="knob" style="left: @Charts.N(last.X)%; top: @Charts.N(last.Y)%" aria-hidden="true"></span>
+    }
+</div>

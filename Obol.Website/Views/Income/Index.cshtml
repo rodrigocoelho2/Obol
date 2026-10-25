@@ -1,0 +1,180 @@
+@model IncomePageModel
+@{
+    Layout = "_App";
+    ViewData["Title"] = "Income";
+    var data = Model.Data!;
+    var currency = data.Currency;
+    var logos = Model.Connection?.Logos == true;
+    var biggest = data.Months.Max(static month => Math.Max(month.Received, month.Expected));
+    string Level(IncomeMonthDTO month)
+    {
+        if (month.IsFuture && month.Received == 0 && month.Expected > 0)
+        {
+            return "exp";
+        }
+
+        if (month.Received <= 0 || biggest <= 0)
+        {
+            return string.Empty;
+        }
+
+        var share = month.Received / biggest;
+        return share > 0.6m ? "l3" : share > 0.3m ? "l2" : "l1";
+    }
+
+    var isNow = data.IsCurrentYear;
+    var thisMonth = Clock.Today.Month;
+    var sourceColours = new[] { "var(--c-eq)", "var(--c-stock)", "var(--c-bond)", "var(--c-gold)", "var(--c-cash)" };
+}
+
+<header class="head">
+    <div>
+        <h1>Income</h1>
+        <div class="sub">Dividends and interest</div>
+    </div>
+    @if (data.Years.Count > 1)
+    {
+        <nav class="chips" aria-label="Year">
+            @foreach (var year in data.Years.Take(4))
+            {
+                <a href="/income?year=@year" aria-current="@(year == data.Year ? "page" : null)">@year</a>
+            }
+        </nav>
+    }
+</header>
+
+<div class="bento">
+    <section class="card minted wide" style="padding: 22px 0">
+        @Icons.Rings()
+        <div class="pad row wrap" style="gap: 22px; align-items: center">
+            @if (isNow)
+            {
+                <div class="ring-box" style="width: 116px; height: 116px">
+                    <svg width="116" height="116" viewBox="0 0 104 104" role="img" aria-label="@Fmt.Pct(data.Progress, 0) of this year's expected income received">
+                        <circle cx="52" cy="52" r="44" fill="none" stroke="var(--track)" stroke-width="10" />
+                        <circle cx="52" cy="52" r="44" fill="none" stroke="var(--lime)" stroke-width="10" stroke-linecap="round" stroke-dasharray="@Charts.Ring((double)(data.Progress ?? 0), 44)" />
+                        <circle cx="52" cy="52" r="33" fill="none" stroke="var(--lime)" stroke-opacity="0.12" stroke-dasharray="1.5 3.5" />
+                    </svg>
+                    <div class="center"><div><b>@Fmt.Pct(data.Progress, 0)</b><small>of the year</small></div></div>
+                </div>
+            }
+            <div class="grow">
+                <div class="eyebrow">Received in @data.Year</div>
+                <div class="big" style="margin-top: 6px; font-size: 44px">@Ui.BigMoney(data.Received, currency)</div>
+                <div class="muted" style="margin-top: 8px; font-size: 13px">
+                    @if (isNow)
+                    {
+                        <text>of ≈ @Fmt.Money(data.ExpectedYear, currency) expected in @data.Year</text>
+                    }
+                    else
+                    {
+                        <text>@Fmt.Money(data.Interest, currency) of it interest on cash</text>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="side" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; align-content: stretch">
+        <div class="kpi"><small>Next 12 months</small><b class="up">≈ @Fmt.Money(data.Next12, currency, 0)</b></div>
+        <div class="kpi"><small>Per month, 12m</small><b>@Fmt.Money(data.Next12 / 12m, currency)</b></div>
+        <div class="kpi"><small>Yield on cost</small><b>@Fmt.Pct(data.YieldOnCost, 2)</b></div>
+    </div>
+</div>
+
+<div class="bento">
+    <section class="card wide">
+        <div class="card-head">
+            <h2>Calendar</h2>
+            <span class="aside">brighter = more paid@(isNow ? " · dashed = expected" : string.Empty)</span>
+        </div>
+        <div class="cal" role="img" aria-label="Income by month in @data.Year: @string.Join(", ", data.Months.Select(month => $"{Fmt.Month(month.Month)} {Fmt.Money(month.Received + month.Expected, currency)}"))">
+            @foreach (var month in data.Months)
+            {
+                var amount = month.Received > 0 ? month.Received : month.Expected;
+                <div class="m @Level(month)@(isNow && month.Month == thisMonth ? " now" : string.Empty)">
+                    <small>@Fmt.Month(month.Month)</small>
+                    <b>@(amount > 0 ? (month.Received == 0 ? "≈ " : string.Empty) + Fmt.Money(amount, currency, amount < 10 ? 2 : 0) : "—")</b>
+                </div>
+            }
+        </div>
+        @if (data.Sources.Count > 0)
+        {
+            <div class="sources" style="margin-top: 18px" role="img" aria-label="Where it came from: @string.Join(", ", data.Sources.Select(source => $"{source.Label} {Fmt.Money(source.Amount, currency)}"))">
+                @for (var i = 0; i < data.Sources.Count; i++)
+                {
+                    <i style="flex: @Charts.N((double)Math.Max(data.Sources[i].Percent, 0.01m) * 100); background: @sourceColours[Math.Min(i, sourceColours.Length - 1)]"></i>
+                }
+            </div>
+            <div class="row wrap" style="margin-top: 10px; gap: 16px; font-size: 12px; color: var(--text-2)">
+                @for (var i = 0; i < data.Sources.Count; i++)
+                {
+                    <span class="row" style="gap: 6px"><span style="width: 8px; height: 8px; border-radius: 2px; background: @sourceColours[Math.Min(i, sourceColours.Length - 1)]"></span>@data.Sources[i].Label <b style="color: var(--text)">@Fmt.Money(data.Sources[i].Amount, currency)</b></span>
+                }
+            </div>
+        }
+    </section>
+
+    <section class="side">
+        <div class="card">
+            <div class="card-head">
+                <h2>Next payouts</h2>
+                <span class="aside">expected</span>
+            </div>
+            @if (data.Upcoming.Count == 0)
+            {
+                <p class="muted" style="margin-top: 10px; font-size: 13px">Expected payouts show up once a holding has paid dividends in the last twelve months.</p>
+            }
+            else
+            {
+                <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px">
+                    @foreach (var payment in data.Upcoming)
+                    {
+                        var (month, day) = Fmt.Tile(payment.Day);
+                        <a class="payout" href="@Ui.Href(payment.Instrument)" style="color: var(--text)">
+                            <div class="when"><small>@month</small><b>@day</b></div>
+                            @Ui.Asset(payment.Instrument, logos, "sm")
+                            <div class="grow" style="min-width: 0"><div class="ellipsis" style="font-size: 13px; font-weight: 600">@payment.Instrument.Name</div><div class="muted mono" style="font-size: 11px">@payment.Instrument.Symbol</div></div>
+                            <b>≈ @Fmt.Money(payment.Amount, currency)</b>
+                        </a>
+                    }
+                </div>
+                <p class="hint" style="margin-top: 10px">Worked out from last year's payments on the shares you hold now.</p>
+            }
+        </div>
+    </section>
+</div>
+
+<section class="card">
+    <div class="card-head">
+        <h2>Payments in @data.Year</h2>
+        <span class="aside">@data.Payments.Count</span>
+    </div>
+    @if (data.Payments.Count == 0)
+    {
+        <p class="muted" style="margin-top: 10px">No dividends or interest in @data.Year.</p>
+    }
+    else
+    {
+        <div class="list" style="margin-top: 4px">
+            @foreach (var item in data.Payments.Take(30))
+            {
+                <div class="act">
+                    @if (item.Instrument is { } paid)
+                    {
+                        @Ui.Asset(paid, logos, "sm")
+                    }
+                    else
+                    {
+                        <span class="k int">@Icons.Get("percent")</span>
+                    }
+                    <div class="grow" style="min-width: 0">
+                        <b class="ellipsis" style="display: block">@(item.Instrument?.Name ?? item.Note ?? "Interest")</b>
+                        <small>@Fmt.ShortDate(item.At)@(item.Kind == ActivityKind.Dividend && item.Quantity is { } shares ? $" · {Fmt.Qty(shares)} shares" : string.Empty)</small>
+                    </div>
+                    <span class="amt up">+@Fmt.Money(item.Amount, currency)</span>
+                </div>
+            }
+        </div>
+    }
+</section>

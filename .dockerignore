@@ -1,0 +1,10 @@
+**/bin/
+**/obj/
+**/node_modules/
+**/TestResults/
+.git/
+.github/
+docs/
+Obol.UnitTest/
+*.md
+.env

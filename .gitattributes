@@ -1,0 +1,14 @@
+# Files that run inside Linux containers must keep LF line endings, even in a clone made on Windows.
+* text=auto
+*.sh text eol=lf
+Dockerfile text eol=lf
+*.yml text eol=lf
+.env* text eol=lf
+*.sql text eol=lf
+# Binary assets
+*.png binary
+*.jpg binary
+*.gif binary
+*.ogg binary
+*.mp3 binary
+*.woff2 binary

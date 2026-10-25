@@ -1,0 +1,85 @@
+<Project Sdk="Microsoft.Build.Sql/2.1.0">
+
+  <!-- SQL Server database of Obol: the tables and the stored procedures the WebApi calls. Builds to Obol.Database.dacpac,
+       which the db-deploy container publishes on every deploy (creates the database or brings it up to date).
+       Every script is listed below (no wildcards), so Visual Studio shows them with either SSDT flavour;
+       adding a script through Solution Explorer adds its line here. -->
+  <PropertyGroup>
+    <Name>Obol.Database</Name>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql160DatabaseSchemaProvider</DSP>
+    <ModelCollation>1033, CI</ModelCollation>
+    <DefaultCollation>SQL_Latin1_General_CP1_CI_AS</DefaultCollation>
+    <TargetDatabaseSet>True</TargetDatabaseSet>
+    <EnableDefaultSqlItems>false</EnableDefaultSqlItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Tables\" />
+    <Folder Include="StoredProcedures\" />
+    <Folder Include="StoredProcedures\Connections\" />
+    <Folder Include="StoredProcedures\Instruments\" />
+    <Folder Include="StoredProcedures\Logos\" />
+    <Folder Include="StoredProcedures\Portfolio\" />
+    <Folder Include="StoredProcedures\Prices\" />
+    <Folder Include="StoredProcedures\Users\" />
+    <Folder Include="Scripts\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Build Include="Tables\dbo.AccountSnapshot.sql" />
+    <Build Include="Tables\dbo.BrokerConnection.sql" />
+    <Build Include="Tables\dbo.CashMovement.sql" />
+    <Build Include="Tables\dbo.Dividend.sql" />
+    <Build Include="Tables\dbo.FxDay.sql" />
+    <Build Include="Tables\dbo.Holding.sql" />
+    <Build Include="Tables\dbo.Instrument.sql" />
+    <Build Include="Tables\dbo.InstrumentLogo.sql" />
+    <Build Include="Tables\dbo.PriceDay.sql" />
+    <Build Include="Tables\dbo.SyncRun.sql" />
+    <Build Include="Tables\dbo.Trade.sql" />
+    <Build Include="Tables\dbo.User.sql" />
+    <Build Include="StoredProcedures\Connections\dbo.BrokerConnectionDelete.sql" />
+    <Build Include="StoredProcedures\Connections\dbo.BrokerConnectionGet.sql" />
+    <Build Include="StoredProcedures\Connections\dbo.BrokerConnectionList.sql" />
+    <Build Include="StoredProcedures\Connections\dbo.BrokerConnectionMark.sql" />
+    <Build Include="StoredProcedures\Connections\dbo.BrokerConnectionSave.sql" />
+    <Build Include="StoredProcedures\Connections\dbo.BrokerConnectionSetOptions.sql" />
+    <Build Include="StoredProcedures\Connections\dbo.SyncRunList.sql" />
+    <Build Include="StoredProcedures\Connections\dbo.SyncRunSave.sql" />
+    <Build Include="StoredProcedures\Instruments\dbo.InstrumentList.sql" />
+    <Build Include="StoredProcedures\Instruments\dbo.InstrumentSetPriceSymbol.sql" />
+    <Build Include="StoredProcedures\Instruments\dbo.InstrumentUpsert.sql" />
+    <Build Include="StoredProcedures\Logos\dbo.InstrumentLogoGet.sql" />
+    <Build Include="StoredProcedures\Logos\dbo.InstrumentLogoSave.sql" />
+    <Build Include="StoredProcedures\Portfolio\dbo.AccountSnapshotList.sql" />
+    <Build Include="StoredProcedures\Portfolio\dbo.AccountSnapshotSave.sql" />
+    <Build Include="StoredProcedures\Portfolio\dbo.CashMovementList.sql" />
+    <Build Include="StoredProcedures\Portfolio\dbo.CashMovementSave.sql" />
+    <Build Include="StoredProcedures\Portfolio\dbo.DividendList.sql" />
+    <Build Include="StoredProcedures\Portfolio\dbo.DividendSave.sql" />
+    <Build Include="StoredProcedures\Portfolio\dbo.HoldingList.sql" />
+    <Build Include="StoredProcedures\Portfolio\dbo.HoldingReplace.sql" />
+    <Build Include="StoredProcedures\Portfolio\dbo.PortfolioDelete.sql" />
+    <Build Include="StoredProcedures\Portfolio\dbo.TradeList.sql" />
+    <Build Include="StoredProcedures\Portfolio\dbo.TradeSave.sql" />
+    <Build Include="StoredProcedures\Prices\dbo.FxDayList.sql" />
+    <Build Include="StoredProcedures\Prices\dbo.FxDaySave.sql" />
+    <Build Include="StoredProcedures\Prices\dbo.PriceDayList.sql" />
+    <Build Include="StoredProcedures\Prices\dbo.PriceDaySave.sql" />
+    <Build Include="StoredProcedures\Users\dbo.UserCount.sql" />
+    <Build Include="StoredProcedures\Users\dbo.UserCreate.sql" />
+    <Build Include="StoredProcedures\Users\dbo.UserDelete.sql" />
+    <Build Include="StoredProcedures\Users\dbo.UserGet.sql" />
+    <Build Include="StoredProcedures\Users\dbo.UserGetByName.sql" />
+    <Build Include="StoredProcedures\Users\dbo.UserList.sql" />
+    <Build Include="StoredProcedures\Users\dbo.UserSetPassword.sql" />
+    <Build Include="StoredProcedures\Users\dbo.UserTouchLogin.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PostDeploy Include="Scripts\Script.PostDeployment.sql" />
+    <None Include="Scripts\deploy.sh" />
+    <None Include="Dockerfile" />
+  </ItemGroup>
+
+</Project>

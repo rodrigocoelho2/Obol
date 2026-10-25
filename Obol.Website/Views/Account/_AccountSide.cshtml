@@ -1,0 +1,36 @@
+@model Obol.Website.Model.Account.AccountPageModel
+@{
+    var active = (string)ViewData["Tab"]!;
+    var first = Model.IsFirstAccount && active == "create";
+    var create = active == "create" && !first;
+}
+@* The minted side of the sign-in and create-account pages: brand, a headline and an example card (a header on the phone). *@
+<aside class="au-side">
+    @Icons.Rings()
+    <div class="au-top">
+        <a class="brand" href="/">@Icons.Logo(34)Obol</a>
+        <a class="au-back" href="/about">@Icons.Get("left")What is Obol?</a>
+    </div>
+    @if (first)
+    {
+        <h2>Set up <span class="lime">your Obol.</span></h2>
+        <p>Create the first account. It becomes the admin and can add everyone else in the house.</p>
+    }
+    else if (create)
+    {
+        <h2>Every coin, <span class="lime">accounted for.</span></h2>
+        <p>Connect Trading 212 and see what your portfolio is worth, what it pays you and how it got here.</p>
+    }
+    else
+    {
+        <h2>Welcome back. <span class="lime">Let's count.</span></h2>
+        <p>Sign in to see today's value, your holdings and the next dividends.</p>
+    }
+    <div class="au-card" aria-hidden="true">
+        <span class="eyebrow">Net worth</span>
+        <b class="num">€11,880<span class="c">.34</span></b>
+        <span class="pill solid">▲ €48.12 · 0.41%</span>
+        <svg viewBox="0 0 300 70" preserveAspectRatio="none"><path d="M0,58 C22,55 32,61 46,53 S72,48 86,51 S112,40 126,42 S152,33 166,37 S192,27 206,30 S232,20 246,23 S272,12 286,15 L300,10" fill="none" stroke="#C6F36D" stroke-width="2.4" stroke-linecap="round" /></svg>
+        <small class="muted">Example numbers.</small>
+    </div>
+</aside>

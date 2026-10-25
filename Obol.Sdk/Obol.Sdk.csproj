@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Typed client for Obol.WebApi, used by the Website. DTOs mirror the WebApi contract. -->
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Models/ are contract copies of the WebApi DTOs (like a generated SDK); a unit test keeps them in sync. -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Obol.Library\Obol.Library.csproj" />
+  </ItemGroup>
+
+</Project>

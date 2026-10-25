@@ -1,0 +1,10 @@
+{
+  "ConnectionStrings": {
+    "Obol": "Server=127.0.0.1,1436;Database=Obol;User Id=sa;Password=<your SQL_SA_PASSWORD>;TrustServerCertificate=True"
+  },
+  "Obol": {
+    "ApiKey": "devkey",
+    "EncryptionKey": "a-long-random-development-secret",
+    "DemoMode": true
+  }
+}

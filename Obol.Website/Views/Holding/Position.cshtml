@@ -1,0 +1,150 @@
+@model PositionPageModel
+@{
+    Layout = "_App";
+    var data = Model.Data!;
+    var instrument = data.Instrument;
+    var position = data.Position;
+    var currency = data.Currency;
+    var priceCurrency = instrument.Currency;
+    var logos = Model.Connection?.Logos == true;
+    ViewData["Title"] = instrument.Symbol;
+    var prices = data.Prices;
+    var chart = Charts.Line(
+        prices.Select(static point => point.Close).ToList(),
+        prices.Select(static point => Fmt.ShortDate(point.Day)).ToList(),
+        prices.Select(point => Fmt.Price(point.Close, priceCurrency)).ToList(),
+        230,
+        guide: position?.AveragePrice is > 0 ? position.AveragePrice : null);
+    var first = prices.Count > 0 ? prices[0].Day : Clock.Today;
+    var span = Math.Max(1, Clock.Today.DayNumber - first.DayNumber);
+    var marks = data.Marks.Where(mark => mark.Day >= first).Select(mark => ((double)(mark.Day.DayNumber - first.DayNumber) / span * 100, mark.Buy)).ToList();
+    var key = Uri.EscapeDataString(instrument.Key);
+    var invested = position?.Cost ?? 0m;
+    var value = position?.Value ?? 0m;
+    var scale = Math.Max(invested, value);
+}
+
+<header class="head">
+    <a class="icon-btn" href="/holdings" aria-label="Back to holdings">@Icons.Get("left")</a>
+    <div class="row grow" style="gap: 14px">
+        @Ui.Asset(instrument, logos, "lg")
+        <div style="min-width: 0">
+            <h1 class="ellipsis" style="font-size: 24px">@instrument.Name</h1>
+            <div class="sub"><span class="mono">@instrument.Symbol</span> · @Fmt.ClassLabel(instrument.Class)@(instrument.Isin is { } isin ? " · " + isin : string.Empty)</div>
+        </div>
+    </div>
+</header>
+
+<section class="card minted">
+    @Icons.Rings()
+    <div class="pad hero-top">
+        <div>
+            <div class="eyebrow">Price · @priceCurrency</div>
+            <div class="row" style="margin-top: 8px; align-items: flex-end; gap: 12px">
+                <span class="big" style="font-size: 46px">@Fmt.Price(position?.Price ?? (prices.Count > 0 ? prices[^1].Close : null), priceCurrency)</span>
+                @if (position?.DayChangePct is { } day)
+                {
+                    <span style="margin-bottom: 5px">@Ui.Change(day, solid: true)</span>
+                }
+            </div>
+            @if (data.RangeChangePct is { } rangePct)
+            {
+                <div class="hero-chips"><span class="pill soft@(rangePct < 0 ? " loss" : string.Empty)">@Fmt.Arrow(rangePct, 1) @Fmt.RangeWords(Model.Range)</span></div>
+            }
+        </div>
+        <nav class="seg desk-only" aria-label="Range">
+            @foreach (var range in ScreenModel.Ranges)
+            {
+                <a href="/holdings/@key?range=@Fmt.RangeQuery(range)" aria-current="@(range == Model.Range ? "page" : null)">@Fmt.Range(range)</a>
+            }
+        </nav>
+    </div>
+    @if (chart.HasLine)
+    {
+        ViewData["Height"] = 230;
+        ViewData["PhoneHeight"] = 160;
+        ViewData["Down"] = data.RangeChangePct is < 0;
+        ViewData["Label"] = $"{instrument.Symbol} price {Fmt.RangeWords(Model.Range)}";
+        ViewData["Flag"] = position is not null ? "Avg " + Fmt.Price(position.AveragePrice, priceCurrency) : null;
+        ViewData["Marks"] = marks;
+        <partial name="_Chart" model="chart" view-data="ViewData" />
+        <div style="height: 16px"></div>
+    }
+    else
+    {
+        <p class="no-chart">Prices fill in with the syncs.</p>
+    }
+    <nav class="seg full phone-only" aria-label="Range" style="margin: 10px 14px 0; width: auto">
+        @foreach (var range in ScreenModel.Ranges)
+        {
+            <a href="/holdings/@key?range=@Fmt.RangeQuery(range)" aria-current="@(range == Model.Range ? "page" : null)">@Fmt.Range(range)</a>
+        }
+    </nav>
+</section>
+
+<div class="bento">
+    <section class="card wide">
+        <div class="card-head">
+            <h2>Your position</h2>
+            @if (position is not null)
+            {
+                <span class="@Fmt.Trend(position.Unrealized)" style="font-size: 14px; font-weight: 700">@Fmt.SignedMoney(position.Unrealized, currency) · @Fmt.Pct(position.UnrealizedPct is { } u ? Math.Abs(u) : null)</span>
+            }
+        </div>
+        @if (position is null)
+        {
+            <p class="muted" style="margin-top: 10px">You don't hold @instrument.Symbol any more.@(data.Realized != 0 ? $" Realised: {Fmt.SignedMoney(data.Realized, currency)}." : string.Empty)</p>
+        }
+        else
+        {
+            <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 8px">
+                <div class="row"><span class="muted" style="width: 64px; font-size: 12px">Invested</span><div class="grow"><div style="width: @Charts.N(scale > 0 ? (double)(invested / scale) * 100 : 0)%; height: 9px; border-radius: 5px; background: var(--c-cash)"></div></div><b style="width: 92px; text-align: right; font-size: 13px">@Fmt.Money(invested, currency)</b></div>
+                <div class="row"><span class="muted" style="width: 64px; font-size: 12px">Value</span><div class="grow"><div style="width: @Charts.N(scale > 0 ? (double)(value / scale) * 100 : 0)%; height: 9px; border-radius: 5px; background: @(value >= invested ? "var(--lime)" : "var(--loss)")"></div></div><b style="width: 92px; text-align: right; font-size: 13px">@Fmt.Money(value, currency)</b></div>
+            </div>
+        }
+        <div class="kpis" style="margin-top: 16px; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr))">
+            @if (position is not null)
+            {
+                <div class="kpi" style="background: var(--surface-2)"><small>Shares</small><b>@Fmt.Qty(position.Quantity)</b></div>
+                <div class="kpi" style="background: var(--surface-2)"><small>Average cost</small><b>@Fmt.Price(position.AveragePrice, priceCurrency)</b></div>
+                <div class="kpi" style="background: var(--surface-2)"><small>Weight</small><b>@Fmt.Pct(position.Weight)</b></div>
+            }
+            <div class="kpi" style="background: var(--surface-2)"><small>Dividends</small><b>@Fmt.Money(data.Dividends, currency)</b></div>
+            @if (data.Realized != 0)
+            {
+                <div class="kpi" style="background: var(--surface-2)"><small>Realised</small><b class="@Fmt.Trend(data.Realized)">@Fmt.SignedMoney(data.Realized, currency)</b></div>
+            }
+        </div>
+    </section>
+
+    <section class="card side" style="display: block">
+        <div class="card-head">
+            <h2>Activity</h2>
+            <span class="aside">@data.Activity.Count line@(data.Activity.Count == 1 ? string.Empty : "s")</span>
+        </div>
+        @if (data.Activity.Count == 0)
+        {
+            <p class="muted" style="margin-top: 10px">Nothing yet.</p>
+        }
+        else
+        {
+            <div class="timeline">
+                @foreach (var item in data.Activity.Take(14))
+                {
+                    var css = item.Kind switch { ActivityKind.Sell => " sell", ActivityKind.Dividend => " div", _ => string.Empty };
+                    <div class="t@(css)">
+                        <div class="grow">
+                            <span style="font-weight: 600">@(item.Kind == ActivityKind.Dividend ? "Dividend" : Fmt.Kind(item.Kind) + " " + Fmt.Qty(item.Quantity))</span>
+                            @if (item.Kind != ActivityKind.Dividend && item.Price is { } price)
+                            {
+                                <span class="muted"> at @Fmt.Price(price, item.PriceCurrency)</span>
+                            }
+                            <div class="muted" style="font-size: 11.5px">@Fmt.ShortDate(item.At)</div>
+                        </div>
+                        <b class="@(item.Amount >= 0 ? "up" : string.Empty)" style="font-size: 13px">@Fmt.SignedMoney(item.Amount, currency)</b>
+                    </div>
+                }
+            </div>
+        }
+    </section>
+</div>

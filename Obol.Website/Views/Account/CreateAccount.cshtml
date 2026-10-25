@@ -1,0 +1,77 @@
+@model Obol.Website.Model.Account.AccountPageModel
+@{
+    ViewData["Title"] = Model.IsFirstAccount ? "Set up Obol" : "Create account";
+    ViewData["Tab"] = "create";
+}
+@section Head {
+    <link rel="stylesheet" href="~/css/public.css" asp-append-version="true" />
+}
+
+<div class="au">
+    <partial name="_AccountSide" model="Model" />
+
+    <main class="au-main">
+        <form class="au-form" method="post" action="/create-account" autocomplete="on">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+
+            <div>
+                <h1>@(Model.IsFirstAccount ? "Set up Obol" : "Create your account")</h1>
+                <p class="muted">@(Model.IsFirstAccount ? "The first account is the admin." : "One account per person: each has its own portfolio.")</p>
+            </div>
+
+            <partial name="_AccountCard" model="Model" />
+
+            @if (Model.NeedsSetupKey)
+            {
+                <label class="field">
+                    Setup key
+                    <span class="au-in">
+                        @Icons.Get("key")
+                        <input name="setupKey" type="password" autocomplete="off" required />
+                    </span>
+                    <small class="hint">OBOL_SETUP_KEY, in the .env file next to docker-compose.yml.</small>
+                </label>
+            }
+
+            <label class="field">
+                User name
+                <span class="au-in">
+                    @Icons.Get("user")
+                    <input name="userName" type="text" value="@Model.UserName" autocomplete="username" autocapitalize="none" spellcheck="false" pattern="[A-Za-z0-9._\-]{3,32}" required autofocus />
+                </span>
+            </label>
+
+            <label class="field">
+                Password
+                <span class="au-in">
+                    @Icons.Get("lock")
+                    <input id="password" name="password" type="password" autocomplete="new-password" minlength="@Model.MinPasswordLength" required />
+                    <button type="button" class="password-toggle" data-for="password" aria-pressed="false" aria-label="Show password">@Icons.Get("eye")</button>
+                </span>
+            </label>
+
+            <label class="field">
+                Password again
+                <span class="au-in">
+                    @Icons.Get("lock")
+                    <input name="confirmPassword" type="password" autocomplete="new-password" minlength="@Model.MinPasswordLength" required />
+                </span>
+            </label>
+
+            <label class="au-check">
+                <input type="checkbox" name="remember" value="true" checked="@(Model.Remember ? "checked" : null)" />
+                <span>Keep me signed in on this device <small class="muted">(@Model.RememberDays days)</small></span>
+            </label>
+
+            <button class="btn wide" type="submit">@(Model.IsFirstAccount ? "Set up Obol" : "Create account") @Icons.Get("arrow")</button>
+
+            @if (!Model.IsFirstAccount)
+            {
+                <p class="au-fine">Already have one? <a href="/sign-in">Sign in</a></p>
+            }
+        </form>
+    </main>
+</div>
+
+<partial name="_PasswordToggle" />

@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Unit tests: the portfolio maths, the Trading 212 CSV parser and API mapping, the instrument names, the secrets and
+       the services, run against the in-memory repositories and the demo data with a fixed clock (no database, no network). -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Obol.Library\Obol.Library.csproj" />
+    <ProjectReference Include="..\Obol.Sdk\Obol.Sdk.csproj" />
+    <ProjectReference Include="..\Obol.WebApi\Obol.WebApi.csproj" />
+  </ItemGroup>
+
+</Project>

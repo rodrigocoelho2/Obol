@@ -1,0 +1,135 @@
+# Obol on a NAS: SQL Server, the database deploy (runs once per "up" and exits), the WebApi and the Website.
+# Copy .env.example to .env next to this file and fill it in, then:  docker compose up -d --build
+
+# The stack's name, fixed so the folder can be called anything: it prefixes the volumes (obol_sql, obol_keys), so the
+# same name always finds the same data. Never change it on a running install.
+name: obol
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: obol-sql
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Express
+      MSSQL_SA_PASSWORD: ${SQL_SA_PASSWORD:?Set SQL_SA_PASSWORD in .env}
+      # Keeps SQL Server from taking most of the NAS memory.
+      MSSQL_MEMORY_LIMIT_MB: ${SQL_MEMORY_LIMIT_MB:-1024}
+      TZ: ${TIME_ZONE:-Europe/Lisbon}
+    cpus: ${SQL_CPUS:-2}
+    networks:
+      - default
+    ports:
+      # For SSMS / Azure Data Studio / VS Code on the LAN (server: <nas-ip>,1436 · user: sa).
+      - "${SQL_PORT:-1436}:1433"
+    volumes:
+      - sql:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q \"SELECT 1\" -b -o /dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    logging: &logging
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # Publishes the database project (tables and stored procedures) and exits: creates the Obol database the first time,
+  # applies schema changes on later deploys.
+  db-deploy:
+    build:
+      context: .
+      dockerfile: Obol.Database/Dockerfile
+    image: obol-db-deploy:latest
+    container_name: obol-db-deploy
+    restart: "no"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - default
+    environment:
+      SQL_SERVER: sqlserver
+      SQL_DATABASE: Obol
+      SQL_USER: sa
+      SQL_PASSWORD: ${SQL_SA_PASSWORD}
+    logging: *logging
+
+  # The engine: the Trading 212 sync, prices, logos and the portfolio maths. Not published on any port: only the
+  # website reaches it, over the compose network. It reaches out to Trading 212 (and Yahoo Finance / logo.dev if on).
+  webapi:
+    build:
+      context: .
+      dockerfile: Obol.WebApi/Dockerfile
+    image: obol-webapi:latest
+    container_name: obol-webapi
+    restart: unless-stopped
+    depends_on:
+      db-deploy:
+        condition: service_completed_successfully
+    networks:
+      - default
+    environment:
+      ConnectionStrings__Obol: "Server=sqlserver,1433;Database=Obol;User Id=sa;Password=${SQL_SA_PASSWORD};TrustServerCertificate=True"
+      Obol__ApiKey: ${OBOL_API_KEY:?Set OBOL_API_KEY in .env}
+      # Encrypts the Trading 212 keys kept in the database. Changing it means connecting Trading 212 again.
+      Obol__EncryptionKey: ${OBOL_ENCRYPTION_KEY:?Set OBOL_ENCRYPTION_KEY in .env}
+      Obol__TimeZone: ${TIME_ZONE:-Europe/Lisbon}
+      Obol__Currency: ${OBOL_CURRENCY:-EUR}
+      # Minutes between automatic syncs (0 = only when you tap Sync now).
+      Obol__SyncMinutes: ${OBOL_SYNC_MINUTES:-30}
+      # Daily closing prices from Yahoo Finance for the charts (false = only the prices Trading 212 and the trades give).
+      Obol__PriceHistory: ${OBOL_PRICE_HISTORY:-true}
+      # Company and fund logos from logo.dev (free key at https://logo.dev). Empty = ticker badges.
+      Obol__LogoToken: ${OBOL_LOGO_TOKEN:-}
+      # "true" runs on a sample portfolio in memory, without SQL Server or Trading 212 (to try it out).
+      Obol__DemoMode: ${OBOL_DEMO_MODE:-false}
+      DOTNET_gcServer: "0"
+      TZ: ${TIME_ZONE:-Europe/Lisbon}
+    cpus: ${OBOL_CPUS:-1}
+    mem_limit: ${OBOL_WEBAPI_MEMORY:-512m}
+    logging: *logging
+
+  # Obol (the app): http://<nas-ip>:5095 — and https://obol.<your-domain> through Nginx Proxy Manager.
+  website:
+    build:
+      context: .
+      dockerfile: Obol.Website/Dockerfile
+    image: obol-website:latest
+    container_name: obol-website
+    restart: unless-stopped
+    depends_on:
+      - webapi
+    ports:
+      - "${OBOL_PORT:-5095}:8080"
+    environment:
+      ObolApi__Url: http://webapi:8080/
+      ObolApi__ApiKey: ${OBOL_API_KEY:?Set OBOL_API_KEY in .env}
+      # Asked for only when creating the FIRST account (the admin), so nobody else on the network can claim it.
+      Website__SetupKey: ${OBOL_SETUP_KEY:?Set OBOL_SETUP_KEY in .env}
+      # false = only the first account can be created from the sign-in page.
+      Website__AllowRegistration: ${OBOL_ALLOW_REGISTRATION:-true}
+      Website__TimeZone: ${TIME_ZONE:-Europe/Lisbon}
+      DOTNET_gcServer: "0"
+      TZ: ${TIME_ZONE:-Europe/Lisbon}
+    cpus: ${OBOL_CPUS:-1}
+    mem_limit: ${OBOL_WEBSITE_MEMORY:-384m}
+    volumes:
+      - keys:/keys                          # session keys: "keep me signed in" survives updates
+    networks:
+      - default                             # talks to the webapi
+      - nas-net                             # Nginx Proxy Manager reaches it at http://obol-website:8080
+    logging: *logging
+
+networks:
+  default:      # private network of this stack (SQL Server and the WebApi are not on nas-net)
+  # Shared network on the NAS; create it once with:  docker network create nas-net
+  nas-net:
+    external: true
+
+volumes:
+  sql:
+  keys:

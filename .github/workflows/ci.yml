@@ -1,0 +1,155 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# contents: write lets each job push its logs and screenshots to a ci-output-* branch for review.
+permissions:
+  contents: write
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  SA_PASSWORD: Obol-CI-2026!
+
+jobs:
+  build-test:
+    name: Build, database and tests
+    runs-on: ubuntu-latest
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: "Y"
+          MSSQL_PID: Express
+          MSSQL_SA_PASSWORD: Obol-CI-2026!
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Obol-CI-2026!' -C -Q 'SELECT 1' -b -o /dev/null"
+          --health-interval 10s --health-timeout 5s --health-retries 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: mkdir -p ci-output && dotnet restore Obol.slnx 2>&1 | tee ci-output/1-restore.log
+
+      - name: Build (Library, Sdk, WebApi, Website, UnitTest and the Obol.Database dacpac)
+        run: |
+          set -o pipefail
+          dotnet build Obol.slnx -c Release --no-restore 2>&1 | tee ci-output/2-build.log
+          dotnet build Obol.Database/Obol.Database.sqlproj -c Release 2>&1 | tee -a ci-output/2-build.log
+
+      - name: Publish the dacpac to SQL Server
+        env:
+          DOTNET_ROLL_FORWARD: Major
+        run: |
+          set -o pipefail
+          exec > >(tee ci-output/3-dacpac.log) 2>&1
+          dotnet tool install --global microsoft.sqlpackage
+          dacpac=$(find Obol.Database/bin -name 'Obol.Database.dacpac' | head -n 1)
+          for run in 1 2; do
+            # The second publish must find nothing to change.
+            sqlpackage /Action:Publish /SourceFile:"$dacpac" \
+              /TargetServerName:localhost /TargetDatabaseName:Obol \
+              /TargetUser:sa /TargetPassword:"$SA_PASSWORD" /TargetTrustServerCertificate:True \
+              /p:BlockOnPossibleDataLoss=True
+          done
+
+      - name: Test
+        run: >-
+          set -o pipefail;
+          dotnet test Obol.UnitTest/Obol.UnitTest.csproj -c Release --no-build
+          --logger "trx;LogFileName=tests.trx" --logger "console;verbosity=normal" --results-directory TestResults
+          2>&1 | tee ci-output/4-test.log
+
+      - name: Push the logs to the ci-output-build branch
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: .github/scripts/push-output.sh ci-output-build
+
+  compose:
+    name: Docker Compose end to end
+    runs-on: ubuntu-latest
+    env:
+      OBOL_API_KEY: ci-api-key-0123456789abcdef
+      OBOL_ENCRYPTION_KEY: ci-encryption-key-0123456789abcdef
+      OBOL_SETUP_KEY: ci-setup-key
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start SQL Server, deploy the database, the WebApi and the Website
+        run: |
+          set -o pipefail
+          mkdir -p ci-output
+          printf 'SQL_SA_PASSWORD=%s\nOBOL_API_KEY=%s\nOBOL_ENCRYPTION_KEY=%s\nOBOL_SETUP_KEY=%s\n' \
+            "$SA_PASSWORD" "$OBOL_API_KEY" "$OBOL_ENCRYPTION_KEY" "$OBOL_SETUP_KEY" > .env
+          docker network create nas-net
+          docker compose up -d --build --wait website 2>&1 | tee ci-output/1-compose-up.log
+
+      - name: Smoke test
+        run: |
+          exec > >(tee ci-output/2-smoke.log) 2>&1
+          set -e
+          base=http://localhost:5095
+          for i in $(seq 1 60); do curl -fs -o /dev/null $base/about && break; sleep 2; done
+          curl -fs $base/about | grep -q "<title>Obol</title>"
+          # Every stylesheet, script and image the pages link must be served.
+          for page in /about /sign-in /create-account; do
+            for f in $(curl -fs $base$page | grep -oE '(href|src)="/(css|js|fonts|img)/[^"?]+' | cut -d'"' -f2 | sort -u); do
+              curl -fs -o /dev/null "$base$f" || { echo "missing: $f"; exit 1; }
+            done
+          done
+          for f in /manifest.webmanifest /sw.js /js/app.js; do curl -fs -o /dev/null "$base$f" || { echo "missing: $f"; exit 1; }; done
+          # Signed out, the app screens send you to sign in.
+          test "$(curl -s -o /dev/null -w '%{http_code}' $base/holdings)" = "302"
+          echo ok
+
+      - name: Install Playwright
+        run: |
+          pip install --quiet playwright==1.55.0
+          python -m playwright install --with-deps chromium > /dev/null
+
+      - name: First account and a Trading 212 CSV import (SQL Server)
+        run: |
+          set -o pipefail
+          # The first account needs the setup key: create it through the form, then let the script sign in.
+          python - <<'PY' 2>&1 | tee ci-output/3-first-account.log
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as p:
+              page = p.chromium.launch().new_page()
+              page.goto("http://localhost:5095/create-account")
+              page.fill("input[name=setupKey]", "ci-setup-key")
+              page.fill("input[name=userName]", "Rodas")
+              page.fill("input[name=password]", "portfolio-2026")
+              page.fill("input[name=confirmPassword]", "portfolio-2026")
+              page.click("button[type=submit]")
+              page.wait_for_load_state("networkidle")
+              print("after create:", page.url)
+              assert "/sync" in page.url, page.content()[:2000]
+          PY
+          python .github/scripts/screenshots.py http://localhost:5095 ci-output/screenshots-sql --csv .github/scripts/sample-export.csv 2>&1 | tee ci-output/4-screenshots-sql.log
+
+      - name: Page screenshots on the demo portfolio
+        run: |
+          set -o pipefail
+          OBOL_DEMO_MODE=true docker compose up -d --wait webapi website 2>&1 | tee ci-output/5-demo-up.log
+          sleep 5
+          python .github/scripts/screenshots.py http://localhost:5095 ci-output/screenshots 2>&1 | tee ci-output/6-screenshots.log
+
+      - name: Push the logs and screenshots to the ci-output-compose branch
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          docker compose ps -a > ci-output/9-compose-ps.log 2>&1 || true
+          docker compose logs --no-color > ci-output/9-compose-logs.log 2>&1 || true
+          .github/scripts/push-output.sh ci-output-compose

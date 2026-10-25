@@ -1,0 +1,119 @@
+@model HoldingsPageModel
+@{
+    Layout = "_App";
+    ViewData["Title"] = "Holdings";
+    var data = Model.Data!;
+    var currency = data.Currency;
+    var logos = Model.Connection?.Logos == true;
+    var positions = data.Positions;
+    var top = positions.Count > 0 ? positions[0].Weight : 0m;
+    string Group(AssetClass assetClass) => assetClass switch
+    {
+        AssetClass.EquityEtf or AssetClass.BondEtf => "ETFs",
+        AssetClass.Stock => "Stocks",
+        _ => Fmt.ClassLabel(assetClass) + "s",
+    };
+    var filters = positions.GroupBy(position => Group(position.Instrument.Class)).Select(static group => (Name: group.Key, Count: group.Count())).ToList();
+    var bonds = positions.Count(static position => position.Instrument.Class == AssetClass.BondEtf);
+}
+
+<header class="head">
+    <div>
+        <h1>Holdings</h1>
+        <div class="sub">@Fmt.Money(data.Value, currency) in @positions.Count position@(positions.Count == 1 ? string.Empty : "s") · @Fmt.Money(data.Cash, currency) cash</div>
+    </div>
+    <div class="head-acts">
+        <label class="sr" for="find">Find a holding</label>
+        <input id="find" class="input desk-only" type="search" placeholder="Find a holding" data-find style="width: 220px; height: 44px" autocomplete="off" />
+        <button class="icon-btn phone-only" type="button" aria-label="Find a holding" data-find-open>@Icons.Get("search")</button>
+        <button class="icon-btn" type="button" aria-label="Sort: by value" data-sort="value">@Icons.Get("sort")</button>
+    </div>
+</header>
+<input class="input phone-only" type="search" placeholder="Find a holding" data-find hidden autocomplete="off" aria-label="Find a holding" />
+
+@if (positions.Count == 0)
+{
+    <section class="card empty">
+        <span class="ico-chip">@Icons.Get("holdings")</span>
+        <h2>No open positions</h2>
+        <p>Positions show up here after a Trading 212 sync or a CSV import.</p>
+        <a class="btn" href="/sync">@Icons.Get("sync")Go to Sync</a>
+    </section>
+}
+else
+{
+    <section class="card">
+        <div class="row" style="justify-content: space-between; align-items: flex-end">
+            <div>
+                <div class="eyebrow">Unrealised</div>
+                <div class="num @Fmt.Trend(data.Unrealized)" style="margin-top: 6px; font-size: 32px">@Fmt.SignedMoney(data.Unrealized, currency)</div>
+            </div>
+            @Ui.Change(data.UnrealizedPct)
+        </div>
+        <div class="sources" style="height: 10px; margin-top: 16px" role="img" aria-label="Weights: @string.Join(", ", positions.Select(position => $"{position.Instrument.Symbol} {Fmt.Pct(position.Weight)}"))">
+            @foreach (var position in positions)
+            {
+                <i class="bg-@Fmt.ClassCss(position.Instrument.Class)" style="flex: @Charts.N((double)Math.Max(position.Weight, 0.004m) * 100); opacity: @Charts.N(1 - (positions.IndexOf(position) % 3) * 0.18)" title="@position.Instrument.Symbol @Fmt.Pct(position.Weight)"></i>
+            }
+        </div>
+        <div class="row" style="margin-top: 10px; justify-content: space-between; font-size: 12.5px">
+            <span class="muted">Cost <b style="color: var(--text); font-weight: 600">@Fmt.Money(data.Cost, currency)</b></span>
+            <span class="muted">Value <b style="color: var(--text); font-weight: 600">@Fmt.Money(data.Value, currency)</b></span>
+        </div>
+    </section>
+
+    @if (filters.Count > 1 || bonds > 0)
+    {
+        <div class="chips" role="group" aria-label="Show">
+            <button type="button" aria-pressed="true" data-filter="">All <span class="n">@positions.Count</span></button>
+            @foreach (var (name, count) in filters)
+            {
+                <button type="button" aria-pressed="false" data-filter="@name">@name <span class="n">@count</span></button>
+            }
+        </div>
+    }
+
+    <section class="card desk-only">
+        <div class="table-box" style="margin-top: 0">
+            <table class="table" data-rows>
+                <thead>
+                    <tr>
+                        <th scope="col">Asset</th><th scope="col" style="text-align: left">Weight</th><th scope="col">Shares</th><th scope="col">Avg cost</th>
+                        <th scope="col">Price</th><th scope="col">Today</th><th scope="col">Value</th><th scope="col">Return</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var position in positions)
+                    {
+                        <tr class="link" data-row data-href="@Ui.Href(position.Instrument)" data-group="@Group(position.Instrument.Class)" data-name="@position.Instrument.Name.ToLowerInvariant() @position.Instrument.Symbol.ToLowerInvariant()" data-value="@Charts.N((double)position.Value)" data-return="@Charts.N((double)(position.UnrealizedPct ?? 0))">
+                            <td><a class="who" href="@Ui.Href(position.Instrument)">@Ui.Asset(position.Instrument, logos, "sm")<span><span class="ellipsis" style="display: block; max-width: 280px">@position.Instrument.Name</span><small class="muted mono" style="font-size: 11px">@position.Instrument.Symbol · @Fmt.ClassLabel(position.Instrument.Class)</small></span></a></td>
+                            <td class="wcell"><div class="weight" style="margin: 0"><span class="bar"><i class="bg-@Fmt.ClassCss(position.Instrument.Class)" style="width: @Charts.N(top > 0 ? (double)(position.Weight / top) * 100 : 0)%"></i></span><small>@Fmt.Pct(position.Weight)</small></div></td>
+                            <td>@Fmt.Qty(position.Quantity)</td>
+                            <td>@Fmt.Price(position.AveragePrice, position.Instrument.Currency)</td>
+                            <td>@Fmt.Price(position.Price, position.Instrument.Currency)</td>
+                            <td class="@Fmt.Trend(position.DayChangePct)">@(position.DayChangePct is null ? "—" : Fmt.SignedPct(position.DayChangePct))</td>
+                            <td class="strong">@Fmt.Money(position.Value, currency)</td>
+                            <td class="strong @Fmt.Trend(position.Unrealized)">@Fmt.SignedMoney(position.Unrealized, currency, 0) · @Fmt.Pct(position.UnrealizedPct is { } u ? Math.Abs(u) : null)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="list phone-only" data-rows>
+        @foreach (var position in positions)
+        {
+            var trend = Fmt.Trend(position.Unrealized);
+            <a class="item" href="@Ui.Href(position.Instrument)" data-row data-group="@Group(position.Instrument.Class)" data-name="@position.Instrument.Name.ToLowerInvariant() @position.Instrument.Symbol.ToLowerInvariant()" data-value="@Charts.N((double)position.Value)" data-return="@Charts.N((double)(position.UnrealizedPct ?? 0))">
+                @Ui.Asset(position.Instrument, logos)
+                <div class="grow">
+                    <div class="name">@position.Instrument.Name</div>
+                    <div class="weight"><span class="bar"><i class="bg-@Fmt.ClassCss(position.Instrument.Class)" style="width: @Charts.N(top > 0 ? (double)(position.Weight / top) * 100 : 0)%"></i></span><small>@Fmt.Pct(position.Weight)</small></div>
+                </div>
+                <div class="end"><b>@Fmt.Money(position.Value, currency)</b><small class="@trend">@Fmt.Arrow(position.UnrealizedPct, 1)</small></div>
+            </a>
+        }
+    </section>
+    <p class="hint" data-none hidden>Nothing matches.</p>
+}

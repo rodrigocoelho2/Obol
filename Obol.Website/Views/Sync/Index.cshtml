@@ -1,0 +1,198 @@
+@model SyncPageModel
+@{
+    Layout = "_App";
+    ViewData["Title"] = "Sync";
+    var data = Model.Data!;
+    var running = data.State == SyncState.Running;
+    var failed = data.State == SyncState.Failed;
+    var lastRun = data.Runs.FirstOrDefault();
+    var options = new (string Key, string Label, string Hint, bool On)[]
+    {
+        ("syncPositions", "Positions", "and cash, every sync", data.SyncPositions),
+        ("syncOrders", "Orders", "every buy and sell", data.SyncOrders),
+        ("syncDividends", "Dividends", "paid into the account", data.SyncDividends),
+        ("syncTransactions", "Deposits", "withdrawals and interest", data.SyncTransactions),
+    };
+}
+
+<header class="head">
+    <div>
+        <h1>Sync</h1>
+        <div class="sub">Trading 212 → Obol</div>
+    </div>
+    @if (data.Connected)
+    {
+        <span class="pill @(failed ? "loss" : "soft")"><span class="dot @Model.SyncDot"></span>@(running ? "Syncing" : failed ? "Failed" : "Live")</span>
+    }
+</header>
+
+<div class="bento">
+    <div class="wide" style="display: flex; flex-direction: column; gap: 16px">
+        @if (data.Connected)
+        {
+            <section class="card minted" data-connection data-running="@(running ? "true" : "false")">
+                @Icons.Rings()
+                <div class="pad">
+                    <div class="pipe@(running ? " run" : failed ? " off" : string.Empty)">
+                        <div class="node"><span class="t212">212</span><small>Trading 212</small></div>
+                        <div class="wire"><i></i></div>
+                        <div class="node">@Icons.Logo(54)<small>Obol</small></div>
+                    </div>
+                    <div class="row wrap" style="margin-top: 18px; justify-content: space-between; font-size: 13px">
+                        <span class="muted">@(data.Environment == "demo" ? "Practice account" : "Real money account")@(data.AccountId is { } account ? $" #{account}" : string.Empty) · key <span class="mono" style="color: var(--text-2)">@data.KeyHint</span> · @data.Currency</span>
+                    </div>
+                    <div class="row wrap" style="margin-top: 6px; justify-content: space-between; font-size: 14px">
+                        <span>Last sync <b>@Fmt.When(data.LastSyncAt)</b></span>
+                        @if (data.NextSyncAt is { } next && !running)
+                        {
+                            <span class="muted">Next at @Fmt.Time(next)</span>
+                        }
+                    </div>
+                    @if (failed && data.Message.Length > 0)
+                    {
+                        <div class="msg err" style="margin-top: 12px">@data.Message</div>
+                    }
+                    else if (running)
+                    {
+                        <div class="msg ok" style="margin-top: 12px">@(data.HistoryDone ? "Syncing…" : "Reading the whole history the first time: this can take a few minutes (Trading 212 allows 20 pages a minute). You can leave this page.")</div>
+                    }
+                    <div class="row wrap" style="margin-top: 14px">
+                        <button class="btn grow@(running ? " busy" : string.Empty)" type="button" data-sync-now disabled="@(running ? "disabled" : null)">@Icons.Get("sync")@(running ? "Syncing…" : "Sync now")</button>
+                        <button class="btn ghost" type="button" data-show-connect>@Icons.Get("key")Replace key</button>
+                    </div>
+                </div>
+            </section>
+        }
+
+        <section class="card" id="connect" data-connect-card hidden="@(data.Connected ? "hidden" : null)">
+            <div class="card-head">
+                <h2>@(data.Connected ? "Replace the key" : "Connect Trading 212")</h2>
+                <span class="aside">read-only</span>
+            </div>
+            <ol class="steps">
+                <li>In the Trading 212 app or website open <b>Settings › API (Beta)</b> and accept the terms.</li>
+                <li><b>Generate API key</b>: name it Obol and tick only <b>Account data</b>, <b>History</b> and <b>Portfolio</b> (Obol never trades).</li>
+                <li>Copy the <b>key</b> and the <b>secret</b> (the secret is shown once) and paste them here.</li>
+            </ol>
+            <form class="form-grid" style="margin-top: 14px" data-connect-form autocomplete="off">
+                <label class="field">API key<input class="input mono" name="apiKey" type="text" spellcheck="false" autocapitalize="none" required /></label>
+                <label class="field">API secret<input class="input mono" name="apiSecret" type="password" spellcheck="false" autocapitalize="none" required /></label>
+                <label class="field">Account
+                    <select class="input" name="environment">
+                        <option value="live">Real money (Invest or Stocks ISA)</option>
+                        <option value="demo">Practice</option>
+                    </select>
+                </label>
+                <div class="field" style="justify-content: flex-end"><button class="btn" type="submit">@Icons.Get("link")@(data.Connected ? "Save the new key" : "Connect")</button></div>
+                <div class="msg err" data-connect-error hidden style="grid-column: 1 / -1"></div>
+            </form>
+            <p class="hint" style="margin-top: 12px">The key and secret are checked with Trading 212, then kept encrypted on your server. Obol only reads: it can't place orders or move money.</p>
+        </section>
+
+        @if (data.Connected)
+        {
+            <section class="card">
+                <div class="card-head">
+                    <h2>What syncs</h2>
+                    <span class="aside">every @(data.SyncMinutes > 0 ? data.SyncMinutes + " min" : "time you tap Sync now")</span>
+                </div>
+                <div class="toggles" style="margin-top: 12px">
+                    @foreach (var (key, label, hint, on) in options)
+                    {
+                        <button class="toggle" type="button" role="switch" aria-checked="@(on ? "true" : "false")" data-option="@key">
+                            <span><b>@label</b><small>@hint</small></span>
+                            <span class="box">@Icons.Get("check")</span>
+                        </button>
+                    }
+                </div>
+            </section>
+        }
+
+        <section class="card" id="csv">
+            <div class="card-head">
+                <h2>Import a CSV export</h2>
+                <span class="aside">duplicates are skipped</span>
+            </div>
+            <p class="muted" style="margin-top: 8px; font-size: 13px">For history the API doesn't reach, or without an API key: in Trading 212 open <b style="color: var(--text-2)">History › Export history</b>, pick the dates and what to include, and drop the file here. Import several years one file at a time.</p>
+            <label class="drop" style="margin-top: 12px" data-drop>
+                @Icons.Get("upload")
+                <span class="grow"><b style="display: block; font-size: 14px">Choose or drop the CSV file</b><small class="muted">Up to 30 MB</small></span>
+                @Icons.Get("right")
+                <input type="file" accept=".csv,text/csv" data-csv />
+            </label>
+            <div data-csv-result hidden style="margin-top: 12px"></div>
+        </section>
+    </div>
+
+    <div class="side">
+        <section class="card">
+            <div class="card-head">
+                <h2>Last run</h2>
+                @if (lastRun is not null)
+                {
+                    <span class="aside">@Fmt.When(lastRun.FinishedAt)</span>
+                }
+            </div>
+            @if (lastRun is null)
+            {
+                <p class="muted" style="margin-top: 10px; font-size: 13px">Nothing synced or imported yet.</p>
+            }
+            else
+            {
+                <div class="log" style="margin-top: 10px">
+                    @foreach (var line in lastRun.Lines.DefaultIfEmpty(lastRun.Summary))
+                    {
+                        <div class="l"><span class="c@(lastRun.Ok ? string.Empty : " bad")">@Icons.Get(lastRun.Ok ? "check" : "x")</span><span class="grow">@line</span></div>
+                    }
+                </div>
+            }
+        </section>
+
+        @if (data.Runs.Count > 1)
+        {
+            <section class="card runs">
+                <div class="card-head"><h2>History</h2><span class="aside">last @data.Runs.Count</span></div>
+                <div style="margin-top: 6px">
+                    @foreach (var run in data.Runs)
+                    {
+                        <details>
+                            <summary>
+                                <span class="dot @(run.Ok ? "ok" : "bad")"></span>
+                                <span class="grow ellipsis">@run.Summary</span>
+                                <span class="muted" style="font-size: 12px">@(run.Source == DataSource.Csv ? "CSV" : "API") · @Fmt.When(run.FinishedAt)</span>
+                            </summary>
+                            <ul>
+                                @foreach (var line in run.Lines)
+                                {
+                                    <li>@line</li>
+                                }
+                            </ul>
+                        </details>
+                    }
+                </div>
+            </section>
+        }
+
+        <section class="card flat">
+            <div class="card-head"><h2>Extras</h2></div>
+            <div class="list" style="margin-top: 6px; font-size: 13px">
+                <div class="item"><span class="grow">Price history (Yahoo Finance)</span><span class="@(data.PriceHistory ? "up" : "muted")">@(data.PriceHistory ? "On" : "Off")</span></div>
+                <div class="item"><span class="grow">Company logos (logo.dev)</span><span class="@(data.Logos ? "up" : "muted")">@(data.Logos ? "On" : "Off")</span></div>
+                <div class="item"><span class="grow">Records kept</span><span>@data.Records</span></div>
+            </div>
+            <p class="hint" style="margin-top: 8px">Set in the server's .env (OBOL_PRICE_HISTORY, OBOL_LOGO_TOKEN).</p>
+        </section>
+
+        <section class="card danger-zone">
+            <div class="card-head"><h2>Start over</h2></div>
+            <p class="muted" style="margin-top: 8px; font-size: 13px">Delete everything imported (positions, trades, dividends, transfers). @(data.Connected ? "The next sync reads the whole history again." : string.Empty)</p>
+            <div class="row wrap" style="margin-top: 12px">
+                <button class="btn danger small" type="button" data-delete-data>@Icons.Get("trash")Delete imported data</button>
+                @if (data.Connected)
+                {
+                    <button class="btn ghost small" type="button" data-disconnect>Disconnect Trading 212</button>
+                }
+            </div>
+        </section>
+    </div>
+</div>

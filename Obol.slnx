@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="Obol.Database/Obol.Database.sqlproj" Type="42ea0dbd-9cf1-443e-919e-be9c484e4577" />
+  <Project Path="Obol.Library/Obol.Library.csproj" />
+  <Project Path="Obol.Sdk/Obol.Sdk.csproj" />
+  <Project Path="Obol.UnitTest/Obol.UnitTest.csproj" />
+  <Project Path="Obol.WebApi/Obol.WebApi.csproj" />
+  <Project Path="Obol.Website/Obol.Website.csproj" />
+</Solution>
