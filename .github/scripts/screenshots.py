@@ -111,6 +111,18 @@ with sync_playwright() as p:
             page.screenshot(path=str(out / f"{name}-{shot}.png"))
             page.screenshot(path=str(out / f"{name}-{shot}-full.png"), full_page=True)
 
+        # A pie opened on the Overview (the Trading 212 pies, as the app groups them).
+        page.goto(base + "/")
+        pie = page.locator(".pie-row:visible").first
+        if pie.count():
+            pie.click()
+            page.wait_for_timeout(400)
+            page.screenshot(path=str(out / f"{name}-overview-pie.png"), full_page=True)
+            page.locator("[data-hview=stocks]").first.click()
+            page.wait_for_timeout(300)
+            page.screenshot(path=str(out / f"{name}-overview-stocks.png"), full_page=True)
+            page.locator("[data-hview=pies]").first.click()
+
         # The chart cursor, as a finger or the mouse moves over the chart.
         page.goto(base + "/")
         chart = page.locator("[data-chart]").first

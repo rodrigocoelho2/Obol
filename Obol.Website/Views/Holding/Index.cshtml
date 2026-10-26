@@ -91,9 +91,9 @@ else
                             <td>@Fmt.Qty(position.Quantity)</td>
                             <td>@Fmt.Price(position.AveragePrice, position.Instrument.Currency)</td>
                             <td>@Fmt.Price(position.Price, position.Instrument.Currency)</td>
-                            <td class="@Fmt.Trend(position.DayChangePct)">@(position.DayChangePct is null ? "—" : Fmt.SignedPct(position.DayChangePct))</td>
+                            <td class="@Fmt.Trend(position.DayChangePct)">@(position.DayChangePct is null ? "—" : Fmt.Arrow(position.DayChangePct, 1))</td>
                             <td class="strong">@Fmt.Money(position.Value, currency)</td>
-                            <td class="strong @Fmt.Trend(position.Unrealized)">@Fmt.SignedMoney(position.Unrealized, currency, 0) · @Fmt.Pct(position.UnrealizedPct is { } u ? Math.Abs(u) : null)</td>
+                            <td class="strong">@Ui.Return(position.Unrealized, position.UnrealizedPct, currency)</td>
                         </tr>
                     }
                 </tbody>
@@ -111,7 +111,7 @@ else
                     <div class="name">@position.Instrument.Name</div>
                     <div class="weight"><span class="bar"><i class="bg-@Fmt.ClassCss(position.Instrument.Class)" style="width: @Charts.N(top > 0 ? (double)(position.Weight / top) * 100 : 0)%"></i></span><small>@Fmt.Pct(position.Weight)</small></div>
                 </div>
-                <div class="end"><b>@Fmt.Money(position.Value, currency)</b><small class="@trend">@Fmt.Arrow(position.UnrealizedPct, 1)</small></div>
+                <div class="end"><b>@Fmt.Money(position.Value, currency)</b><small class="@trend">@Fmt.SignedMoney(position.Unrealized, currency) (@Fmt.Pct(position.UnrealizedPct is { } u ? Math.Abs(u) : null, 2))</small></div>
             </a>
         }
     </section>

@@ -45,6 +45,12 @@ internal sealed class PortfolioData
     /// <summary>Gets the benchmark indexes: instrument key (BENCH:…) → instrument id.</summary>
     public IReadOnlyDictionary<string, int> Benchmarks { get; init; } = new Dictionary<string, int>();
 
+    /// <summary>Gets the Trading 212 pies, as the last sync read them.</summary>
+    public IReadOnlyList<PieRow> Pies { get; init; } = [];
+
+    /// <summary>Gets the instruments of the pies.</summary>
+    public IReadOnlyList<PieHoldingRow> PieHoldings { get; init; } = [];
+
     /// <summary>Gets a value indicating whether there is anything at all.</summary>
     public bool HasData => Holdings.Count > 0 || Trades.Count > 0 || Cash.Count > 0 || Dividends.Count > 0;
 }

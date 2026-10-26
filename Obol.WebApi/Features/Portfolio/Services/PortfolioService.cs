@@ -103,6 +103,7 @@ internal sealed class PortfolioService(
         }
 
         var positionDtos = positions.Select(position => ToDTO(position, positionsValue, data)).ToList();
+        var (pies, outsidePies) = PieMath.Group(data, positions);
         return ServiceApiResponse<OverviewDTO>.Success(new OverviewDTO
         {
             Currency = data.Currency,
@@ -128,6 +129,8 @@ internal sealed class PortfolioService(
             Movers = positionDtos.Where(static position => position.DayChangePct is not null && position.DayChangePct != 0)
                 .OrderByDescending(static position => Math.Abs(position.DayChangePct!.Value)).Take(4).ToList(),
             Positions = positionDtos,
+            Pies = pies.Select(pie => ToDTO(pie, positionsValue)).ToList(),
+            OutsidePies = pies.Count == 0 ? [] : outsidePies.Select(slice => ToDTO(slice, positionsValue)).ToList(),
             IncomeThisYear = thisYear,
             IncomeNext12 = expected.Sum(static payment => payment.Amount),
             IncomeProgress = thisYear + stillThisYear > 0 ? thisYear / (thisYear + stillThisYear) : null,
@@ -383,6 +386,35 @@ internal sealed class PortfolioService(
             OpenedAt = Utc(position.OpenedAt),
         };
     }
+
+    private static PieDTO ToDTO(PieGroup pie, decimal allValue) => new()
+    {
+        Id = pie.Pie.PieID,
+        Name = pie.Pie.Name,
+        Icon = pie.Pie.Icon,
+        Value = pie.Value,
+        Invested = pie.Invested,
+        Gain = pie.Gain,
+        GainPct = pie.GainPct,
+        Weight = allValue > 0 ? pie.Value / allValue : 0m,
+        Cash = pie.Pie.Cash,
+        DividendsGained = pie.Pie.DividendsGained,
+        Goal = pie.Pie.Goal,
+        Holdings = pie.Holdings.Select(slice => ToDTO(slice, allValue)).ToList(),
+    };
+
+    private static PieHoldingDTO ToDTO(PieSlice slice, decimal allValue) => new()
+    {
+        Instrument = ToDTO(slice.Instrument),
+        Quantity = slice.Quantity,
+        Value = slice.Value,
+        Invested = slice.Invested,
+        Gain = slice.Gain,
+        GainPct = slice.GainPct,
+        Weight = allValue > 0 ? slice.Value / allValue : 0m,
+        CurrentShare = slice.CurrentShare,
+        ExpectedShare = slice.ExpectedShare,
+    };
 
     private static UpcomingPaymentDTO ToDTO(ExpectedPayment payment, PortfolioData data) => new()
     {

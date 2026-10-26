@@ -181,6 +181,12 @@ public sealed class OverviewDTO
     /// <summary>Gets or sets every open position (biggest first).</summary>
     public List<PositionDTO> Positions { get; set; } = [];
 
+    /// <summary>Gets or sets the Trading 212 pies (biggest first; empty when there are none or they weren't read).</summary>
+    public List<PieDTO> Pies { get; set; } = [];
+
+    /// <summary>Gets or sets the shares held outside every pie, one line per instrument (biggest first).</summary>
+    public List<PieHoldingDTO> OutsidePies { get; set; } = [];
+
     /// <summary>Gets or sets the dividends and interest received this year.</summary>
     public decimal IncomeThisYear { get; set; }
 
@@ -448,4 +454,75 @@ public sealed class IncomeDTO
 
     /// <summary>Gets or sets the tax withheld at source in the last 12 months.</summary>
     public decimal Withheld { get; set; }
+}
+
+/// <summary>A Trading 212 pie: its instruments valued at today's prices, against what was put in.</summary>
+public sealed class PieDTO
+{
+    /// <summary>Gets or sets the Trading 212 id.</summary>
+    public long Id { get; set; }
+
+    /// <summary>Gets or sets the name.</summary>
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the Trading 212 icon name.</summary>
+    public string Icon { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets what the pie's shares are worth, in the account currency.</summary>
+    public decimal Value { get; set; }
+
+    /// <summary>Gets or sets what was put into them.</summary>
+    public decimal Invested { get; set; }
+
+    /// <summary>Gets or sets the gain (value minus invested).</summary>
+    public decimal Gain { get; set; }
+
+    /// <summary>Gets or sets the gain as a share of what was put in (0.183 = 18.3 %).</summary>
+    public decimal? GainPct { get; set; }
+
+    /// <summary>Gets or sets the share of all positions.</summary>
+    public decimal Weight { get; set; }
+
+    /// <summary>Gets or sets the cash waiting in the pie.</summary>
+    public decimal Cash { get; set; }
+
+    /// <summary>Gets or sets the dividends the pie has received.</summary>
+    public decimal DividendsGained { get; set; }
+
+    /// <summary>Gets or sets the goal set for the pie.</summary>
+    public decimal? Goal { get; set; }
+
+    /// <summary>Gets or sets the instruments (biggest first).</summary>
+    public List<PieHoldingDTO> Holdings { get; set; } = [];
+}
+
+/// <summary>Shares of one instrument inside a pie, or outside every pie.</summary>
+public sealed class PieHoldingDTO
+{
+    /// <summary>Gets or sets the instrument.</summary>
+    public InstrumentDTO Instrument { get; set; } = new();
+
+    /// <summary>Gets or sets the shares.</summary>
+    public decimal Quantity { get; set; }
+
+    /// <summary>Gets or sets what they are worth, in the account currency.</summary>
+    public decimal Value { get; set; }
+
+    /// <summary>Gets or sets what they cost.</summary>
+    public decimal Invested { get; set; }
+
+    /// <summary>Gets or sets the gain.</summary>
+    public decimal Gain { get; set; }
+
+    /// <summary>Gets or sets the gain as a share of the cost.</summary>
+    public decimal? GainPct { get; set; }
+
+    /// <summary>Gets or sets the share of all positions.</summary>
+    public decimal Weight { get; set; }
+
+    /// <summary>Gets or sets the share of the pie now (null outside pies).</summary>
+    public decimal? CurrentShare { get; set; }
+
+    /// <summary>Gets or sets the share of the pie it was set to (null outside pies).</summary>
+    public decimal? ExpectedShare { get; set; }
 }

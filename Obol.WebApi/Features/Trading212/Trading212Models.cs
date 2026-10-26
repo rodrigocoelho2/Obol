@@ -250,3 +250,77 @@ internal enum Trading212Failure
     /// <summary>An answer Obol couldn't read.</summary>
     Unexpected,
 }
+
+/// <summary>The money of a pie or of an instrument in a pie (GET /api/v0/equity/pies), in the account currency.</summary>
+internal sealed class T212PieResult
+{
+    public decimal PriceAvgInvestedValue { get; set; }
+
+    public decimal PriceAvgResult { get; set; }
+
+    public decimal? PriceAvgResultCoef { get; set; }
+
+    public decimal PriceAvgValue { get; set; }
+}
+
+/// <summary>The dividends of a pie.</summary>
+internal sealed class T212PieDividends
+{
+    public decimal Gained { get; set; }
+
+    public decimal InCash { get; set; }
+
+    public decimal Reinvested { get; set; }
+}
+
+/// <summary>GET /api/v0/equity/pies: one pie.</summary>
+internal sealed class T212Pie
+{
+    public long Id { get; set; }
+
+    public decimal Cash { get; set; }
+
+    public T212PieDividends? DividendDetails { get; set; }
+
+    public decimal? Progress { get; set; }
+
+    public T212PieResult? Result { get; set; }
+
+    public string? Status { get; set; }
+}
+
+/// <summary>GET /api/v0/equity/pies/{id}.</summary>
+internal sealed class T212PieDetail
+{
+    public List<T212PieInstrument>? Instruments { get; set; }
+
+    public T212PieSettings? Settings { get; set; }
+}
+
+/// <summary>An instrument of a pie.</summary>
+internal sealed class T212PieInstrument
+{
+    public decimal? CurrentShare { get; set; }
+
+    public decimal? ExpectedShare { get; set; }
+
+    public decimal OwnedQuantity { get; set; }
+
+    public T212PieResult? Result { get; set; }
+
+    public string? Ticker { get; set; }
+}
+
+/// <summary>The settings of a pie.</summary>
+internal sealed class T212PieSettings
+{
+    public DateTimeOffset? CreationDate { get; set; }
+
+    public decimal? Goal { get; set; }
+
+    public string? Icon { get; set; }
+
+    public long Id { get; set; }
+
+    public string? Name { get; set; }
+}

@@ -43,12 +43,15 @@
   (1W · 1M · 3M · YTD · 1Y · All). The gain leaves out the money you put in meanwhile, so a deposit is never a "gain".
 - **Value of every day**, drawn smooth with a cursor (finger or mouse), and the money put in as a dashed line.
 - **Allocation** as a treemap: equity ETFs, bond ETFs, stocks, cash.
+- **Holdings grouped by your Trading 212 pies**, as the app shows them: each pie with its value, what you put in and
+  its gain in € and %, open it to see its holdings; what you hold outside the pies sits next to them. A switch flips to
+  one line per stock.
 - **Movers of the day**, the **next dividends** and how far this year's income has come.
 
 **Holdings**
 
 - Every position with its **logo** (logo.dev, cached on the server; a ticker badge without a key), weight, value,
-  return since bought and a sparkline. Filter (ETFs · Stocks), find and sort by value, return or name.
+  return since bought (in € and %, green or red) and today's move. Filter (ETFs · Stocks), find and sort by value, return or name.
 - **A position**: the price chart with every buy and sell marked, the average price you paid as a guide line, the
   dividends it paid, what you put in and what you took out.
 
@@ -191,9 +194,10 @@ SSMS) or the volume. Everything can also be read again from Trading 212 (Sync �
 
 1. In the Trading 212 app or website open **Settings › API (Beta)** and accept the terms.
 2. **Generate API key** for the account you'll connect, name it Obol and tick the read permissions: **Account data**,
-   **History - Dividends**, **History - Orders**, **History - Transactions**, **Metadata** and **Portfolio**. Leave the
-   order and pie permissions off — Obol never trades. A key without one of them still syncs the rest, and Sync says
-   which permission to turn on.
+   **History - Dividends**, **History - Orders**, **History - Transactions**, **Metadata**, **Pies - Read** and
+   **Portfolio**. Leave the order and pie-writing permissions off — Obol never trades. A key without one of them still
+   syncs the rest, and Sync says which permission to turn on (without **Pies - Read** the Overview lists one line per
+   stock).
 3. Copy the **key** and the **secret** (the secret is shown only once) into **Sync › Connect Trading 212**, pick
    *Real money* or *Practice*.
 

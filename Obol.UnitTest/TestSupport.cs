@@ -96,7 +96,9 @@ internal static class TestSupport
         IEnumerable<CashMovementRow>? cash = null,
         IEnumerable<DividendRow>? dividends = null,
         PriceBook? prices = null,
-        DateOnly? today = null) => new()
+        DateOnly? today = null,
+        IEnumerable<PieRow>? pies = null,
+        IEnumerable<PieHoldingRow>? pieHoldings = null) => new()
         {
             Currency = "EUR",
             Today = today ?? Today,
@@ -109,6 +111,8 @@ internal static class TestSupport
             Snapshots = [],
             Prices = prices ?? new PriceBook("EUR"),
             LocalDay = static utc => DateOnly.FromDateTime(utc),
+            Pies = (pies ?? []).ToList(),
+            PieHoldings = (pieHoldings ?? []).ToList(),
         };
 }
 

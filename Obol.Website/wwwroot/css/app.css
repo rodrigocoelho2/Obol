@@ -665,3 +665,40 @@ a.item:hover .name { color: var(--lime); }
   .dock a { width: 44px; }
   .dock a[aria-current="page"] { padding: 0 12px; }
 }
+
+/* ----- Gains, and the Trading 212 pies on the Overview ----- */
+.ret { display: inline-flex; align-items: baseline; gap: 8px; justify-content: flex-end; white-space: nowrap; }
+.ret b { font-weight: 700; }
+.ret i { font-style: normal; font-size: 12px; font-weight: 700; padding: 2px 7px; border-radius: 7px; background: rgba(255, 255, 255, 0.06); }
+.ret.up b { color: var(--lime); } .ret.up i { background: var(--lime-soft); color: var(--lime); }
+.ret.down b { color: var(--loss); } .ret.down i { background: var(--loss-soft); color: var(--loss); }
+.table td.up { color: var(--lime); font-weight: 600; } .table td.down { color: var(--loss); font-weight: 600; }
+.item .end small.up { color: var(--lime); } .item .end small.down { color: var(--loss); } .item .end small.flat { color: var(--muted); }
+.seg.mini { padding: 3px; border-radius: 10px; }
+.seg.mini a, .seg.mini button { height: 28px; padding: 0 12px; font-size: 12px; display: inline-flex; align-items: center; }
+.bg-pie { background: linear-gradient(90deg, var(--lime), #5FD0C3); }
+.pie-ico { display: grid; place-items: center; width: 44px; height: 44px; flex: none; }
+.pie-ico.sm { width: 38px; height: 38px; }
+.pie-ico svg { width: 100%; height: 100%; }
+.pie-ico circle { fill: none; stroke-width: 7; }
+.pie-ico .track { stroke: rgba(255, 255, 255, 0.07); }
+.pie-ico .p0 { stroke: #C6F36D; } .pie-ico .p1 { stroke: #B4A2FF; } .pie-ico .p2 { stroke: #5FD0C3; }
+.pie-ico .p3 { stroke: #E8C77E; } .pie-ico .p4 { stroke: #F2A65A; } .pie-ico .p5 { stroke: #FF8F7F; } .pie-ico .rest { stroke: #56635D; }
+.caret { display: inline-grid; place-items: center; width: 18px; color: var(--muted); font-size: 18px; font-weight: 700; line-height: 1; transition: transform 0.2s, color 0.2s; flex: none; }
+.caret.none { visibility: hidden; }
+.pie-row { cursor: pointer; }
+.pie-row[aria-expanded="true"] .caret { transform: rotate(90deg); color: var(--lime); }
+.table tr.pie-row:hover td { background: rgba(255, 255, 255, 0.015); }
+.table tr.pie-row[aria-expanded="true"] td { background: rgba(198, 243, 109, 0.035); }
+.table tr.child td { border-top: 1px dashed var(--line); font-size: 13px; }
+.table tr.child .who { font-weight: 500; color: var(--text-2); }
+.table tr.child .asset.sm { width: 30px; height: 30px; font-size: 9px; border-radius: 9px; }
+.tree { width: 14px; height: 20px; border-left: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); border-bottom-left-radius: 6px; margin: -12px -4px 0 4px; flex: none; }
+.item.pie-row .meta .caret { width: 12px; font-size: 14px; vertical-align: -1px; }
+.kids { margin-left: 8px; border-bottom: 1px solid var(--line); }
+.kids .item { padding: 9px 0; border-bottom: 1px dashed var(--line); }
+.kids .item:last-child { border-bottom: 0; }
+.kids .item .name { font-size: 13px; font-weight: 500; }
+.kids .item .asset.sm { width: 32px; height: 32px; font-size: 9px; border-radius: 10px; }
+.kids .tree { margin: -14px -4px 0 0; }
+.more { display: block; padding: 12px 0 2px; font-size: 13px; font-weight: 600; }

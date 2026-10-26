@@ -67,6 +67,12 @@ internal sealed class MemoryPortfolio
     /// <summary>Gets the open positions.</summary>
     public List<HoldingRow> Holdings { get; } = [];
 
+    /// <summary>Gets the Trading 212 pies.</summary>
+    public List<PieRow> Pies { get; } = [];
+
+    /// <summary>Gets the instruments of the pies.</summary>
+    public List<PieHoldingRow> PieHoldings { get; } = [];
+
     /// <summary>Gets the trades, oldest first.</summary>
     public List<TradeRow> Trades { get; } = [];
 

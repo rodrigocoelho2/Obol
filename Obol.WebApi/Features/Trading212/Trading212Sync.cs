@@ -57,6 +57,9 @@ internal sealed class Trading212Sync(
     IAppClock clock,
     ILogger<Trading212Sync> logger) : ISyncRunner
 {
+    /// <summary>The permission a key needs to read the pies.</summary>
+    internal const string PiesPermission = "Pies - Read";
+
     private static readonly CultureInfo English = CultureInfo.GetCultureInfo("en-IE");
 
     /// <inheritdoc />
@@ -150,6 +153,7 @@ internal sealed class Trading212Sync(
         var parts = new List<string>();
         var missing = new List<string>();
         var today = clock.Today;
+        Dictionary<string, int>? byTicker = null;
 
         if (connection.SyncPositions
             && await AllowedAsync(() => client.PositionsAsync(credentials, cancellationToken), "Portfolio", "Positions", missing, lines) is { } positions)
@@ -164,6 +168,7 @@ internal sealed class Trading212Sync(
             }
 
             var saved = (await instrumentRepository.UpsertAsync(instruments.Values.ToList())).ToDictionary(static row => row.InstrumentKey, StringComparer.Ordinal);
+            byTicker = new Dictionary<string, int>(StringComparer.Ordinal);
             var holdings = new List<HoldingInput>();
             var prices = new List<PriceInput>();
             var rates = new List<FxInput>();
@@ -173,6 +178,11 @@ internal sealed class Trading212Sync(
                 if (input is null || !saved.TryGetValue(input.Key, out var row) || position.Quantity <= 0)
                 {
                     continue;
+                }
+
+                if (position.Instrument?.Ticker is { Length: > 0 } ticker)
+                {
+                    byTicker.TryAdd(ticker.Trim(), row.InstrumentID);
                 }
 
                 var wallet = position.WalletImpact;
@@ -206,6 +216,11 @@ internal sealed class Trading212Sync(
             });
             lines.Add($"{holdings.Count} position{(holdings.Count == 1 ? string.Empty : "s")} · cash {Money(cash, currency)}");
             parts.Add($"{holdings.Count} position{(holdings.Count == 1 ? string.Empty : "s")}");
+        }
+
+        if (byTicker is not null)
+        {
+            await SyncPiesAsync(userId, credentials, byTicker, lines, cancellationToken);
         }
 
         var fullHistory = connection.HistoryDoneAt is null;
@@ -305,6 +320,76 @@ internal sealed class Trading212Sync(
         }
 
         return (parts.Count == 0 ? "Nothing to sync (everything is turned off)." : string.Join(" · ", parts), historyDone);
+    }
+
+    /// <summary>
+    /// Reads the pies and what each owns, and replaces the ones kept. Pies are optional: a key without "Pies - Read", or
+    /// Trading 212 failing to answer, leaves the pies of the last sync and only adds a line to the log.
+    /// </summary>
+    private async Task SyncPiesAsync(Guid userId, Trading212Credentials credentials, Dictionary<string, int> byTicker, List<string> lines, CancellationToken cancellationToken)
+    {
+        List<T212Pie> pies;
+        try
+        {
+            pies = await client.PiesAsync(credentials, cancellationToken);
+        }
+        catch (Trading212Exception exception) when (exception.Kind is Trading212Failure.Unauthorized or Trading212Failure.Forbidden)
+        {
+            lines.Add($"Pies: not read. To see your holdings grouped by pie, turn on \"{PiesPermission}\" for this key in Trading 212");
+            return;
+        }
+        catch (Trading212Exception exception)
+        {
+            lines.Add($"Pies: not read this time ({exception.Message}), the last ones are kept");
+            return;
+        }
+
+        var rows = new List<PieInput>();
+        var owned = new List<PieHoldingInput>();
+        var unread = new HashSet<long>();
+        foreach (var pie in pies)
+        {
+            T212PieDetail? detail = null;
+            try
+            {
+                detail = await client.PieAsync(credentials, pie.Id, cancellationToken);
+            }
+            catch (Trading212Exception)
+            {
+                unread.Add(pie.Id);
+            }
+
+            rows.Add(Trading212Mapper.Pie(pie, detail));
+            if (detail is not null)
+            {
+                owned.AddRange(Trading212Mapper.PieHoldings(pie.Id, detail, ticker => byTicker.TryGetValue(ticker, out var id) ? id : null));
+            }
+        }
+
+        if (unread.Count > 0 && unread.Count == pies.Count)
+        {
+            lines.Add("Pies: Trading 212 didn't give their details this time, the last ones are kept");
+            return;
+        }
+
+        if (unread.Count > 0)
+        {
+            // A pie whose details didn't come keeps its name and what it owned at the last sync.
+            var before = (await portfolioRepository.ListPiesAsync(userId)).ToDictionary(static pie => pie.PieID);
+            for (var i = 0; i < rows.Count; i++)
+            {
+                if (unread.Contains(rows[i].PieID) && before.TryGetValue(rows[i].PieID, out var known))
+                {
+                    rows[i] = rows[i] with { Name = known.Name, Icon = known.Icon, Goal = known.Goal, CreatedAt = known.CreatedAt is { } made ? DbTime.Time(made) : null };
+                }
+            }
+
+            owned.AddRange((await portfolioRepository.ListPieHoldingsAsync(userId)).Where(row => unread.Contains(row.PieID)).Select(static row =>
+                new PieHoldingInput(row.PieID, row.InstrumentID, row.Quantity, row.Invested, row.Value, row.Result, row.CurrentShare, row.ExpectedShare)));
+        }
+
+        await portfolioRepository.ReplacePiesAsync(userId, rows, owned);
+        lines.Add(pies.Count == 0 ? "Pies: none" : $"{Count(pies.Count, "pie")} · {Count(owned.Count, "holding")} in them{(unread.Count > 0 ? $" ({unread.Count} not read this time)" : string.Empty)}");
     }
 
     /// <summary>

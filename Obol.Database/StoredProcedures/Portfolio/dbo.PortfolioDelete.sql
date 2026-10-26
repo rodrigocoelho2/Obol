@@ -1,6 +1,6 @@
 /*
     PortfolioDelete
-    Deletes everything imported for an account (positions, trades, dividends, cash, snapshots and the sync log), so it can
+    Deletes everything imported for an account (positions, pies, trades, dividends, cash, snapshots and the sync log), so it can
     be imported again from scratch. The account and its Trading 212 connection stay; the next sync reads the whole history.
 */
 CREATE PROCEDURE [dbo].[PortfolioDelete]
@@ -15,6 +15,8 @@ BEGIN
 
     BEGIN TRANSACTION;
 
+    DELETE FROM [dbo].[PieHolding] WHERE [UserID] = @UserID;
+    DELETE FROM [dbo].[Pie] WHERE [UserID] = @UserID;
     DELETE FROM [dbo].[Holding] WHERE [UserID] = @UserID;
     DELETE FROM [dbo].[Trade] WHERE [UserID] = @UserID;
     DELETE FROM [dbo].[Dividend] WHERE [UserID] = @UserID;

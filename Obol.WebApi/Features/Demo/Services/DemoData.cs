@@ -29,6 +29,15 @@ internal static class DemoData
     ];
 
     /// <summary>
+    /// The demo's Trading 212 pies: each owns a share of some positions (what's left is held outside the pies).
+    /// </summary>
+    public static readonly IReadOnlyList<(long Id, string Name, string Icon, decimal? Goal, (string Isin, decimal Share)[] Holdings)> Pies =
+    [
+        (4101, "Long term", "Retirement", 50000m, new (string, decimal)[] { ("IE00B4L5Y983", 0.8m), ("IE00B4WXJJ64", 1m) }),
+        (4102, "Big tech", "Rocket", null, new (string, decimal)[] { ("US67066G1040", 1m), ("US0378331005", 0.7m) }),
+    ];
+
+    /// <summary>
     /// Builds the demo.
     /// </summary>
     /// <param name="today">Today.</param>

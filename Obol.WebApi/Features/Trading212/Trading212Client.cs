@@ -31,6 +31,19 @@ internal interface ITrading212Client
     /// <returns>The instruments, by ticker.</returns>
     Task<IReadOnlyDictionary<string, T212TradableInstrument>> InstrumentsAsync(Trading212Credentials credentials, CancellationToken cancellationToken);
 
+    /// <summary>The pies (the endpoint allows one call in 30 s).</summary>
+    /// <param name="credentials">The key.</param>
+    /// <param name="cancellationToken">Cancels the call.</param>
+    /// <returns>The pies.</returns>
+    Task<List<T212Pie>> PiesAsync(Trading212Credentials credentials, CancellationToken cancellationToken);
+
+    /// <summary>A pie's name and instruments (the endpoint allows one call in 5 s).</summary>
+    /// <param name="credentials">The key.</param>
+    /// <param name="id">The pie.</param>
+    /// <param name="cancellationToken">Cancels the call.</param>
+    /// <returns>The pie.</returns>
+    Task<T212PieDetail> PieAsync(Trading212Credentials credentials, long id, CancellationToken cancellationToken);
+
     /// <summary>The filled orders, newest first, a page at a time.</summary>
     /// <param name="credentials">The key.</param>
     /// <param name="cancellationToken">Cancels the paging.</param>
@@ -73,7 +86,10 @@ internal sealed class Trading212Client(
     private static readonly TimeSpan MaxWait = TimeSpan.FromSeconds(75);
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
     private static readonly SemaphoreSlim InstrumentsGate = new(1, 1);
+    private static readonly TimeSpan PieGap = TimeSpan.FromMilliseconds(5200);
+    private static readonly SemaphoreSlim PieGate = new(1, 1);
     private static (DateTimeOffset At, IReadOnlyDictionary<string, T212TradableInstrument> Items)? instrumentsCache;
+    private static DateTimeOffset lastPieCall = DateTimeOffset.MinValue;
 
     /// <summary>Gets or sets the pause between history pages (tests set it to zero).</summary>
     internal TimeSpan Gap { get; set; } = PageGap;
@@ -107,6 +123,32 @@ internal sealed class Trading212Client(
         finally
         {
             InstrumentsGate.Release();
+        }
+    }
+
+    /// <inheritdoc />
+    public Task<List<T212Pie>> PiesAsync(Trading212Credentials credentials, CancellationToken cancellationToken) =>
+        GetAsync<List<T212Pie>>(credentials, "api/v0/equity/pies", cancellationToken);
+
+    /// <inheritdoc />
+    public async Task<T212PieDetail> PieAsync(Trading212Credentials credentials, long id, CancellationToken cancellationToken)
+    {
+        // One call in 5 s: the pies of a sync are read one after the other, a little more than 5 s apart.
+        await PieGate.WaitAsync(cancellationToken);
+        try
+        {
+            var wait = lastPieCall == DateTimeOffset.MinValue ? TimeSpan.Zero : lastPieCall + PieGap - timeProvider.GetUtcNow();
+            if (Gap > TimeSpan.Zero && wait > TimeSpan.Zero)
+            {
+                await Task.Delay(wait, timeProvider, cancellationToken);
+            }
+
+            return await GetAsync<T212PieDetail>(credentials, string.Create(CultureInfo.InvariantCulture, $"api/v0/equity/pies/{id}"), cancellationToken);
+        }
+        finally
+        {
+            lastPieCall = timeProvider.GetUtcNow();
+            PieGate.Release();
         }
     }
 

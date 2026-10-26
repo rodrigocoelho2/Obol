@@ -179,6 +179,37 @@
     else location.href = row.dataset.href;
   }));
 
+  /* ----- Overview holdings: the Trading 212 pies, or one line per stock (the choice is remembered) ----- */
+  const hviews = document.querySelector('[data-hviews]');
+  if (hviews) {
+    const buttons = [...hviews.querySelectorAll('[data-hview]')];
+    const show = view => {
+      buttons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.hview === view)));
+      hviews.querySelectorAll('[data-hpane]').forEach(pane => { pane.hidden = pane.dataset.hpane !== view; });
+    };
+    let saved = null;
+    try { saved = localStorage.getItem('obol.holdings-view'); } catch { /* private mode */ }
+    if (buttons.length && buttons.some(button => button.dataset.hview === saved)) show(saved);
+    buttons.forEach(button => button.addEventListener('click', () => {
+      show(button.dataset.hview);
+      try { localStorage.setItem('obol.holdings-view', button.dataset.hview); } catch { /* private mode */ }
+    }));
+
+    /* A pie opens to its holdings. */
+    hviews.querySelectorAll('.pie-row[data-pie]').forEach(row => {
+      const toggle = () => {
+        const open = row.getAttribute('aria-expanded') !== 'true';
+        row.setAttribute('aria-expanded', String(open));
+        const pane = row.closest('[data-hpane]') || hviews;
+        pane.querySelectorAll(`[data-pie-of="${row.dataset.pie}"]`).forEach(child => { child.hidden = !open; });
+      };
+      row.addEventListener('click', event => { if (!event.target.closest('a')) toggle(); });
+      row.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggle(); }
+      });
+    });
+  }
+
   /* ----- Sync ----- */
   const connectForm = document.querySelector('[data-connect-form]');
   if (connectForm) {

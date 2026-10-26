@@ -252,3 +252,110 @@ public sealed record CashInput(
     [property: JsonPropertyName("at")] string At,
     [property: JsonPropertyName("n")] string Note,
     [property: JsonPropertyName("s")] byte Source);
+
+/// <summary>A Trading 212 pie as the last sync read it (dbo.Pie). Amounts are in the account currency.</summary>
+public sealed class PieRow
+{
+    /// <summary>Gets or sets the Trading 212 id of the pie.</summary>
+    public long PieID { get; set; }
+
+    /// <summary>Gets or sets the name the pie was given.</summary>
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the Trading 212 icon name.</summary>
+    public string Icon { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the cash waiting in the pie.</summary>
+    public decimal Cash { get; set; }
+
+    /// <summary>Gets or sets what was put into the pie's instruments.</summary>
+    public decimal Invested { get; set; }
+
+    /// <summary>Gets or sets what the pie's instruments are worth.</summary>
+    public decimal Value { get; set; }
+
+    /// <summary>Gets or sets the gain (value minus invested).</summary>
+    public decimal Result { get; set; }
+
+    /// <summary>Gets or sets the dividends the pie has received.</summary>
+    public decimal DividendsGained { get; set; }
+
+    /// <summary>Gets or sets the goal set for the pie.</summary>
+    public decimal? Goal { get; set; }
+
+    /// <summary>Gets or sets when the pie was made (UTC).</summary>
+    public DateTime? CreatedAt { get; set; }
+
+    /// <summary>Gets or sets when it was last read (UTC).</summary>
+    public DateTime UpdatedAt { get; set; }
+}
+
+/// <summary>An instrument of a Trading 212 pie (dbo.PieHolding). Amounts are in the account currency.</summary>
+public sealed class PieHoldingRow
+{
+    /// <summary>Gets or sets the Trading 212 id of the pie.</summary>
+    public long PieID { get; set; }
+
+    /// <summary>Gets or sets the instrument.</summary>
+    public int InstrumentID { get; set; }
+
+    /// <summary>Gets or sets the shares the pie owns.</summary>
+    public decimal Quantity { get; set; }
+
+    /// <summary>Gets or sets what they cost.</summary>
+    public decimal Invested { get; set; }
+
+    /// <summary>Gets or sets what they were worth at the sync.</summary>
+    public decimal Value { get; set; }
+
+    /// <summary>Gets or sets the gain at the sync.</summary>
+    public decimal Result { get; set; }
+
+    /// <summary>Gets or sets the share of the pie now (0.25 = 25 %).</summary>
+    public decimal? CurrentShare { get; set; }
+
+    /// <summary>Gets or sets the share of the pie it was set to.</summary>
+    public decimal? ExpectedShare { get; set; }
+}
+
+/// <summary>A pie for dbo.PieReplace.</summary>
+/// <param name="PieID">The Trading 212 id.</param>
+/// <param name="Name">Name.</param>
+/// <param name="Icon">Icon.</param>
+/// <param name="Cash">Cash in the pie.</param>
+/// <param name="Invested">Invested.</param>
+/// <param name="Value">Value.</param>
+/// <param name="Result">Gain.</param>
+/// <param name="DividendsGained">Dividends received.</param>
+/// <param name="Goal">Goal.</param>
+/// <param name="CreatedAt">Made at, UTC (yyyy-MM-ddTHH:mm:ss).</param>
+public sealed record PieInput(
+    [property: JsonPropertyName("id")] long PieID,
+    [property: JsonPropertyName("n")] string Name,
+    [property: JsonPropertyName("ic")] string Icon,
+    [property: JsonPropertyName("c")] decimal Cash,
+    [property: JsonPropertyName("iv")] decimal Invested,
+    [property: JsonPropertyName("v")] decimal Value,
+    [property: JsonPropertyName("r")] decimal Result,
+    [property: JsonPropertyName("d")] decimal DividendsGained,
+    [property: JsonPropertyName("g")] decimal? Goal,
+    [property: JsonPropertyName("o")] string? CreatedAt);
+
+/// <summary>An instrument of a pie for dbo.PieReplace.</summary>
+/// <param name="PieID">The Trading 212 id of the pie.</param>
+/// <param name="InstrumentID">The instrument.</param>
+/// <param name="Quantity">Shares the pie owns.</param>
+/// <param name="Invested">Invested.</param>
+/// <param name="Value">Value.</param>
+/// <param name="Result">Gain.</param>
+/// <param name="CurrentShare">Share of the pie now.</param>
+/// <param name="ExpectedShare">Share of the pie as set.</param>
+public sealed record PieHoldingInput(
+    [property: JsonPropertyName("p")] long PieID,
+    [property: JsonPropertyName("i")] int InstrumentID,
+    [property: JsonPropertyName("q")] decimal Quantity,
+    [property: JsonPropertyName("iv")] decimal Invested,
+    [property: JsonPropertyName("v")] decimal Value,
+    [property: JsonPropertyName("r")] decimal Result,
+    [property: JsonPropertyName("cs")] decimal? CurrentShare,
+    [property: JsonPropertyName("es")] decimal? ExpectedShare);

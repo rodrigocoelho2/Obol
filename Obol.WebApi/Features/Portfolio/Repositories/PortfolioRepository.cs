@@ -19,6 +19,23 @@ internal interface IPortfolioRepository
     /// <returns>The positions.</returns>
     Task<List<HoldingRow>> ListHoldingsAsync(Guid userId);
 
+    /// <summary>Replaces the Trading 212 pies.</summary>
+    /// <param name="userId">The account.</param>
+    /// <param name="pies">The pies (empty removes them all).</param>
+    /// <param name="holdings">The instruments of the pies.</param>
+    /// <returns>A task.</returns>
+    Task ReplacePiesAsync(Guid userId, IReadOnlyCollection<PieInput> pies, IReadOnlyCollection<PieHoldingInput> holdings);
+
+    /// <summary>Lists the Trading 212 pies.</summary>
+    /// <param name="userId">The account.</param>
+    /// <returns>The pies.</returns>
+    Task<List<PieRow>> ListPiesAsync(Guid userId);
+
+    /// <summary>Lists the instruments of every pie.</summary>
+    /// <param name="userId">The account.</param>
+    /// <returns>The instruments.</returns>
+    Task<List<PieHoldingRow>> ListPieHoldingsAsync(Guid userId);
+
     /// <summary>Adds trades (one already kept is skipped).</summary>
     /// <param name="userId">The account.</param>
     /// <param name="rows">The trades.</param>
@@ -80,6 +97,16 @@ internal sealed class PortfolioRepository(ISqlConnectionFactory connectionFactor
 
     /// <inheritdoc />
     public Task<List<HoldingRow>> ListHoldingsAsync(Guid userId) => QueryAsync<HoldingRow>("[dbo].[HoldingList]", new { UserUniqueID = userId });
+
+    /// <inheritdoc />
+    public Task ReplacePiesAsync(Guid userId, IReadOnlyCollection<PieInput> pies, IReadOnlyCollection<PieHoldingInput> holdings) =>
+        ExecuteAsync("[dbo].[PieReplace]", new { UserUniqueID = userId, Pies = Json(pies), Holdings = Json(holdings) });
+
+    /// <inheritdoc />
+    public Task<List<PieRow>> ListPiesAsync(Guid userId) => QueryAsync<PieRow>("[dbo].[PieList]", new { UserUniqueID = userId });
+
+    /// <inheritdoc />
+    public Task<List<PieHoldingRow>> ListPieHoldingsAsync(Guid userId) => QueryAsync<PieHoldingRow>("[dbo].[PieHoldingList]", new { UserUniqueID = userId });
 
     /// <inheritdoc />
     public async Task<int> SaveTradesAsync(Guid userId, IReadOnlyCollection<TradeInput> rows) =>
@@ -160,6 +187,66 @@ internal sealed class MemoryPortfolioRepository(MemoryStore store, TimeProvider 
         lock (store.Gate)
         {
             return Task.FromResult(Book(userId).Holdings.ToList());
+        }
+    }
+
+    /// <inheritdoc />
+    public Task ReplacePiesAsync(Guid userId, IReadOnlyCollection<PieInput> pies, IReadOnlyCollection<PieHoldingInput> holdings)
+    {
+        lock (store.Gate)
+        {
+            var book = Book(userId);
+            var now = timeProvider.GetUtcNow().UtcDateTime;
+            book.Pies.Clear();
+            book.Pies.AddRange(pies.DistinctBy(static pie => pie.PieID).Select(pie => new PieRow
+            {
+                PieID = pie.PieID,
+                Name = pie.Name.Length > 100 ? pie.Name[..100] : pie.Name,
+                Icon = pie.Icon.Length > 40 ? pie.Icon[..40] : pie.Icon,
+                Cash = Math.Round(pie.Cash, 2),
+                Invested = Math.Round(pie.Invested, 2),
+                Value = Math.Round(pie.Value, 2),
+                Result = Math.Round(pie.Result, 2),
+                DividendsGained = Math.Round(pie.DividendsGained, 2),
+                Goal = pie.Goal,
+                CreatedAt = pie.CreatedAt is { } created ? DbTime.ParseTime(created) : null,
+                UpdatedAt = now,
+            }));
+            var ids = book.Pies.Select(static pie => pie.PieID).ToHashSet();
+            book.PieHoldings.Clear();
+            book.PieHoldings.AddRange(holdings.Where(holding => ids.Contains(holding.PieID))
+                .GroupBy(static holding => (holding.PieID, holding.InstrumentID))
+                .Select(static group => new PieHoldingRow
+                {
+                    PieID = group.Key.PieID,
+                    InstrumentID = group.Key.InstrumentID,
+                    Quantity = group.Sum(static holding => holding.Quantity),
+                    Invested = Math.Round(group.Sum(static holding => holding.Invested), 2),
+                    Value = Math.Round(group.Sum(static holding => holding.Value), 2),
+                    Result = Math.Round(group.Sum(static holding => holding.Result), 2),
+                    CurrentShare = group.Max(static holding => holding.CurrentShare),
+                    ExpectedShare = group.Max(static holding => holding.ExpectedShare),
+                }));
+        }
+
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc />
+    public Task<List<PieRow>> ListPiesAsync(Guid userId)
+    {
+        lock (store.Gate)
+        {
+            return Task.FromResult(Book(userId).Pies.ToList());
+        }
+    }
+
+    /// <inheritdoc />
+    public Task<List<PieHoldingRow>> ListPieHoldingsAsync(Guid userId)
+    {
+        lock (store.Gate)
+        {
+            return Task.FromResult(Book(userId).PieHoldings.ToList());
         }
     }
 

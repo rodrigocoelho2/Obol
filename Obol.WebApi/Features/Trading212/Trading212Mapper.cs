@@ -1,6 +1,8 @@
 using Obol.Library.Enums;
+using Obol.WebApi.Extensions.Data;
 using Obol.WebApi.Features.Instruments.Models.Entities;
 using Obol.WebApi.Features.Instruments.Services;
+using Obol.WebApi.Features.Portfolio.Models.Entities;
 using Obol.WebApi.Features.Portfolio.Services;
 
 namespace Obol.WebApi.Features.Trading212;
@@ -42,6 +44,63 @@ internal static class Trading212Mapper
             currency,
             (byte)assetClass);
     }
+
+    /// <summary>
+    /// A pie as Obol keeps it: its name and icon from the details, its money from the list (the details can be missing
+    /// when Trading 212 refused them; the pie is then named by its id).
+    /// </summary>
+    /// <param name="pie">The pie from the list.</param>
+    /// <param name="detail">Its details, when read.</param>
+    /// <returns>The pie.</returns>
+    public static PieInput Pie(T212Pie pie, T212PieDetail? detail)
+    {
+        var settings = detail?.Settings;
+        var name = FirstText(settings?.Name, $"Pie {pie.Id.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+        return new PieInput(
+            pie.Id,
+            InstrumentNames.Truncate(name, 100),
+            InstrumentNames.Truncate(settings?.Icon ?? string.Empty, 40),
+            pie.Cash,
+            pie.Result?.PriceAvgInvestedValue ?? 0m,
+            pie.Result?.PriceAvgValue ?? 0m,
+            pie.Result?.PriceAvgResult ?? 0m,
+            pie.DividendDetails?.Gained ?? 0m,
+            settings?.Goal is > 0 ? settings.Goal : null,
+            settings?.CreationDate is { } created ? DbTime.Time(created.UtcDateTime) : null);
+    }
+
+    /// <summary>
+    /// The instruments of a pie that it owns shares of, with the instrument id of their ticker.
+    /// </summary>
+    /// <param name="pieId">The pie.</param>
+    /// <param name="detail">Its details.</param>
+    /// <param name="instrumentId">The instrument id of a Trading 212 ticker (null when unknown).</param>
+    /// <returns>The instruments.</returns>
+    public static List<PieHoldingInput> PieHoldings(long pieId, T212PieDetail detail, Func<string, int?> instrumentId)
+    {
+        var rows = new List<PieHoldingInput>();
+        foreach (var item in detail.Instruments ?? [])
+        {
+            if (string.IsNullOrWhiteSpace(item.Ticker) || item.OwnedQuantity <= 0 || instrumentId(item.Ticker.Trim()) is not { } id)
+            {
+                continue;
+            }
+
+            rows.Add(new PieHoldingInput(
+                pieId,
+                id,
+                item.OwnedQuantity,
+                item.Result?.PriceAvgInvestedValue ?? 0m,
+                item.Result?.PriceAvgValue ?? 0m,
+                item.Result?.PriceAvgResult ?? 0m,
+                Share(item.CurrentShare),
+                Share(item.ExpectedShare)));
+        }
+
+        return rows;
+    }
+
+    private static decimal? Share(decimal? share) => share is { } value and >= 0 and <= 1 ? Math.Round(value, 6) : null;
 
     /// <summary>
     /// A filled order as a trade (null for anything that isn't a plain buy or sell: splits, transfers in, corporate actions).

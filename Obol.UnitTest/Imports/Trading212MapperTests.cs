@@ -152,4 +152,55 @@ public sealed class Trading212MapperTests
         Assert.Equal(12m, plain.Quantity);
         Assert.Equal("DIVIDEND", plain.Kind);
     }
+
+    [Fact]
+    public void PiesComeWithTheirNameMoneyAndTheSharesTheyOwn()
+    {
+        var web = new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web);
+        var pies = System.Text.Json.JsonSerializer.Deserialize<List<T212Pie>>("""
+            [{"id": 4101, "cash": 0.42, "dividendDetails": {"gained": 12.5, "inCash": 0.4, "reinvested": 12.1}, "progress": 0.31,
+              "result": {"priceAvgInvestedValue": 2186.05, "priceAvgResult": 399.3, "priceAvgResultCoef": 0.1828, "priceAvgValue": 2585.35}, "status": "AHEAD"}]
+            """, web)!;
+        var detail = System.Text.Json.JsonSerializer.Deserialize<T212PieDetail>("""
+            {"instruments": [
+               {"ticker": "NVDA_US_EQ", "ownedQuantity": 3.6894, "currentShare": 0.24, "expectedShare": 0.25,
+                "result": {"priceAvgInvestedValue": 490.9, "priceAvgResult": 121.5, "priceAvgResultCoef": 0.247, "priceAvgValue": 612.4}, "issues": []},
+               {"ticker": "GONE_US_EQ", "ownedQuantity": 1, "result": {"priceAvgInvestedValue": 10, "priceAvgValue": 9}},
+               {"ticker": "AAPL_US_EQ", "ownedQuantity": 0, "result": {"priceAvgInvestedValue": 0, "priceAvgValue": 0}}],
+             "settings": {"id": 4101, "name": "Pelosi Tracker", "icon": "Rocket", "goal": 0, "creationDate": "2024-03-01T10:00:00Z",
+               "dividendCashAction": "REINVEST", "instrumentShares": {"NVDA_US_EQ": 0.25}}}
+            """, web)!;
+
+        var pie = Trading212Mapper.Pie(pies[0], detail);
+        var owned = Trading212Mapper.PieHoldings(4101, detail, ticker => ticker == "NVDA_US_EQ" ? 27 : ticker == "AAPL_US_EQ" ? 28 : null);
+
+        Assert.Equal(4101, pie.PieID);
+        Assert.Equal("Pelosi Tracker", pie.Name);
+        Assert.Equal("Rocket", pie.Icon);
+        Assert.Equal(0.42m, pie.Cash);
+        Assert.Equal(2186.05m, pie.Invested);
+        Assert.Equal(2585.35m, pie.Value);
+        Assert.Equal(399.3m, pie.Result);
+        Assert.Equal(12.5m, pie.DividendsGained);
+        Assert.Null(pie.Goal);
+        Assert.Equal("2024-03-01T10:00:00", pie.CreatedAt);
+        // An instrument Obol doesn't hold, or that the pie owns none of, is left out.
+        var nvidia = Assert.Single(owned);
+        Assert.Equal(27, nvidia.InstrumentID);
+        Assert.Equal(3.6894m, nvidia.Quantity);
+        Assert.Equal(490.9m, nvidia.Invested);
+        Assert.Equal(612.4m, nvidia.Value);
+        Assert.Equal(0.24m, nvidia.CurrentShare);
+        Assert.Equal(0.25m, nvidia.ExpectedShare);
+    }
+
+    [Fact]
+    public void APieWithoutItsDetailsIsNamedByItsId()
+    {
+        var pie = Trading212Mapper.Pie(new T212Pie { Id = 77, Result = new T212PieResult { PriceAvgValue = 10m } }, null);
+
+        Assert.Equal("Pie 77", pie.Name);
+        Assert.Equal(string.Empty, pie.Icon);
+        Assert.Equal(10m, pie.Value);
+    }
 }

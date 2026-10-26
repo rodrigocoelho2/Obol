@@ -16,6 +16,12 @@
     var axis = series.Count < 2 ? [] : Enumerable.Range(0, 6).Select(i => series[(int)Math.Round(i * (series.Count - 1) / 5.0)].Day).ToList();
     string AxisLabel(DateOnly day) => Model.Range is ChartRange.Week or ChartRange.Month ? Fmt.ShortDate(day) : day.ToString("MMM yy", System.Globalization.CultureInfo.GetCultureInfo("en-IE"));
     var down = data.RangeChange is < 0;
+    // The Trading 212 view: every pie, and what is held outside them, biggest first.
+    var hasPies = data.Pies.Count > 0;
+    var groups = data.Pies.Select(static pie => (Pie: (PieDTO?)pie, Slice: (PieHoldingDTO?)null, pie.Weight))
+        .Concat(data.OutsidePies.Select(static slice => (Pie: (PieDTO?)null, Slice: (PieHoldingDTO?)slice, slice.Weight)))
+        .OrderByDescending(static group => group.Weight)
+        .ToList();
 }
 
 @* Phone: the greeting, and the sync button. *@
@@ -124,10 +130,19 @@ else
 
     <div class="bento">
         <div class="wide" style="display: flex; flex-direction: column; gap: 16px">
-            <section class="card">
+            <section class="card" data-hviews>
                 <div class="card-head">
                     <h2>Holdings</h2>
-                    <a href="/holdings">@data.Positions.Count position@(data.Positions.Count == 1 ? string.Empty : "s") →</a>
+                    <div class="row" style="gap: 10px">
+                        @if (hasPies)
+                        {
+                            <div class="seg mini" role="group" aria-label="Show holdings">
+                                <button type="button" aria-pressed="true" data-hview="pies">Pies</button>
+                                <button type="button" aria-pressed="false" data-hview="stocks">Stocks</button>
+                            </div>
+                        }
+                        <a class="@(hasPies ? "desk-only" : null)" href="/holdings">@data.Positions.Count position@(data.Positions.Count == 1 ? string.Empty : "s") →</a>
+                    </div>
                 </div>
                 @if (data.Positions.Count == 0)
                 {
@@ -135,42 +150,149 @@ else
                 }
                 else
                 {
-                    <div class="table-box desk-only">
-                        <table class="table">
-                            <thead>
-                                <tr><th scope="col">Asset</th><th scope="col" style="text-align: left">Weight</th><th scope="col">Shares</th><th scope="col">Avg cost</th><th scope="col">Price</th><th scope="col">Value</th><th scope="col">Return</th></tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var position in data.Positions.Take(8))
+                    var topWeight = data.Positions[0].Weight;
+                    if (hasPies)
+                    {
+                        var groupTop = groups.Count > 0 ? groups.Max(static group => group.Weight) : 0m;
+                        <div data-hpane="pies">
+                            <div class="table-box desk-only">
+                                <table class="table pies">
+                                    <thead>
+                                        <tr><th scope="col">Asset</th><th scope="col" style="text-align: left">Weight</th><th scope="col">Value</th><th scope="col">Invested</th><th scope="col">Return</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var group in groups.Take(10))
+                                        {
+                                            if (group.Pie is { } pie)
+                                            {
+                                                var shown = pie.Holdings.Take(8).ToList();
+                                                var rest = pie.Holdings.Skip(8).ToList();
+                                                <tr class="pie-row" data-pie="@pie.Id" tabindex="0" aria-expanded="false">
+                                                    <td><div class="who"><span class="caret" aria-hidden="true">›</span>@Ui.PieIcon(pie.Holdings.Select(static holding => holding.Value), "sm")<span><span class="ellipsis" style="display: block; max-width: 240px">@pie.Name</span><small class="muted" style="font-size: 11.5px; font-weight: 500">Pie · @pie.Holdings.Count holding@(pie.Holdings.Count == 1 ? string.Empty : "s")</small></span></div></td>
+                                                    <td class="wcell"><div class="weight" style="margin: 0"><span class="bar"><i class="bg-pie" style="width: @Charts.N(groupTop > 0 ? (double)(pie.Weight / groupTop) * 100 : 0)%"></i></span><small>@Fmt.Pct(pie.Weight)</small></div></td>
+                                                    <td class="strong">@Fmt.Money(pie.Value, currency)</td>
+                                                    <td>@Fmt.Money(pie.Invested, currency)</td>
+                                                    <td class="strong">@Ui.Return(pie.Gain, pie.GainPct, currency)</td>
+                                                </tr>
+                                                foreach (var holding in shown)
+                                                {
+                                                    <tr class="child link" data-pie-of="@pie.Id" data-href="@Ui.Href(holding.Instrument)" hidden>
+                                                        <td><a class="who" href="@Ui.Href(holding.Instrument)"><span class="caret none"></span><span class="tree"></span>@Ui.Asset(holding.Instrument, logos, "sm")<span class="ellipsis" style="max-width: 220px">@holding.Instrument.Name</span></a></td>
+                                                        <td class="wcell"><div class="weight" style="margin: 0"><span class="bar"><i class="bg-@Fmt.ClassCss(holding.Instrument.Class)" style="width: @Charts.N(groupTop > 0 ? (double)(holding.Weight / groupTop) * 100 : 0)%"></i></span><small>@Fmt.Pct(holding.Weight)</small></div></td>
+                                                        <td>@Fmt.Money(holding.Value, currency)</td>
+                                                        <td>@Fmt.Money(holding.Invested, currency)</td>
+                                                        <td>@Ui.Return(holding.Gain, holding.GainPct, currency)</td>
+                                                    </tr>
+                                                }
+                                                if (rest.Count > 0)
+                                                {
+                                                    var restValue = rest.Sum(static holding => holding.Value);
+                                                    var restInvested = rest.Sum(static holding => holding.Invested);
+                                                    <tr class="child" data-pie-of="@pie.Id" hidden>
+                                                        <td><div class="who"><span class="caret none"></span><span class="tree"></span><span class="asset other sm" aria-hidden="true">+@rest.Count</span><span>@rest.Count more holding@(rest.Count == 1 ? string.Empty : "s")</span></div></td>
+                                                        <td class="wcell"><div class="weight" style="margin: 0"><span class="bar"><i class="bg-other" style="width: @Charts.N(groupTop > 0 ? (double)(rest.Sum(static holding => holding.Weight) / groupTop) * 100 : 0)%"></i></span><small>@Fmt.Pct(rest.Sum(static holding => holding.Weight))</small></div></td>
+                                                        <td>@Fmt.Money(restValue, currency)</td>
+                                                        <td>@Fmt.Money(restInvested, currency)</td>
+                                                        <td>@Ui.Return(restValue - restInvested, restInvested > 0 ? (restValue - restInvested) / restInvested : null, currency)</td>
+                                                    </tr>
+                                                }
+                                            }
+                                            else if (group.Slice is { } slice)
+                                            {
+                                                <tr class="link" data-href="@Ui.Href(slice.Instrument)">
+                                                    <td><a class="who" href="@Ui.Href(slice.Instrument)"><span class="caret none"></span>@Ui.Asset(slice.Instrument, logos, "sm")<span><span class="ellipsis" style="display: block; max-width: 240px">@slice.Instrument.Name</span><small class="muted mono" style="font-size: 11px; font-weight: 500">@Fmt.Qty(slice.Quantity) @slice.Instrument.Symbol</small></span></a></td>
+                                                    <td class="wcell"><div class="weight" style="margin: 0"><span class="bar"><i class="bg-@Fmt.ClassCss(slice.Instrument.Class)" style="width: @Charts.N(groupTop > 0 ? (double)(slice.Weight / groupTop) * 100 : 0)%"></i></span><small>@Fmt.Pct(slice.Weight)</small></div></td>
+                                                    <td class="strong">@Fmt.Money(slice.Value, currency)</td>
+                                                    <td>@Fmt.Money(slice.Invested, currency)</td>
+                                                    <td class="strong">@Ui.Return(slice.Gain, slice.GainPct, currency)</td>
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="list phone-only" style="margin-top: 4px">
+                                @foreach (var group in groups.Take(8))
                                 {
-                                    var top = data.Positions[0].Weight;
-                                    <tr class="link" data-href="@Ui.Href(position.Instrument)">
-                                        <td><a class="who" href="@Ui.Href(position.Instrument)">@Ui.Asset(position.Instrument, logos, "sm")<span class="ellipsis" style="max-width: 240px">@position.Instrument.Name</span></a></td>
-                                        <td class="wcell"><div class="weight" style="margin: 0"><span class="bar"><i class="bg-@Fmt.ClassCss(position.Instrument.Class)" style="width: @Charts.N(top > 0 ? (double)(position.Weight / top) * 100 : 0)%"></i></span><small>@Fmt.Pct(position.Weight)</small></div></td>
-                                        <td>@Fmt.Qty(position.Quantity)</td>
-                                        <td>@Fmt.Price(position.AveragePrice, position.Instrument.Currency)</td>
-                                        <td>@Fmt.Price(position.Price, position.Instrument.Currency)</td>
-                                        <td class="strong">@Fmt.Money(position.Value, currency)</td>
-                                        <td class="strong @Fmt.Trend(position.Unrealized)">@Fmt.Arrow(position.UnrealizedPct, 1)</td>
-                                    </tr>
+                                    if (group.Pie is { } pie)
+                                    {
+                                        <div class="item pie-row" role="button" tabindex="0" aria-expanded="false" data-pie="@pie.Id">
+                                            @Ui.PieIcon(pie.Holdings.Select(static holding => holding.Value))
+                                            <div class="grow">
+                                                <div class="name">@pie.Name</div>
+                                                <small class="meta">Pie · @pie.Holdings.Count holding@(pie.Holdings.Count == 1 ? string.Empty : "s") <span class="caret" aria-hidden="true">›</span></small>
+                                            </div>
+                                            <div class="end"><b>@Fmt.Money(pie.Value, currency)</b><small class="@Fmt.Trend(pie.Gain)">@Fmt.SignedMoney(pie.Gain, currency) (@Fmt.Pct(pie.GainPct is { } g ? Math.Abs(g) : null, 2))</small></div>
+                                        </div>
+                                        <div class="kids" data-pie-of="@pie.Id" hidden>
+                                            @foreach (var holding in pie.Holdings.Take(12))
+                                            {
+                                                <a class="item child" href="@Ui.Href(holding.Instrument)">
+                                                    <span class="tree"></span>
+                                                    @Ui.Asset(holding.Instrument, logos, "sm")
+                                                    <div class="grow"><div class="name">@holding.Instrument.Name</div><small class="meta mono">@Fmt.Qty(holding.Quantity) @holding.Instrument.Symbol</small></div>
+                                                    <div class="end"><b>@Fmt.Money(holding.Value, currency)</b><small class="@Fmt.Trend(holding.Gain)">@Fmt.SignedMoney(holding.Gain, currency) (@Fmt.Pct(holding.GainPct is { } hg ? Math.Abs(hg) : null, 2))</small></div>
+                                                </a>
+                                            }
+                                            @if (pie.Holdings.Count > 12)
+                                            {
+                                                <p class="hint" style="margin: 6px 0 4px 48px">and @(pie.Holdings.Count - 12) more in Holdings</p>
+                                            }
+                                        </div>
+                                    }
+                                    else if (group.Slice is { } slice)
+                                    {
+                                        <a class="item" href="@Ui.Href(slice.Instrument)">
+                                            @Ui.Asset(slice.Instrument, logos)
+                                            <div class="grow">
+                                                <div class="name">@slice.Instrument.Name</div>
+                                                <small class="meta mono">@Fmt.Qty(slice.Quantity) @slice.Instrument.Symbol</small>
+                                            </div>
+                                            <div class="end"><b>@Fmt.Money(slice.Value, currency)</b><small class="@Fmt.Trend(slice.Gain)">@Fmt.SignedMoney(slice.Gain, currency) (@Fmt.Pct(slice.GainPct is { } sg ? Math.Abs(sg) : null, 2))</small></div>
+                                        </a>
+                                    }
                                 }
-                            </tbody>
-                        </table>
+                            </div>
+                        </div>
+                    }
+                    <div data-hpane="stocks" hidden="@(hasPies ? "hidden" : null)">
+                        <div class="table-box desk-only">
+                            <table class="table">
+                                <thead>
+                                    <tr><th scope="col">Asset</th><th scope="col" style="text-align: left">Weight</th><th scope="col">Value</th><th scope="col">Invested</th><th scope="col">Return</th></tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var position in data.Positions.Take(8))
+                                    {
+                                        <tr class="link" data-href="@Ui.Href(position.Instrument)">
+                                            <td><a class="who" href="@Ui.Href(position.Instrument)">@Ui.Asset(position.Instrument, logos, "sm")<span><span class="ellipsis" style="display: block; max-width: 240px">@position.Instrument.Name</span><small class="muted mono" style="font-size: 11px; font-weight: 500">@Fmt.Qty(position.Quantity) @position.Instrument.Symbol</small></span></a></td>
+                                            <td class="wcell"><div class="weight" style="margin: 0"><span class="bar"><i class="bg-@Fmt.ClassCss(position.Instrument.Class)" style="width: @Charts.N(topWeight > 0 ? (double)(position.Weight / topWeight) * 100 : 0)%"></i></span><small>@Fmt.Pct(position.Weight)</small></div></td>
+                                            <td class="strong">@Fmt.Money(position.Value, currency)</td>
+                                            <td>@Fmt.Money(position.Cost, currency)</td>
+                                            <td class="strong">@Ui.Return(position.Unrealized, position.UnrealizedPct, currency)</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="list phone-only" style="margin-top: 4px">
+                            @foreach (var position in data.Positions.Take(5))
+                            {
+                                <a class="item" href="@Ui.Href(position.Instrument)">
+                                    @Ui.Asset(position.Instrument, logos)
+                                    <div class="grow">
+                                        <div class="name">@position.Instrument.Name</div>
+                                        <div class="weight"><span class="bar"><i class="bg-@Fmt.ClassCss(position.Instrument.Class)" style="width: @Charts.N(topWeight > 0 ? (double)(position.Weight / topWeight) * 100 : 0)%"></i></span><small>@Fmt.Pct(position.Weight)</small></div>
+                                    </div>
+                                    <div class="end"><b>@Fmt.Money(position.Value, currency)</b><small class="@Fmt.Trend(position.Unrealized)">@Fmt.SignedMoney(position.Unrealized, currency) (@Fmt.Pct(position.UnrealizedPct is { } pu ? Math.Abs(pu) : null, 2))</small></div>
+                                </a>
+                            }
+                        </div>
                     </div>
-                    <div class="list phone-only" style="margin-top: 4px">
-                        @foreach (var position in data.Positions.Take(5))
-                        {
-                            var top = data.Positions[0].Weight;
-                            <a class="item" href="@Ui.Href(position.Instrument)">
-                                @Ui.Asset(position.Instrument, logos)
-                                <div class="grow">
-                                    <div class="name">@position.Instrument.Name</div>
-                                    <div class="weight"><span class="bar"><i class="bg-@Fmt.ClassCss(position.Instrument.Class)" style="width: @Charts.N(top > 0 ? (double)(position.Weight / top) * 100 : 0)%"></i></span><small>@Fmt.Pct(position.Weight)</small></div>
-                                </div>
-                                <div class="end"><b>@Fmt.Money(position.Value, currency)</b><small class="@Fmt.Trend(position.Unrealized)">@Fmt.Arrow(position.UnrealizedPct, 1)</small></div>
-                            </a>
-                        }
-                    </div>
+                    if (hasPies)
+                    {
+                        <a class="more phone-only" href="/holdings">All @data.Positions.Count position@(data.Positions.Count == 1 ? string.Empty : "s") →</a>
+                    }
                 }
             </section>
 

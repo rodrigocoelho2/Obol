@@ -36,6 +36,30 @@ public sealed class DemoPortfolioTests
         Assert.All(overview.Series, static point => Assert.True(point.Value >= 0));
     }
 
+    [Fact]
+    public async Task TheOverviewGroupsThePiesLikeTrading212()
+    {
+        var app = new TestApp(demo: true);
+        var userId = await app.CreateUserAsync("demo");
+
+        var overview = (await app.PortfolioService.OverviewAsync(userId, ChartRange.Year)).Result!;
+
+        Assert.Equal(new[] { "Big tech", "Long term" }, overview.Pies.Select(static pie => pie.Name).Order());
+        var tech = overview.Pies.Single(static pie => pie.Name == "Big tech");
+        Assert.Equal(2, tech.Holdings.Count);
+        Assert.Equal(tech.Holdings.Sum(static holding => holding.Value), tech.Value);
+        Assert.Equal(tech.Value - tech.Invested, tech.Gain);
+        // Outside the pies: the dividend ETF and Galp in full, and what's left of the world ETF and Apple.
+        Assert.Equal(4, overview.OutsidePies.Count);
+        var world = overview.OutsidePies.Single(static slice => slice.Instrument.Key == WorldEtf);
+        var worldPosition = overview.Positions.Single(static position => position.Instrument.Key == WorldEtf);
+        Assert.Equal(worldPosition.Quantity * 0.2m, world.Quantity, 6);
+        // Every position is counted once, in a pie or outside.
+        var positions = overview.Positions.Sum(static position => position.Value);
+        Assert.InRange(overview.Pies.Sum(static pie => pie.Value) + overview.OutsidePies.Sum(static slice => slice.Value), positions - 0.01m, positions + 0.01m);
+        Assert.InRange(overview.Pies.Sum(static pie => pie.Weight) + overview.OutsidePies.Sum(static slice => slice.Weight), 0.999m, 1.001m);
+    }
+
     [Theory]
     [InlineData(ChartRange.Week)]
     [InlineData(ChartRange.Month)]

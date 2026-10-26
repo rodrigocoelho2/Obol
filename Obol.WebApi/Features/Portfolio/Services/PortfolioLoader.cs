@@ -39,6 +39,8 @@ internal sealed class PortfolioLoader(
         var dividends = await portfolioRepository.ListDividendsAsync(userId);
         var cash = await portfolioRepository.ListCashAsync(userId);
         var snapshots = await portfolioRepository.ListSnapshotsAsync(userId);
+        var pies = await portfolioRepository.ListPiesAsync(userId);
+        List<Models.Entities.PieHoldingRow> pieHoldings = pies.Count == 0 ? [] : await portfolioRepository.ListPieHoldingsAsync(userId);
         var instruments = (await instrumentRepository.ListAsync()).ToDictionary(static row => row.InstrumentID);
 
         var currency = (connection?.Currency ?? options.Value.Currency).Trim().ToUpperInvariant();
@@ -122,6 +124,8 @@ internal sealed class PortfolioLoader(
             Prices = book,
             LocalDay = clock.LocalDay,
             Benchmarks = benchmarks,
+            Pies = pies,
+            PieHoldings = pieHoldings,
         };
     }
 

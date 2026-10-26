@@ -116,6 +116,35 @@ internal sealed class DemoSeeder(
         }
 
         await portfolioRepository.ReplaceHoldingsAsync(userId, holdings);
+
+        // Pies, as the Trading 212 pies endpoints would give them.
+        var pies = new List<PieInput>();
+        var pieHoldings = new List<PieHoldingInput>();
+        foreach (var (pieId, name, icon, goal, parts) in DemoData.Pies)
+        {
+            var owned = new List<PieHoldingInput>();
+            foreach (var (isin, share) in parts)
+            {
+                if (counts.Ids.TryGetValue(isin, out var instrumentId) && holdings.FirstOrDefault(holding => holding.InstrumentID == instrumentId) is { } holding)
+                {
+                    var value = Math.Round(holding.Value * share, 2);
+                    var cost = Math.Round(holding.Cost * share, 2);
+                    owned.Add(new PieHoldingInput(pieId, instrumentId, holding.Quantity * share, cost, value, value - cost, null, null));
+                }
+            }
+
+            var pieValue = owned.Sum(static holding => holding.Value);
+            owned = owned.Select(holding => holding with
+            {
+                CurrentShare = pieValue > 0 ? Math.Round(holding.Value / pieValue, 4) : null,
+                ExpectedShare = Math.Round(1m / owned.Count, 4),
+            }).ToList();
+            var invested = owned.Sum(static holding => holding.Invested);
+            pies.Add(new PieInput(pieId, name, icon, 0.37m, invested, pieValue, pieValue - invested, 0m, goal, DbTime.Time(today.AddYears(-DemoData.Years).ToDateTime(new TimeOnly(9, 0)))));
+            pieHoldings.AddRange(owned);
+        }
+
+        await portfolioRepository.ReplacePiesAsync(userId, pies, pieHoldings);
         await portfolioRepository.SaveSnapshotAsync(userId, today, new SnapshotRow
         {
             TotalValue = holdings.Sum(static holding => holding.Value) + demo.Cash,
