@@ -265,7 +265,10 @@ internal sealed class ConnectionService(
 
         if (batch.IsEmpty)
         {
-            return await CsvProblemAsync(nameof(TranslationKeys.CsvEmpty));
+            var left = batch.SkippedKinds.Count == 0 ? string.Empty
+                : " Left out: " + string.Join(", ", batch.SkippedKinds.OrderByDescending(static pair => pair.Value).Take(4).Select(static pair => $"{pair.Value} × {pair.Key}")) + ".";
+            var message = await globalizationHelper.TranslateAsync(nameof(TranslationKeys.CsvEmpty)) + left;
+            return ServiceApiResponse<CsvImportResultDTO>.ValidationProblems(message).AddError(FieldFile, message);
         }
 
         var counts = await writer.SaveAsync(id, batch);

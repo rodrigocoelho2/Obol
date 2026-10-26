@@ -84,6 +84,7 @@ internal static class Trading212Csv
         var withholding = Column("withholding tax");
         var withholdingCurrency = Column("currency (withholding tax)");
         var notes = Column("notes");
+        var merchant = Column("merchant name");
         var id = Column("id");
         var fees = header.Select((column, index) => (column, index))
             .Where(pair => FeeColumns.Any(fee => pair.column.Contains(fee, StringComparison.Ordinal)) && !pair.column.StartsWith("currency (", StringComparison.Ordinal))
@@ -102,13 +103,12 @@ internal static class Trading212Csv
                 continue;
             }
 
-            if (!DateTime.TryParseExact(Cell(time), TimeFormats, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out var at))
+            if (ParseTime(Cell(time)) is not { } at)
             {
                 batch.Skip("line with an unreadable time");
                 continue;
             }
 
-            at = DateTime.SpecifyKind(at, DateTimeKind.Utc);
             var currency = Trading212Mapper.Currency(Cell(totalCurrency) is { Length: 3 } own ? own : totalHeaderCurrency ?? defaultCurrency);
             batch.Currency ??= Cell(totalCurrency) is { Length: 3 } || totalHeaderCurrency is not null ? currency : null;
             var amount = Number(total) ?? 0m;
@@ -163,7 +163,14 @@ internal static class Trading212Csv
                     CashKind.Withdrawal or CashKind.Fee => -Math.Abs(amount),
                     _ => what.Contains("debit", StringComparison.Ordinal) ? -Math.Abs(amount) : amount,
                 };
-                batch.Cash.Add(new ImportedCash(kind, signed, at, note.Length > 0 ? note : Title(what), DataSource.Csv));
+
+                // Card payments are money leaving the account (like a withdrawal, so they never look like a loss), named
+                // after the shop; bank transfers keep the note without the account number.
+                var label = what.StartsWith("card ", StringComparison.Ordinal) && Cell(merchant) is { Length: > 0 } shop ? "Card · " + shop
+                    : note.StartsWith("Sent to Bank Account", StringComparison.OrdinalIgnoreCase) ? "To your bank account"
+                    : note.StartsWith("Bank Transfer", StringComparison.OrdinalIgnoreCase) ? "Bank transfer"
+                    : note.Length > 0 ? note : Title(what);
+                batch.Cash.Add(new ImportedCash(kind, signed, at, label, DataSource.Csv));
             }
             else
             {
@@ -267,12 +274,33 @@ internal static class Trading212Csv
             (byte)InstrumentNames.Classify(null, displayName));
     }
 
+    /// <summary>
+    /// A Trading 212 time in UTC: "2025-01-03 14:30:12", with milliseconds, with a T, or with the zone at the end
+    /// ("2026-01-02 13:21:14+00:00", the newer exports).
+    /// </summary>
+    /// <param name="text">The cell.</param>
+    /// <returns>The time (UTC), or null.</returns>
+    internal static DateTime? ParseTime(string text)
+    {
+        var value = text.Trim();
+        if (DateTime.TryParseExact(value, TimeFormats, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out var plain))
+        {
+            return DateTime.SpecifyKind(plain, DateTimeKind.Utc);
+        }
+
+        return DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AllowWhiteSpaces, out var zoned)
+            ? zoned.UtcDateTime
+            : null;
+    }
+
     private static CashKind? CashKindOf(string action) => action switch
     {
         "deposit" => CashKind.Deposit,
         "withdrawal" => CashKind.Withdrawal,
         "interest on cash" or "lending interest" => CashKind.Interest,
         "new card cost" => CashKind.Fee,
+        "card debit" => CashKind.Withdrawal,
+        "card credit" or "card refund" => CashKind.Deposit,
         _ when action.StartsWith("interest", StringComparison.Ordinal) => CashKind.Interest,
         _ when action.Contains("cashback", StringComparison.Ordinal) || action.StartsWith("card ", StringComparison.Ordinal)
             || action.StartsWith("transfer", StringComparison.Ordinal) => CashKind.Other,

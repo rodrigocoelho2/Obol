@@ -185,4 +185,55 @@ public sealed class Trading212CsvTests
         Assert.Equal("US0378331005|20250106153100|B|1.5", keys[1]);
         Assert.Equal("US0378331005|20250320|0.20", Obol.WebApi.Features.Portfolio.Services.PortfolioWriter.DividendKey(batch.Dividends[0]));
     }
+
+    // The 2026 layout: the time with its zone, stamp duty and Finra fee columns, card payments with the shop.
+    internal const string Export2026 =
+        "Action,Time (UTC),ISIN,Ticker,Name,Notes,ID,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Stamp duty reserve tax,Currency (Stamp duty reserve tax),Finra fee,Currency conversion fee,Currency (Currency conversion fee),Merchant name,Merchant category,Currency (Finra fee)\n" +
+        "Dividend (Dividend),2026-01-02 13:21:14+00:00,US0378331005,AAPL,\"Apple\",,,2.5000000000,0.260000,USD,0.85000000,,,0.55,\"EUR\",0.10,USD,,,,,,,,\n" +
+        "Market buy,2026-01-13 16:37:31+00:00,US0378331005,AAPL,\"Apple\",,EOF100,1.5000000000,240.0000000000,USD,1.16000000,,,311.00,\"EUR\",,,,,,0.46,\"EUR\",,,\n" +
+        "Limit sell,2026-02-23 14:37:24+00:00,PTGAL0AM0009,GALP,\"Galp Energia\",,EOF200,10.0000000000,21.5000000000,EUR,1.00000000,50.00,\"EUR\",215.00,\"EUR\",,,,,,,,,,\n" +
+        "Withdrawal,2026-02-28 18:18:01+00:00,,,,\"Sent to Bank Account XXXX / PT00000000000000000000000\",w-1,,,,,,,-300.00,\"EUR\",,,,,,,,,,\n" +
+        "Card debit,2026-03-18 12:56:16+00:00,,,,,c-1,,,,,,,-2.60,\"EUR\",,,,,,,,\"Corner Shop\",\"RETAIL_STORES\",\n" +
+        "Spending cashback,2026-03-20 02:12:48+00:00,,,,,c-2,,,,,,,0.01,\"EUR\",,,,,,,,,,\n";
+
+    [Fact]
+    public void TheNewerExportWithZonedTimesAndCardPaymentsIsRead()
+    {
+        var batch = Trading212Csv.Parse(Export2026, "EUR");
+
+        Assert.NotNull(batch);
+        Assert.Equal(0, batch.Skipped);
+        Assert.Equal(2, batch.Trades.Count);
+        Assert.Single(batch.Dividends);
+        Assert.Equal(3, batch.Cash.Count);
+        Assert.Equal(new DateTime(2026, 1, 13, 16, 37, 31, DateTimeKind.Utc), batch.Trades[0].ExecutedAt);
+        Assert.Equal(0.46m, batch.Trades[0].Fees);
+        Assert.False(batch.Trades[1].Buy);
+        Assert.Equal(50m, batch.Trades[1].RealizedPL);
+
+        var bank = batch.Cash.Single(static movement => movement.Note == "To your bank account");
+        Assert.Equal(CashKind.Withdrawal, bank.Kind);
+        Assert.Equal(-300m, bank.Amount);
+        var card = batch.Cash.Single(static movement => movement.Note == "Card · Corner Shop");
+        Assert.Equal(CashKind.Withdrawal, card.Kind);
+        Assert.Equal(-2.60m, card.Amount);
+        var cashback = batch.Cash.Single(static movement => movement.Kind == CashKind.Other);
+        Assert.Equal(0.01m, cashback.Amount);
+    }
+
+    [Theory]
+    [InlineData("2026-01-02 13:21:14+00:00", 13)]
+    [InlineData("2026-01-02 14:21:14+01:00", 13)]
+    [InlineData("2026-01-02 13:21:14", 13)]
+    [InlineData("2026-01-02 13:21:14.123", 13)]
+    [InlineData("2026-01-02T13:21:14Z", 13)]
+    public void TimesAreReadInEveryLayout(string text, int hour)
+    {
+        var at = Trading212Csv.ParseTime(text);
+
+        Assert.NotNull(at);
+        Assert.Equal(DateTimeKind.Utc, at.Value.Kind);
+        Assert.Equal(new DateTime(2026, 1, 2, hour, 21, 14, DateTimeKind.Utc), at.Value.AddTicks(-(at.Value.Ticks % TimeSpan.TicksPerSecond)));
+        Assert.Null(Trading212Csv.ParseTime("yesterday"));
+    }
 }
