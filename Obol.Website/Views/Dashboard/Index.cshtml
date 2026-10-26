@@ -168,7 +168,7 @@ else
                                                 var shown = pie.Holdings.Take(8).ToList();
                                                 var rest = pie.Holdings.Skip(8).ToList();
                                                 <tr class="pie-row" data-pie="@pie.Id" tabindex="0" aria-expanded="false">
-                                                    <td><div class="who"><span class="caret" aria-hidden="true">›</span>@Ui.PieIcon(pie.Holdings.Select(static holding => holding.Value), "sm")<span><span class="ellipsis" style="display: block; max-width: 240px">@pie.Name</span><small class="muted" style="font-size: 11.5px; font-weight: 500">Pie · @pie.Holdings.Count holding@(pie.Holdings.Count == 1 ? string.Empty : "s")</small></span></div></td>
+                                                    <td><div class="who"><span class="caret" aria-hidden="true">›</span>@Ui.PieIcon(pie.Holdings.Select(static holding => holding.Value), "sm")<span><span class="ellipsis" style="display: block; max-width: 210px">@pie.Name</span><small class="muted" style="font-size: 11.5px; font-weight: 500">Pie · @pie.Holdings.Count holding@(pie.Holdings.Count == 1 ? string.Empty : "s")</small></span></div></td>
                                                     <td class="wcell"><div class="weight" style="margin: 0"><span class="bar"><i class="bg-pie" style="width: @Charts.N(groupTop > 0 ? (double)(pie.Weight / groupTop) * 100 : 0)%"></i></span><small>@Fmt.Pct(pie.Weight)</small></div></td>
                                                     <td class="strong">@Fmt.Money(pie.Value, currency)</td>
                                                     <td>@Fmt.Money(pie.Invested, currency)</td>
@@ -177,7 +177,7 @@ else
                                                 foreach (var holding in shown)
                                                 {
                                                     <tr class="child link" data-pie-of="@pie.Id" data-href="@Ui.Href(holding.Instrument)" hidden>
-                                                        <td><a class="who" href="@Ui.Href(holding.Instrument)"><span class="caret none"></span><span class="tree"></span>@Ui.Asset(holding.Instrument, logos, "sm")<span class="ellipsis" style="max-width: 220px">@holding.Instrument.Name</span></a></td>
+                                                        <td><a class="who" href="@Ui.Href(holding.Instrument)"><span class="caret none"></span><span class="tree"></span>@Ui.Asset(holding.Instrument, logos, "sm")<span class="ellipsis" style="max-width: 190px">@holding.Instrument.Name</span></a></td>
                                                         <td class="wcell"><div class="weight" style="margin: 0"><span class="bar"><i class="bg-@Fmt.ClassCss(holding.Instrument.Class)" style="width: @Charts.N(groupTop > 0 ? (double)(holding.Weight / groupTop) * 100 : 0)%"></i></span><small>@Fmt.Pct(holding.Weight)</small></div></td>
                                                         <td>@Fmt.Money(holding.Value, currency)</td>
                                                         <td>@Fmt.Money(holding.Invested, currency)</td>
@@ -200,7 +200,7 @@ else
                                             else if (group.Slice is { } slice)
                                             {
                                                 <tr class="link" data-href="@Ui.Href(slice.Instrument)">
-                                                    <td><a class="who" href="@Ui.Href(slice.Instrument)"><span class="caret none"></span>@Ui.Asset(slice.Instrument, logos, "sm")<span><span class="ellipsis" style="display: block; max-width: 240px">@slice.Instrument.Name</span><small class="muted mono" style="font-size: 11px; font-weight: 500">@Fmt.Qty(slice.Quantity) @slice.Instrument.Symbol</small></span></a></td>
+                                                    <td><a class="who" href="@Ui.Href(slice.Instrument)"><span class="caret none"></span>@Ui.Asset(slice.Instrument, logos, "sm")<span><span class="ellipsis" style="display: block; max-width: 210px">@slice.Instrument.Name</span><small class="muted mono" style="font-size: 11px; font-weight: 500">@Fmt.Qty(slice.Quantity) @slice.Instrument.Symbol</small></span></a></td>
                                                     <td class="wcell"><div class="weight" style="margin: 0"><span class="bar"><i class="bg-@Fmt.ClassCss(slice.Instrument.Class)" style="width: @Charts.N(groupTop > 0 ? (double)(slice.Weight / groupTop) * 100 : 0)%"></i></span><small>@Fmt.Pct(slice.Weight)</small></div></td>
                                                     <td class="strong">@Fmt.Money(slice.Value, currency)</td>
                                                     <td>@Fmt.Money(slice.Invested, currency)</td>
@@ -257,7 +257,7 @@ else
                     }
                     <div data-hpane="stocks" hidden="@(hasPies ? "hidden" : null)">
                         <div class="table-box desk-only">
-                            <table class="table">
+                            <table class="table pies">
                                 <thead>
                                     <tr><th scope="col">Asset</th><th scope="col" style="text-align: left">Weight</th><th scope="col">Value</th><th scope="col">Invested</th><th scope="col">Return</th></tr>
                                 </thead>
@@ -265,7 +265,7 @@ else
                                     @foreach (var position in data.Positions.Take(8))
                                     {
                                         <tr class="link" data-href="@Ui.Href(position.Instrument)">
-                                            <td><a class="who" href="@Ui.Href(position.Instrument)">@Ui.Asset(position.Instrument, logos, "sm")<span><span class="ellipsis" style="display: block; max-width: 240px">@position.Instrument.Name</span><small class="muted mono" style="font-size: 11px; font-weight: 500">@Fmt.Qty(position.Quantity) @position.Instrument.Symbol</small></span></a></td>
+                                            <td><a class="who" href="@Ui.Href(position.Instrument)">@Ui.Asset(position.Instrument, logos, "sm")<span><span class="ellipsis" style="display: block; max-width: 210px">@position.Instrument.Name</span><small class="muted mono" style="font-size: 11px; font-weight: 500">@Fmt.Qty(position.Quantity) @position.Instrument.Symbol</small></span></a></td>
                                             <td class="wcell"><div class="weight" style="margin: 0"><span class="bar"><i class="bg-@Fmt.ClassCss(position.Instrument.Class)" style="width: @Charts.N(topWeight > 0 ? (double)(position.Weight / topWeight) * 100 : 0)%"></i></span><small>@Fmt.Pct(position.Weight)</small></div></td>
                                             <td class="strong">@Fmt.Money(position.Value, currency)</td>
                                             <td>@Fmt.Money(position.Cost, currency)</td>
