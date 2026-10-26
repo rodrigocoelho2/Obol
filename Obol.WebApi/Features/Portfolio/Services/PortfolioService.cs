@@ -124,6 +124,8 @@ internal sealed class PortfolioService(
             RangeChange = rangeChange?.Change,
             RangeChangePct = rangeChange?.Pct,
             YearChangePct = PortfolioMath.RangeChange(yearSeries)?.Pct,
+            VsWorld = Insights.Services.InsightsService.Performance(data, range).Benchmarks
+                .FirstOrDefault(static benchmark => benchmark.Key == Instruments.Services.Benchmarks.World.Key && benchmark.Available)?.Difference,
             Series = PortfolioMath.Thin(rangeSeries).Select(static point => new ValuePointDTO { Day = point.Day, Value = point.Value, Deposits = point.Deposits }).ToList(),
             Allocation = allocation,
             Movers = positionDtos.Where(static position => position.DayChangePct is not null && position.DayChangePct != 0)

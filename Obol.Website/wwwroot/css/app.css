@@ -11,10 +11,10 @@
 
 :root {
   color-scheme: dark;
-  --bg: #0B0F0E;
-  --bg-2: #0E1312;
-  --surface: #121816;
-  --surface-2: #18201D;
+  --bg: #080B0A;
+  --bg-2: #0B0F0E;
+  --surface: #0E1312;
+  --surface-2: #161D1B;
   --tile: #161D1B;
   --track: #1E2623;
   --line: rgba(255, 255, 255, 0.06);
@@ -704,3 +704,99 @@ a.item:hover .name { color: var(--lime); }
 .kids .item .asset.sm { width: 32px; height: 32px; font-size: 9px; border-radius: 10px; }
 .kids .tree { margin: -14px -4px 0 0; }
 .more { display: block; padding: 12px 0 2px; font-size: 13px; font-weight: 600; }
+
+/* ==========================================================================
+   Design A, "Mint": the landing's coin carried into the app — a soft lime glow over the page, a pill navigation, the
+   net worth with minted cents over engraved rings, a ticker of the day's moves, and quieter, larger cards.
+   ========================================================================== */
+.app { background: radial-gradient(900px 520px at 82% -6%, rgba(198, 243, 109, 0.09), transparent 62%) no-repeat, var(--bg); }
+.topbar { background: linear-gradient(rgba(8, 11, 10, 0.92) 70%, rgba(8, 11, 10, 0)); }
+.topbar-in { padding: 4px 0; border: 0; border-radius: 0; background: transparent; }
+.nav { gap: 2px; padding: 5px; border-radius: 999px; background: rgba(255, 255, 255, 0.035); border: 1px solid var(--line); }
+.nav a { height: 36px; padding: 0 16px; border-radius: 999px; font-size: 13.5px; font-weight: 500; }
+.nav a:hover { background: rgba(255, 255, 255, 0.05); }
+.nav a[aria-current="page"] { font-weight: 600; box-shadow: 0 6px 18px rgba(198, 243, 109, 0.18); }
+.chip-sync, .chip-live { height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(198, 243, 109, 0.22); background: rgba(198, 243, 109, 0.06); color: var(--lime-2); font-size: 12.5px; font-weight: 600; }
+.chip-live { display: inline-flex; align-items: center; gap: 8px; }
+.chip-sync:hover, .chip-live:hover { color: var(--lime); border-color: rgba(198, 243, 109, 0.4); }
+.chip-sync .dot.ok, .chip-live .dot.ok { box-shadow: 0 0 0 4px rgba(198, 243, 109, 0.18); }
+.avatar { border-radius: 50%; background: var(--surface); border: 1px solid var(--line-2); }
+.card { border-radius: var(--r-xl); }
+.card h2, .h2 { font-size: 20px; letter-spacing: -0.02em; }
+
+.minted { border-color: rgba(198, 243, 109, 0.16); background: linear-gradient(180deg, rgba(198, 243, 109, 0.05), rgba(18, 24, 22, 0.55) 45%), #0D1211; padding: 28px 0 20px; }
+.minted .rings { width: 640px; height: 640px; right: -170px; top: -250px; opacity: 0.13; }
+.minted .pad { padding: 0 30px; }
+.minted .big { font-size: 84px; letter-spacing: -0.05em; line-height: 0.95; }
+.minted .big .c { background: linear-gradient(100deg, #C6F36D, #8FE3A6 50%, #5FD0C3); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.minted .hero-chips { margin-top: 16px; gap: 8px; }
+.minted .pill { height: 30px; padding: 0 12px; border-radius: 10px; }
+.pill.violet { background: rgba(180, 162, 255, 0.13); color: #CFC4FF; }
+a.pill.violet:hover { background: rgba(180, 162, 255, 0.2); color: #E2DBFF; }
+.hero-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+.hero-tiles > div { padding: 14px 16px; border-radius: 16px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--line); }
+.hero-tiles small { display: block; color: var(--muted); font-size: 12px; }
+.hero-tiles b { display: block; margin-top: 4px; font-family: var(--display); font-size: 22px; font-weight: 700; letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hero-tiles b span { font-size: 14px; }
+
+.ticker { overflow: hidden; padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
+.ticker-track { display: flex; width: max-content; animation: ticker 48s linear infinite; }
+.ticker:hover .ticker-track { animation-play-state: paused; }
+.ticker-lap { display: flex; gap: 34px; padding-right: 34px; }
+.tick { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; font-size: 13px; color: var(--muted); }
+.tick:hover { color: var(--text-2); }
+.tick b { font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--text); }
+.tick .ellipsis { max-width: 170px; }
+.tick .up { color: var(--lime); font-weight: 600; } .tick .down { color: var(--loss); font-weight: 600; }
+@keyframes ticker { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .ticker-track { animation: none; } .ticker { overflow-x: auto; } }
+
+.table th { text-transform: uppercase; letter-spacing: 0.06em; font-size: 10.5px; color: var(--dim); }
+.ret { gap: 9px; }
+
+.alloc { display: flex; align-items: center; gap: 22px; margin-top: 14px; }
+.donut-box { position: relative; flex: none; width: 132px; height: 132px; }
+.donut-box .center { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--display); font-size: 17px; font-weight: 700; letter-spacing: -0.02em; }
+.donut { display: block; width: 100%; height: 100%; }
+.donut circle { fill: none; stroke-width: 16; }
+.donut .inner { stroke: var(--lime); stroke-width: 1; stroke-opacity: 0.25; stroke-dasharray: 1 4; }
+.donut .s-eq { stroke: var(--c-eq); } .donut .s-bond { stroke: var(--c-bond); } .donut .s-stock { stroke: var(--c-stock); }
+.donut .s-crypto { stroke: var(--c-crypto); } .donut .s-gold { stroke: var(--c-gold); } .donut .s-other { stroke: var(--c-other); } .donut .s-cash { stroke: #56635D; }
+.alloc .alloc-list { flex: 1; margin-top: 0; min-width: 0; }
+.bg-cash { background: #56635D; }
+
+.dividends { background: linear-gradient(160deg, rgba(95, 208, 195, 0.09), transparent 60%), var(--surface); }
+.next-list { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
+.next { display: flex; align-items: center; gap: 12px; color: var(--text); min-width: 0; }
+.next:hover { color: var(--text); }
+.next:hover .grow b { color: #5FD0C3; }
+.next .when { flex: none; width: 46px; padding: 6px 0; border-radius: 12px; background: rgba(95, 208, 195, 0.12); color: #5FD0C3; text-align: center; line-height: 1.15; }
+.next .when small { display: block; font-size: 10.5px; font-weight: 700; }
+.next .when b { display: block; font-size: 16px; }
+.next .grow { min-width: 0; }
+.next .grow b { display: block; font-size: 13.5px; font-weight: 600; }
+.next .grow small { display: block; color: var(--muted); font-size: 11.5px; }
+.next .amt { flex: none; color: #5FD0C3; font-size: 14px; }
+.income-line { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
+.income-line .bar { height: 5px; border-radius: 3px; background: rgba(95, 208, 195, 0.14); overflow: hidden; }
+.income-line .bar i { display: block; height: 100%; border-radius: 3px; background: #5FD0C3; }
+.income-line small { font-size: 11.5px; }
+
+@media (max-width: 899px) {
+  .minted { padding: 20px 0 14px; border-radius: 28px; }
+  .minted .rings { width: 360px; height: 360px; right: -150px; top: -150px; }
+  .minted .pad { padding: 0 18px; }
+  .minted .big { font-size: 46px; }
+  .minted .pill { height: 26px; padding: 0 10px; font-size: 12px; border-radius: 9px; }
+  .hero-tiles { display: none; }
+  .ticker { padding: 2px 0; border: 0; }
+  .ticker-lap { gap: 22px; padding-right: 22px; }
+  .tick { font-size: 12.5px; }
+  .tick .ellipsis { display: none; }
+  .alloc { gap: 16px; }
+  .donut-box { width: 112px; height: 112px; }
+  .card h2, .h2 { font-size: 19px; }
+}
+.chip-sync:has(.dot.bad), .chip-live:has(.dot.bad) { border-color: rgba(255, 125, 107, 0.3); background: var(--loss-soft); color: var(--loss); }
+.chip-sync:has(.dot.off), .chip-live:has(.dot.off), .chip-sync:has(.dot:not(.ok):not(.run):not(.bad)) { border-color: var(--line-2); background: var(--surface); color: var(--text-2); }

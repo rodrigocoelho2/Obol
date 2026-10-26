@@ -169,6 +169,9 @@ public sealed class OverviewDTO
     /// <summary>Gets or sets the gain over the last twelve months.</summary>
     public decimal? YearChangePct { get; set; }
 
+    /// <summary>Gets or sets how far ahead (or behind) of MSCI World the same deposits are over the range (null without its prices).</summary>
+    public decimal? VsWorld { get; set; }
+
     /// <summary>Gets or sets the chart.</summary>
     public List<ValuePointDTO> Series { get; set; } = [];
 

@@ -72,7 +72,7 @@ public static class Ui
     }
 
     /// <summary>
-    /// A gain as money and a percentage pill, both lime when up and coral when down: "+€399.30 ▲ 18.3%".
+    /// A gain as a percentage pill and money, both lime when up and coral when down: "▲ 18.3% +€399.30".
     /// </summary>
     /// <param name="gain">The gain.</param>
     /// <param name="share">The gain as a share of the cost.</param>
@@ -83,7 +83,7 @@ public static class Ui
     {
         var css = Math.Round(gain, decimals) < 0 ? "down" : Math.Round(gain, decimals) > 0 ? "up" : "flat";
         var pill = share is null ? string.Empty : $"<i>{Html.Encode(Fmt.Arrow(share, 1))}</i>";
-        return new HtmlString($"<span class=\"ret {css}\"><b>{Html.Encode(Fmt.SignedMoney(gain, currency, decimals))}</b>{pill}</span>");
+        return new HtmlString($"<span class=\"ret {css}\">{pill}<b>{Html.Encode(Fmt.SignedMoney(gain, currency, decimals))}</b></span>");
     }
 
     /// <summary>
