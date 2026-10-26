@@ -135,11 +135,12 @@ internal sealed class PriceService(
         }
 
         var instruments = (await instrumentRepository.ListAsync()).Where(row => since.ContainsKey(row.InstrumentID)).ToList();
+        var references = References(instruments, holdings, trades);
         var saved = 0;
         foreach (var instrument in instruments)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            saved += await UpdateInstrumentAsync(instrument, since[instrument.InstrumentID], today, cancellationToken);
+            saved += await UpdateInstrumentAsync(instrument, since[instrument.InstrumentID], today, cancellationToken, references.GetValueOrDefault(instrument.InstrumentID));
         }
 
         if (since.Count > 0)
@@ -269,30 +270,70 @@ internal sealed class PriceService(
             : null;
     }
 
-    private async Task<int> UpdateInstrumentAsync(InstrumentRow instrument, DateOnly from, DateOnly today, CancellationToken cancellationToken)
+    /// <summary>
+    /// The price Trading 212 itself gave each instrument most recently, in the instrument's currency: today's price of an
+    /// open position, else the price of its last trade in the past year. A Yahoo listing has to agree with it.
+    /// </summary>
+    /// <param name="instruments">The instruments.</param>
+    /// <param name="holdings">The open positions.</param>
+    /// <param name="trades">The trades.</param>
+    /// <returns>The prices and their day, by instrument.</returns>
+    internal Dictionary<int, PriceReference> References(IEnumerable<InstrumentRow> instruments, IEnumerable<Portfolio.Models.Entities.HoldingRow> holdings, IEnumerable<Portfolio.Models.Entities.TradeRow> trades)
+    {
+        var byId = instruments.ToDictionary(static row => row.InstrumentID);
+        var references = new Dictionary<int, PriceReference>();
+        foreach (var trade in trades.OrderBy(static trade => trade.ExecutedAt))
+        {
+            // Only a recent trade: Yahoo's closes are split-adjusted, so an old trade's price can be off by the split.
+            if (byId.TryGetValue(trade.InstrumentID, out var instrument) && trade.Price > 0 && clock.LocalDay(trade.ExecutedAt) >= clock.Today.AddDays(-365)
+                && Portfolio.Services.PortfolioLoader.SameCurrencyPrice(trade.Price, trade.PriceCurrency, instrument.Currency) is { } price)
+            {
+                references[trade.InstrumentID] = new PriceReference(price, clock.LocalDay(trade.ExecutedAt));
+            }
+        }
+
+        foreach (var holding in holdings.Where(static holding => holding.CurrentPrice > 0))
+        {
+            references[holding.InstrumentID] = new PriceReference(holding.CurrentPrice, Portfolio.Services.PortfolioLoader.MarketDay(clock.LocalDay(holding.UpdatedAt)));
+        }
+
+        return references;
+    }
+
+    /// <summary>
+    /// Whether a Yahoo listing prices the same thing Trading 212 does: its close nearest the reference day (within five
+    /// days) is within a factor of 1.5 of Trading 212's price. A listing of another company that kept an old ticker (a
+    /// SPAC's, say) is several times off. Without a close near the reference there's nothing to compare, and it passes.
+    /// </summary>
+    /// <param name="chart">Yahoo's closes.</param>
+    /// <param name="factor">From Yahoo's currency to the instrument's.</param>
+    /// <param name="reference">Trading 212's price.</param>
+    /// <returns>False when the listing is clearly something else.</returns>
+    internal static bool Plausible(YahooChart chart, decimal factor, PriceReference? reference)
+    {
+        if (reference is not { Price: > 0 } known || chart.Closes.Count == 0)
+        {
+            return true;
+        }
+
+        var nearest = chart.Closes.MinBy(pair => Math.Abs(pair.Key.DayNumber - known.Day.DayNumber));
+        if (Math.Abs(nearest.Key.DayNumber - known.Day.DayNumber) > 5 || nearest.Value <= 0)
+        {
+            return true;
+        }
+
+        var ratio = nearest.Value * factor / known.Price;
+        return ratio is >= 0.66m and <= 1.5m;
+    }
+
+    private async Task<int> UpdateInstrumentAsync(InstrumentRow instrument, DateOnly from, DateOnly today, CancellationToken cancellationToken, PriceReference? reference = null)
     {
         var symbol = instrument.PriceSymbol;
         YahooChart? chart = null;
         decimal factor = 1m;
 
         var needFrom = instrument.PricesFrom is { } pricedFrom && DateOnly.FromDateTime(pricedFrom) <= from ? today.AddDays(-12) : from;
-        if (symbol is null)
-        {
-            (symbol, chart, factor) = await FindSymbolAsync(instrument, needFrom, today, cancellationToken);
-            if (symbol is null)
-            {
-                await instrumentRepository.SetPriceSymbolAsync(instrument.InstrumentID, string.Empty, null);
-                if (logger.IsEnabled(LogLevel.Information))
-                    logger.LogInformation("No Yahoo Finance listing found for {Symbol} ({Key})", instrument.Symbol, instrument.InstrumentKey);
-
-                return 0;
-            }
-        }
-        else if (symbol.Length == 0)
-        {
-            return 0;
-        }
-        else
+        if (symbol is { Length: > 0 })
         {
             chart = await yahoo.ChartAsync(symbol, needFrom, today, cancellationToken);
             if (chart is null || Factor(chart.Currency, instrument.Currency) is not { } ratio)
@@ -301,6 +342,35 @@ internal sealed class PriceService(
             }
 
             factor = ratio;
+            if (!Plausible(chart, factor, reference))
+            {
+                // The listing kept so far isn't this instrument (its prices are far from Trading 212's): forget it and
+                // the closes it gave, and look again.
+                if (logger.IsEnabled(LogLevel.Warning))
+                    logger.LogWarning("Yahoo's {YahooSymbol} doesn't match {Symbol} ({Key}) any more; looking for the right listing", symbol, instrument.Symbol, instrument.InstrumentKey);
+
+                await instrumentRepository.ResetPricesAsync(instrument.InstrumentID);
+                symbol = null;
+                chart = null;
+                needFrom = from;
+            }
+        }
+        else if (symbol is not null)
+        {
+            return 0;
+        }
+
+        if (symbol is null)
+        {
+            (symbol, chart, factor) = await FindSymbolAsync(instrument, needFrom, today, reference, cancellationToken);
+            if (symbol is null)
+            {
+                await instrumentRepository.SetPriceSymbolAsync(instrument.InstrumentID, string.Empty, null);
+                if (logger.IsEnabled(LogLevel.Information))
+                    logger.LogInformation("No Yahoo Finance listing found for {Symbol} ({Key})", instrument.Symbol, instrument.InstrumentKey);
+
+                return 0;
+            }
         }
 
         if (chart is null || chart.Closes.Count == 0)
@@ -312,19 +382,23 @@ internal sealed class PriceService(
             .Select(pair => new PriceInput(instrument.InstrumentID, DbTime.Day(pair.Key), pair.Value * factor, (byte)DataSource.Yahoo))
             .ToList();
         await priceRepository.SavePricesAsync(rows);
-        var first = needFrom < (instrument.PricesFrom is { } was ? DateOnly.FromDateTime(was) : needFrom) ? needFrom : (DateOnly?)null;
-        await instrumentRepository.SetPriceSymbolAsync(instrument.InstrumentID, symbol, instrument.PricesFrom is null ? needFrom : first);
+        var pricesFrom = instrument.PricesFrom is { } was && symbol == instrument.PriceSymbol ? DateOnly.FromDateTime(was) : (DateOnly?)null;
+        var first = pricesFrom is null || needFrom < pricesFrom ? needFrom : (DateOnly?)null;
+        await instrumentRepository.SetPriceSymbolAsync(instrument.InstrumentID, symbol, first);
         return rows.Count;
     }
 
-    private async Task<(string? Symbol, YahooChart? Chart, decimal Factor)> FindSymbolAsync(InstrumentRow instrument, DateOnly from, DateOnly today, CancellationToken cancellationToken)
+    private async Task<(string? Symbol, YahooChart? Chart, decimal Factor)> FindSymbolAsync(
+        InstrumentRow instrument, DateOnly from, DateOnly today, PriceReference? reference, CancellationToken cancellationToken)
     {
-        var candidates = TickerCandidates(instrument.Ticker);
+        // The ISIN names the company whatever its ticker became; the ticker (which can be a SPAC's or an old one) after it.
+        var candidates = new List<string>();
         if (instrument.Isin is { Length: 12 } isin)
         {
             candidates.AddRange(Rank(await yahoo.SearchAsync(isin, cancellationToken), instrument.Currency));
         }
 
+        candidates.AddRange(TickerCandidates(instrument.Ticker));
         if (candidates.Count == 0 && instrument.Symbol.Length > 0)
         {
             candidates.AddRange(Rank(await yahoo.SearchAsync(instrument.Symbol, cancellationToken), instrument.Currency));
@@ -333,7 +407,7 @@ internal sealed class PriceService(
         foreach (var candidate in candidates.Distinct(StringComparer.OrdinalIgnoreCase).Take(5))
         {
             var chart = await yahoo.ChartAsync(candidate, from, today, cancellationToken);
-            if (chart is { Closes.Count: > 0 } && Factor(chart.Currency, instrument.Currency) is { } factor)
+            if (chart is { Closes.Count: > 0 } && Factor(chart.Currency, instrument.Currency) is { } factor && Plausible(chart, factor, reference))
             {
                 return (candidate, chart, factor);
             }
@@ -357,3 +431,8 @@ internal sealed class PriceService(
         return rows.Count;
     }
 }
+
+/// <summary>A price Trading 212 gave an instrument, in its currency, and its day.</summary>
+/// <param name="Price">The price.</param>
+/// <param name="Day">The day.</param>
+internal sealed record PriceReference(decimal Price, DateOnly Day);

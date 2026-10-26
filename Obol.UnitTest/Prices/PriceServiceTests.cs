@@ -64,4 +64,28 @@ public sealed class PriceServiceTests
     [InlineData("2026-10-26", "2026-10-26")]
     public void WeekendPricesBelongToFriday(string day, string expected) =>
         Assert.Equal(DateOnly.Parse(expected, System.Globalization.CultureInfo.InvariantCulture), PortfolioLoader.MarketDay(DateOnly.Parse(day, System.Globalization.CultureInfo.InvariantCulture)));
+
+    private static YahooChart Chart(params (int Day, decimal Close)[] closes) =>
+        new("USD", closes.Select(static item => new KeyValuePair<DateOnly, decimal>(new DateOnly(2026, 10, 1).AddDays(item.Day), item.Close)).ToList());
+
+    [Fact]
+    public void AListingOfAnotherCompanyIsTurnedDown()
+    {
+        // Archer Aviation still trades as ACIC_US_EQ on Trading 212; Yahoo's ACIC is another company, about three times the price.
+        var acic = Chart((20, 11.02m), (21, 11.10m), (22, 10.95m));
+
+        Assert.False(PriceService.Plausible(acic, 1m, new PriceReference(3.91m, new DateOnly(2026, 10, 23))));
+        Assert.True(PriceService.Plausible(Chart((20, 3.80m), (21, 4.02m), (22, 3.95m)), 1m, new PriceReference(3.91m, new DateOnly(2026, 10, 23))));
+    }
+
+    [Fact]
+    public void PenceAndAMissingReferencePass()
+    {
+        var pence = Chart((22, 7650m));
+
+        Assert.True(PriceService.Plausible(pence, 0.01m, new PriceReference(76.9m, new DateOnly(2026, 10, 23))));
+        Assert.True(PriceService.Plausible(pence, 1m, null));
+        // Nothing near the reference day to compare with.
+        Assert.True(PriceService.Plausible(pence, 1m, new PriceReference(1m, new DateOnly(2026, 6, 1))));
+    }
 }

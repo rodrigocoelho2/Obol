@@ -26,6 +26,14 @@ internal interface IInstrumentRepository
     Task SetPriceSymbolAsync(int instrumentId, string priceSymbol, DateOnly? pricesFrom);
 
     /// <summary>
+    /// Forgets the Yahoo Finance listing of an instrument and the closes that came from it (they didn't match
+    /// Trading 212's prices), so the next price run looks for the right one.
+    /// </summary>
+    /// <param name="instrumentId">The instrument.</param>
+    /// <returns>A task.</returns>
+    Task ResetPricesAsync(int instrumentId);
+
+    /// <summary>
     /// Records the sector and industry of an instrument ('' = looked up, none found).
     /// </summary>
     /// <param name="instrumentId">The instrument.</param>
@@ -49,6 +57,9 @@ internal sealed class InstrumentRepository(ISqlConnectionFactory connectionFacto
     /// <inheritdoc />
     public Task SetPriceSymbolAsync(int instrumentId, string priceSymbol, DateOnly? pricesFrom) =>
         ExecuteAsync("[dbo].[InstrumentSetPriceSymbol]", new { InstrumentID = instrumentId, PriceSymbol = priceSymbol, PricesFrom = pricesFrom is { } day ? Date(day) : (DateTime?)null });
+
+    /// <inheritdoc />
+    public Task ResetPricesAsync(int instrumentId) => ExecuteAsync("[dbo].[InstrumentResetPrices]", new { InstrumentID = instrumentId });
 
     /// <inheritdoc />
     public Task SetProfileAsync(int instrumentId, string sector, string industry) =>
@@ -97,6 +108,21 @@ internal sealed class MemoryInstrumentRepository(MemoryStore store) : IInstrumen
         {
             return Task.FromResult(store.Instruments.Select(Copy).ToList());
         }
+    }
+
+    /// <inheritdoc />
+    public Task ResetPricesAsync(int instrumentId)
+    {
+        lock (store.Gate)
+        {
+            if (store.Instruments.FirstOrDefault(row => row.InstrumentID == instrumentId) is { } row)
+            {
+                row.PriceSymbol = null;
+                row.PricesFrom = null;
+            }
+        }
+
+        return Task.CompletedTask;
     }
 
     /// <inheritdoc />
