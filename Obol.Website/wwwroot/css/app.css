@@ -801,3 +801,125 @@ a.pill.violet:hover { background: rgba(180, 162, 255, 0.2); color: #E2DBFF; }
 }
 .chip-sync:has(.dot.bad), .chip-live:has(.dot.bad) { border-color: rgba(255, 125, 107, 0.3); background: var(--loss-soft); color: var(--loss); }
 .chip-sync:has(.dot.off), .chip-live:has(.dot.off), .chip-sync:has(.dot:not(.ok):not(.run):not(.bad)) { border-color: var(--line-2); background: var(--surface); color: var(--text-2); }
+
+/* ----- Settings: the look ----- */
+.themes { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 14px; }
+.theme-pick { position: relative; display: flex; align-items: flex-start; gap: 14px; padding: 14px; border-radius: 18px; border: 1px solid var(--line-2); background: rgba(255, 255, 255, 0.02); cursor: pointer; }
+.theme-pick:hover { border-color: rgba(198, 243, 109, 0.3); }
+.theme-pick:has(input:checked) { border-color: var(--lime); background: rgba(198, 243, 109, 0.06); }
+.theme-pick input { position: absolute; opacity: 0; pointer-events: none; }
+.theme-pick:has(input:focus-visible) { outline: 2px solid var(--lime); outline-offset: 2px; }
+.theme-pick b { display: block; font-size: 14.5px; }
+.theme-pick small { display: block; margin-top: 3px; color: var(--muted); font-size: 12.5px; line-height: 1.4; }
+.swatch { position: relative; flex: none; width: 74px; height: 54px; border-radius: 12px; overflow: hidden; border: 1px solid var(--line-2); }
+.swatch.mint { background: radial-gradient(60px 40px at 85% 0%, rgba(198, 243, 109, 0.35), transparent 70%), #0D1211; }
+.swatch.mint i:nth-child(1) { position: absolute; left: 8px; top: 9px; width: 34px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, #EEF2EF 60%, #8FE3A6); }
+.swatch.mint i:nth-child(2) { position: absolute; right: -14px; top: -14px; width: 40px; height: 40px; border-radius: 50%; border: 1px dashed rgba(198, 243, 109, 0.5); }
+.swatch.mint i:nth-child(3) { position: absolute; left: 8px; right: 8px; bottom: 8px; height: 14px; border-radius: 6px; background: rgba(255, 255, 255, 0.06); }
+.swatch.ledger { background: #0A0D0C; }
+.swatch.ledger i:nth-child(1) { position: absolute; left: 0; top: 0; bottom: 0; width: 16px; border-right: 1px solid rgba(255, 255, 255, 0.12); }
+.swatch.ledger i:nth-child(2) { position: absolute; left: 24px; top: 10px; width: 36px; height: 9px; border-radius: 2px; background: #EEF2EF; }
+.swatch.ledger i:nth-child(3) { position: absolute; left: 24px; right: 8px; top: 28px; height: 16px; border-top: 1px solid rgba(255, 255, 255, 0.16); border-bottom: 1px solid rgba(255, 255, 255, 0.16); }
+
+/* ==========================================================================
+   Theme "Ledger" (Settings › Look): calm and editorial. A side menu on the computer, a flat tab bar on the phone,
+   hairlines instead of cards, labels and numbers in Geist Mono, no glows or rings; lime only for gains.
+   ========================================================================== */
+html[data-theme="ledger"] .app { background: #0A0D0C; }
+html[data-theme="ledger"] .card,
+html[data-theme="ledger"] .card.flat { background: transparent; border: 0; border-top: 1px solid rgba(255, 255, 255, 0.08); border-radius: 0; padding: 20px 0 8px; }
+html[data-theme="ledger"] .card.empty { padding: 28px 0; }
+html[data-theme="ledger"] .card h2, html[data-theme="ledger"] .h2 { font-weight: 600; font-size: 22px; letter-spacing: -0.03em; }
+html[data-theme="ledger"] .head h1 { font-weight: 600; letter-spacing: -0.04em; }
+html[data-theme="ledger"] .minted { background: none; border: 0; padding: 4px 0 10px; overflow: visible; }
+html[data-theme="ledger"] .minted .rings { display: none; }
+html[data-theme="ledger"] .minted .pad { padding: 0; }
+html[data-theme="ledger"] .big { font-weight: 600; letter-spacing: -0.055em; }
+html[data-theme="ledger"] .minted .big { font-size: 104px; line-height: 0.9; }
+html[data-theme="ledger"] .minted .big .c, html[data-theme="ledger"] .big .c { background: none; -webkit-background-clip: border-box; background-clip: border-box; color: #56635D; }
+html[data-theme="ledger"] .chart .area { opacity: 0.3; }
+html[data-theme="ledger"] .axis { padding: 0; font-family: var(--mono); font-weight: 500; text-transform: uppercase; }
+
+/* Labels and numbers. */
+html[data-theme="ledger"] .eyebrow,
+html[data-theme="ledger"] .table th,
+html[data-theme="ledger"] .hero-tiles small,
+html[data-theme="ledger"] .kpi small,
+html[data-theme="ledger"] .card-head .aside { font-family: var(--mono); font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); }
+html[data-theme="ledger"] .table td,
+html[data-theme="ledger"] .item .end b,
+html[data-theme="ledger"] .hero-tiles b,
+html[data-theme="ledger"] .kpi b,
+html[data-theme="ledger"] .num { font-family: var(--mono); font-weight: 500; letter-spacing: 0; }
+html[data-theme="ledger"] .table td.strong { font-weight: 600; }
+html[data-theme="ledger"] .table .who { font-family: var(--sans); }
+html[data-theme="ledger"] .table td { border-top-color: rgba(255, 255, 255, 0.07); }
+
+/* Pills become plain coloured figures. */
+html[data-theme="ledger"] .pill { height: auto; padding: 0; border-radius: 0; background: transparent !important; font-family: var(--mono); font-weight: 600; }
+html[data-theme="ledger"] .pill.solid { color: var(--lime); }
+html[data-theme="ledger"] .pill.solid.loss, html[data-theme="ledger"] .pill.loss { color: var(--loss); }
+html[data-theme="ledger"] .pill.violet { color: #CFC4FF; }
+html[data-theme="ledger"] .minted .hero-chips { gap: 22px; }
+html[data-theme="ledger"] .ret { font-family: var(--mono); }
+html[data-theme="ledger"] .ret b { font-weight: 500; }
+html[data-theme="ledger"] .ret i { min-width: 0; padding: 0; background: none !important; opacity: 0.75; font-weight: 600; }
+
+/* The four figures under the chart: columns between hairlines. */
+html[data-theme="ledger"] .hero-tiles { gap: 0; margin-top: 18px; padding: 16px 0; border-top: 1px solid rgba(255, 255, 255, 0.08); border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+html[data-theme="ledger"] .hero-tiles > div { padding: 0 22px; border: 0; border-left: 1px solid rgba(255, 255, 255, 0.08); border-radius: 0; background: none; }
+html[data-theme="ledger"] .hero-tiles > div:first-child { padding-left: 0; border-left: 0; }
+html[data-theme="ledger"] .hero-tiles b { font-size: 18px; }
+html[data-theme="ledger"] .hero-tiles b span { font-size: 13px; }
+html[data-theme="ledger"] .kpis { gap: 0 16px; }
+html[data-theme="ledger"] .kpi { padding: 10px 0; border: 0; border-top: 1px solid rgba(255, 255, 255, 0.08); border-radius: 0; background: none; }
+
+/* Range and view switches: words underlined. */
+html[data-theme="ledger"] .seg { gap: 16px; padding: 0; border-radius: 0; background: transparent; }
+html[data-theme="ledger"] .seg a, html[data-theme="ledger"] .seg button { height: 32px; padding: 0 2px; border-radius: 0; background: transparent !important; font-family: var(--mono); font-size: 12px; color: var(--dim); }
+html[data-theme="ledger"] .seg [aria-current="page"], html[data-theme="ledger"] .seg [aria-pressed="true"] { color: var(--text); box-shadow: inset 0 -2px 0 var(--lime); }
+html[data-theme="ledger"] .seg.full { display: flex; justify-content: space-between; }
+html[data-theme="ledger"] .chips button, html[data-theme="ledger"] .chips a { border-radius: 0; border-width: 0 0 2px; background: none; padding-left: 2px; padding-right: 2px; }
+html[data-theme="ledger"] .chips [aria-pressed="true"], html[data-theme="ledger"] .chips [aria-current="page"] { background: none; color: var(--text); }
+
+/* The day's moves: a still list instead of the running ticker. */
+html[data-theme="ledger"] .ticker { -webkit-mask-image: none; mask-image: none; overflow-x: auto; scrollbar-width: none; }
+html[data-theme="ledger"] .ticker::-webkit-scrollbar { display: none; }
+html[data-theme="ledger"] .ticker-track { animation: none; }
+html[data-theme="ledger"] .ticker-lap[aria-hidden="true"] { display: none; }
+html[data-theme="ledger"] .tick b, html[data-theme="ledger"] .tick .up, html[data-theme="ledger"] .tick .down { font-family: var(--mono); }
+
+html[data-theme="ledger"] .next .when { width: 52px; padding: 0; background: none; color: var(--muted); text-align: left; font-family: var(--mono); }
+html[data-theme="ledger"] .next .when small, html[data-theme="ledger"] .next .when b { display: inline; font-size: 12px; font-weight: 500; }
+html[data-theme="ledger"] .next .amt { font-family: var(--mono); font-weight: 500; }
+html[data-theme="ledger"] .table tr.pie-row[aria-expanded="true"] td { background: rgba(255, 255, 255, 0.02); }
+html[data-theme="ledger"] .chip-live { height: auto; padding: 0; border: 0; background: none; font-family: var(--mono); font-size: 11px; }
+
+@media (min-width: 900px) {
+  /* A side menu: the brand, the sections, then the sync state and the account at the bottom. */
+  html[data-theme="ledger"] .app { padding-left: 240px; }
+  html[data-theme="ledger"] .topbar { position: fixed; left: 0; top: 0; bottom: 0; width: 240px; max-width: none; margin: 0; padding: 26px 16px 20px; background: #0A0D0C; border-right: 1px solid rgba(255, 255, 255, 0.07); }
+  html[data-theme="ledger"] .topbar-in { flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 28px; height: 100%; padding: 0; }
+  html[data-theme="ledger"] .brand { padding: 0 8px; font-size: 20px; }
+  html[data-theme="ledger"] .nav { flex-direction: column; flex-wrap: nowrap; gap: 2px; padding: 0; border: 0; border-radius: 0; background: none; }
+  html[data-theme="ledger"] .nav a { height: 40px; padding: 0 12px; border-radius: 10px; font-size: 14px; font-weight: 500; }
+  html[data-theme="ledger"] .nav a[aria-current="page"] { background: #151B19; color: var(--text); font-weight: 600; box-shadow: inset 2px 0 0 var(--lime); }
+  html[data-theme="ledger"] .top-acts { margin-top: auto; flex-direction: column; align-items: stretch; gap: 10px; }
+  html[data-theme="ledger"] .chip-sync { height: auto; padding: 12px 14px; border-radius: 12px; white-space: normal; line-height: 1.35; background: transparent; border: 1px solid rgba(255, 255, 255, 0.08); color: var(--text-2); }
+  html[data-theme="ledger"] .chip-sync .dot.ok { box-shadow: none; }
+  html[data-theme="ledger"] .avatar { align-self: flex-start; border-radius: 10px; }
+  html[data-theme="ledger"] .page { max-width: 1180px; margin: 0; padding: 32px 44px 56px; gap: 24px; }
+}
+
+@media (max-width: 899px) {
+  /* A flat tab bar with every label, instead of the floating dock. */
+  html[data-theme="ledger"] .dock { left: 0; right: 0; bottom: 0; height: auto; justify-content: space-around; padding: 6px 6px calc(6px + var(--safe-b)); border-radius: 0; border: 0; border-top: 1px solid rgba(255, 255, 255, 0.08); background: rgba(10, 13, 12, 0.96); box-shadow: none; }
+  html[data-theme="ledger"] .dock a,
+  html[data-theme="ledger"] .dock a[aria-current="page"] { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; width: auto; height: 52px; padding: 0; border-radius: 0; background: none; color: var(--muted); }
+  html[data-theme="ledger"] .dock a .lbl { display: block; font-size: 10.5px; font-weight: 600; }
+  html[data-theme="ledger"] .dock a[aria-current="page"] { color: var(--text); box-shadow: inset 0 2px 0 var(--lime); }
+  html[data-theme="ledger"] .page { padding-bottom: calc(92px + var(--safe-b)); }
+  html[data-theme="ledger"] .minted .big { font-size: 56px; }
+  html[data-theme="ledger"] .card,
+  html[data-theme="ledger"] .card.flat { padding: 16px 0 6px; }
+}

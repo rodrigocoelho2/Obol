@@ -2,6 +2,7 @@
 @{
     Layout = "_App";
     ViewData["Title"] = "Settings";
+    var theme = Context.Request.Cookies["obol-theme"] is "ledger" ? "ledger" : "mint";
 }
 
 <header class="head">
@@ -17,6 +18,21 @@
 
 <div class="bento">
     <div class="wide" style="display: flex; flex-direction: column; gap: 16px">
+        <section class="card">
+            <div class="card-head"><h2>Look</h2><span class="aside">on this device</span></div>
+            <div class="themes" role="radiogroup" aria-label="Look">
+                <label class="theme-pick">
+                    <input type="radio" name="theme" value="mint" data-theme-pick checked="@(theme == "mint" ? "checked" : null)" />
+                    <span class="swatch mint" aria-hidden="true"><i></i><i></i><i></i></span>
+                    <span><b>Mint</b><small>The coin from the landing: glows, engraved rings and soft cards.</small></span>
+                </label>
+                <label class="theme-pick">
+                    <input type="radio" name="theme" value="ledger" data-theme-pick checked="@(theme == "ledger" ? "checked" : null)" />
+                    <span class="swatch ledger" aria-hidden="true"><i></i><i></i><i></i></span>
+                    <span><b>Ledger</b><small>Calm and editorial: a side menu, hairlines instead of cards, numbers in columns.</small></span>
+                </label>
+            </div>
+        </section>
         <section class="card">
             <div class="card-head"><h2>Password</h2><span class="aside">other devices are signed out</span></div>
             <form class="form-grid" style="margin-top: 14px" data-password-form>

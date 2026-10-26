@@ -210,6 +210,15 @@
     });
   }
 
+  /* ----- Settings: the look (Mint or Ledger), kept on this device ----- */
+  document.querySelectorAll('[data-theme-pick]').forEach(input => input.addEventListener('change', () => {
+    if (!input.checked) return;
+    const theme = input.value === 'ledger' ? 'ledger' : 'mint';
+    document.cookie = `obol-theme=${theme}; path=/; max-age=31536000; SameSite=Lax`;
+    if (theme === 'ledger') document.documentElement.dataset.theme = 'ledger';
+    else delete document.documentElement.dataset.theme;
+  }));
+
   /* ----- Sync ----- */
   const connectForm = document.querySelector('[data-connect-form]');
   if (connectForm) {

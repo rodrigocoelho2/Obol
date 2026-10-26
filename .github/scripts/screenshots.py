@@ -123,6 +123,17 @@ with sync_playwright() as p:
             page.screenshot(path=str(out / f"{name}-overview-stocks.png"), full_page=True)
             page.locator("[data-hview=pies]").first.click()
 
+        # The Ledger look (Settings › Look), on a few screens.
+        context.add_cookies([{"name": "obol-theme", "value": "ledger", "url": base}])
+        for shot, path in [("overview", "/"), ("holdings", "/holdings"), ("insights", "/insights"), ("settings", "/settings")]:
+            page.goto(base + path)
+            page.wait_for_timeout(1200)
+            page.screenshot(path=str(out / f"{name}-ledger-{shot}.png"))
+            page.screenshot(path=str(out / f"{name}-ledger-{shot}-full.png"), full_page=True)
+        kept = [cookie for cookie in context.cookies() if cookie["name"] != "obol-theme"]
+        context.clear_cookies()
+        context.add_cookies(kept)
+
         # The chart cursor, as a finger or the mouse moves over the chart.
         page.goto(base + "/")
         chart = page.locator("[data-chart]").first

@@ -2,9 +2,11 @@
 @{
     var antiforgeryToken = Antiforgery.GetAndStoreTokens(Context).RequestToken;
     var title = ViewData["Title"] as string;
+    // The look picked in Settings on this device (Mint when none): read here so the page never flashes the other one.
+    var theme = Context.Request.Cookies["obol-theme"] is "ledger" ? "ledger" : null;
 }
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="@theme">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -12,7 +14,7 @@
     <meta name="color-scheme" content="dark" />
     <title>@(string.IsNullOrEmpty(title) || title == "Obol" ? "Obol" : $"{title} · Obol")</title>
     <meta name="description" content="Obol follows your Trading 212 portfolio: what it's worth, every holding, the dividends and the history behind them. Self-hosted, on your phone and your computer." />
-    <meta name="theme-color" content="#0B0F0E" />
+    <meta name="theme-color" content="@(theme is null ? "#080B0A" : "#0A0D0C")" />
     <meta name="application-name" content="Obol" />
     <meta name="apple-mobile-web-app-title" content="Obol" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
