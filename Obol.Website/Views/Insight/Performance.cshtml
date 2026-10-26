@@ -58,7 +58,7 @@ else
                 <div class="big@(down ? " loss" : string.Empty)" style="margin-top: 8px">@(headline is { } h ? (h >= 0 ? "+" : "−") + Fmt.Number(Math.Abs(h) * 100m, 1) : "—")<span class="c">%</span></div>
                 <div class="hero-chips">
                     <span class="pill solid@(data.Gain < 0 ? " loss" : string.Empty)">@(data.Gain >= 0 ? "▲" : "▼") @Fmt.Money(Math.Abs(data.Gain), currency, 0) gained</span>
-                    @if (data.MoneyWeightedYearly is { } yearly && data.Days >= 300)
+                    @if (data.MoneyWeightedYearly is { } yearly && data.Days >= 400)
                     {
                         <span class="pill soft@(yearly < 0 ? " loss" : string.Empty)">@Fmt.SignedPct(yearly, 1) a year</span>
                     }

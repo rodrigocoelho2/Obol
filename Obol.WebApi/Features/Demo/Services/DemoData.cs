@@ -60,8 +60,8 @@ internal static class DemoData
         var benchmarkRandom = new Random(seed + 1);
         var benchmarks = new Dictionary<string, SortedList<DateOnly, decimal>>(StringComparer.Ordinal)
         {
-            [Benchmarks.World.Key] = Walk(days, 103.4, 0.11, 0.0085, benchmarkRandom),
-            [Benchmarks.SP500.Key] = Walk(days, 628.0, 0.14, 0.0105, benchmarkRandom),
+            [Benchmarks.World.Key] = Walk(days, 103.4, 0.07, 0.0085, benchmarkRandom),
+            [Benchmarks.SP500.Key] = Walk(days, 628.0, 0.06, 0.0105, benchmarkRandom),
         };
 
         var batch = new ImportBatch { Currency = Currency };

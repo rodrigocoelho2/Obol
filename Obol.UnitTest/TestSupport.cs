@@ -7,6 +7,7 @@ using Obol.WebApi.Features;
 using Obol.WebApi.Features.Connections.Repositories;
 using Obol.WebApi.Features.Demo.Services;
 using Obol.WebApi.Features.Instruments.Models.Entities;
+using Obol.WebApi.Features.Insights.Services;
 using Obol.WebApi.Features.Instruments.Repositories;
 using Obol.WebApi.Features.Portfolio.Models.Entities;
 using Obol.WebApi.Features.Portfolio.Repositories;
@@ -142,7 +143,10 @@ internal sealed class TestApp
         UserService = new UserService(Users, Seeder, globalization, Options);
         Loader = new PortfolioLoader(Portfolio, Instruments, Prices, Connections, Clock, Options);
         PortfolioService = new PortfolioService(Loader, Connections, globalization);
+        Insights = new InsightsService(Loader, globalization);
     }
+
+    public InsightsService Insights { get; }
 
     public FixedTimeProvider Time { get; }
 
