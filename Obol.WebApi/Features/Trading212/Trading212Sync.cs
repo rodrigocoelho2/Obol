@@ -81,6 +81,16 @@ internal sealed class Trading212Sync(
             priceQueue.Enqueue(userId);
             return true;
         }
+        catch (MissingPermissionException exception)
+        {
+            var message = $"Synced what the key allows. In Trading 212 (Settings › API) turn on {string.Join(", ", exception.Permissions.Select(static permission => $"\"{permission}\""))} for this key, or make a new key with them, and paste it in Sync.";
+            lines.Add(message);
+            var finished = clock.UtcNow;
+            await connectionRepository.MarkAsync(userId, (byte)SyncState.Failed, message, finished, null, null, null);
+            await connectionRepository.SaveRunAsync(userId, Run(started, finished, false, message, lines));
+            priceQueue.Enqueue(userId);
+            return false;
+        }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             await connectionRepository.MarkAsync(userId, (byte)SyncState.Failed, "Stopped (Obol was restarting). It runs again on its own.");
@@ -90,7 +100,8 @@ internal sealed class Trading212Sync(
         {
             var message = exception switch
             {
-                Trading212Exception { Kind: Trading212Failure.Unauthorized } => "Trading 212 refused the key. Paste a new key and secret in Sync.",
+                Trading212Exception { Kind: Trading212Failure.Unauthorized } => "Trading 212 refused the key (check it's the Real money / Practice account it was made for). Paste a new key and secret in Sync.",
+                Trading212Exception { Kind: Trading212Failure.Forbidden } => "The key doesn't have the \"Account data\" permission. Turn it on in Trading 212 (Settings › API) and paste the key again.",
                 Trading212Exception { Kind: Trading212Failure.RateLimited } => "Trading 212 asked to slow down. Obol tries again at the next sync.",
                 Trading212Exception { Kind: Trading212Failure.Unreachable } failure => $"Can't reach Trading 212 ({failure.Message}).",
                 _ => $"The sync stopped: {exception.Message}",
@@ -137,11 +148,12 @@ internal sealed class Trading212Sync(
         }
 
         var parts = new List<string>();
+        var missing = new List<string>();
         var today = clock.Today;
 
-        if (connection.SyncPositions)
+        if (connection.SyncPositions
+            && await AllowedAsync(() => client.PositionsAsync(credentials, cancellationToken), "Portfolio", "Positions", missing, lines) is { } positions)
         {
-            var positions = await client.PositionsAsync(credentials, cancellationToken);
             var instruments = new Dictionary<string, InstrumentInput>(StringComparer.Ordinal);
             foreach (var position in positions)
             {
@@ -203,7 +215,7 @@ internal sealed class Trading212Sync(
         {
             var known = (await portfolioRepository.ListTradesAsync(userId)).Select(static trade => trade.TradeKey).ToHashSet(StringComparer.Ordinal);
             var (added, pages, complete) = await HistoryAsync(
-                client.OrdersAsync(credentials, cancellationToken), fullHistory, userId,
+                client.OrdersAsync(credentials, cancellationToken), fullHistory, userId, "History - Orders", "Orders", missing, lines,
                 (batch, item) =>
                 {
                     var instrument = Trading212Mapper.Instrument(item.Order?.Instrument, item.Order?.Ticker, item.Order?.Currency, catalogue);
@@ -226,15 +238,18 @@ internal sealed class Trading212Sync(
                 },
                 static counts => counts.Trades);
             historyDone &= complete;
-            lines.Add($"Orders: {pages} page{(pages == 1 ? string.Empty : "s")}, {Count(added, "new trade")}");
-            parts.Add(Count(added, "new trade"));
+            if (pages >= 0)
+            {
+                lines.Add($"Orders: {pages} page{(pages == 1 ? string.Empty : "s")}, {Count(added, "new trade")}");
+                parts.Add(Count(added, "new trade"));
+            }
         }
 
         if (connection.SyncDividends)
         {
             var known = (await portfolioRepository.ListDividendsAsync(userId)).Select(static dividend => dividend.DividendKey).ToHashSet(StringComparer.Ordinal);
             var (added, pages, complete) = await HistoryAsync(
-                client.DividendsAsync(credentials, cancellationToken), fullHistory, userId,
+                client.DividendsAsync(credentials, cancellationToken), fullHistory, userId, "History - Dividends", "Dividends", missing, lines,
                 (batch, item) =>
                 {
                     var instrument = Trading212Mapper.Instrument(item.Instrument, item.Ticker, item.TickerCurrency, catalogue);
@@ -251,15 +266,18 @@ internal sealed class Trading212Sync(
                 },
                 static counts => counts.Dividends);
             historyDone &= complete;
-            lines.Add($"Dividends: {pages} page{(pages == 1 ? string.Empty : "s")}, {Count(added, "new dividend")}");
-            parts.Add(Count(added, "new dividend"));
+            if (pages >= 0)
+            {
+                lines.Add($"Dividends: {pages} page{(pages == 1 ? string.Empty : "s")}, {Count(added, "new dividend")}");
+                parts.Add(Count(added, "new dividend"));
+            }
         }
 
         if (connection.SyncTransactions)
         {
             var known = (await portfolioRepository.ListCashAsync(userId)).Select(static cash => cash.MovementKey).ToHashSet(StringComparer.Ordinal);
             var (added, pages, complete) = await HistoryAsync(
-                client.TransactionsAsync(credentials, cancellationToken), fullHistory, userId,
+                client.TransactionsAsync(credentials, cancellationToken), fullHistory, userId, "History - Transactions", "Deposits, withdrawals and interest", missing, lines,
                 (batch, item) =>
                 {
                     var cash = Trading212Mapper.Cash(item);
@@ -274,11 +292,38 @@ internal sealed class Trading212Sync(
                 },
                 static counts => counts.Cash);
             historyDone &= complete;
-            lines.Add($"Deposits, withdrawals and interest: {pages} page{(pages == 1 ? string.Empty : "s")}, {Count(added, "new transfer")}");
-            parts.Add(Count(added, "new transfer"));
+            if (pages >= 0)
+            {
+                lines.Add($"Deposits, withdrawals and interest: {pages} page{(pages == 1 ? string.Empty : "s")}, {Count(added, "new transfer")}");
+                parts.Add(Count(added, "new transfer"));
+            }
+        }
+
+        if (missing.Count > 0)
+        {
+            throw new MissingPermissionException(missing);
         }
 
         return (parts.Count == 0 ? "Nothing to sync (everything is turned off)." : string.Join(" · ", parts), historyDone);
+    }
+
+    /// <summary>
+    /// Calls an endpoint the key may not be allowed to use (Trading 212 keys have one permission per area): a refusal
+    /// skips that part of the sync instead of stopping it, and is reported at the end.
+    /// </summary>
+    private static async Task<T?> AllowedAsync<T>(Func<Task<T>> call, string permission, string what, List<string> missing, List<string> lines)
+        where T : class
+    {
+        try
+        {
+            return await call();
+        }
+        catch (Trading212Exception exception) when (exception.Kind is Trading212Failure.Unauthorized or Trading212Failure.Forbidden)
+        {
+            missing.Add(permission);
+            lines.Add($"{what}: skipped, the key doesn't have the \"{permission}\" permission");
+            return null;
+        }
     }
 
     /// <summary>
@@ -286,6 +331,22 @@ internal sealed class Trading212Sync(
     /// stops at the first page with nothing new (the pages come newest first).
     /// </summary>
     private async Task<(int Added, int Pages, bool Complete)> HistoryAsync<T>(
+        IAsyncEnumerable<List<T>> source, bool full, Guid userId, string permission, string what, List<string> missing, List<string> lines,
+        Func<ImportBatch, T, bool> read, Func<ImportCounts, int> added)
+    {
+        try
+        {
+            return await ReadHistoryAsync(source, full, userId, read, added);
+        }
+        catch (Trading212Exception exception) when (exception.Kind is Trading212Failure.Unauthorized or Trading212Failure.Forbidden)
+        {
+            missing.Add(permission);
+            lines.Add($"{what}: skipped, the key doesn't have the \"{permission}\" permission");
+            return (0, -1, false);
+        }
+    }
+
+    private async Task<(int Added, int Pages, bool Complete)> ReadHistoryAsync<T>(
         IAsyncEnumerable<List<T>> source, bool full, Guid userId, Func<ImportBatch, T, bool> read, Func<ImportCounts, int> added)
     {
         var total = 0;
@@ -330,4 +391,12 @@ internal sealed class Trading212Sync(
     private static string Count(int count, string what) => count == 0 ? $"no {what}s" : count == 1 ? $"1 {what}" : $"{count} {what}s";
 
     private static string Money(decimal value, string currency) => $"{value.ToString("#,0.00", English)} {currency}";
+}
+
+/// <summary>Some parts of a sync were skipped because the key lacks their permission.</summary>
+/// <param name="permissions">The permissions to turn on, as Trading 212 names them.</param>
+internal sealed class MissingPermissionException(IReadOnlyList<string> permissions) : Exception("the key lacks some permissions")
+{
+    /// <summary>Gets the permissions to turn on.</summary>
+    public IReadOnlyList<string> Permissions { get; } = permissions.Distinct().ToList();
 }

@@ -235,8 +235,11 @@ internal sealed class Trading212Exception(Trading212Failure kind, string message
 /// <summary>What went wrong with a Trading 212 call.</summary>
 internal enum Trading212Failure
 {
-    /// <summary>The key or secret was refused (401/403).</summary>
+    /// <summary>The key or secret was refused (401).</summary>
     Unauthorized,
+
+    /// <summary>The key is valid but lacks the permission for that endpoint (403).</summary>
+    Forbidden,
 
     /// <summary>Too many calls, even after waiting.</summary>
     RateLimited,

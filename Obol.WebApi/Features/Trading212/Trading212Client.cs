@@ -189,7 +189,9 @@ internal sealed class Trading212Client(
 
                 if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
                 {
-                    throw new Trading212Exception(Trading212Failure.Unauthorized, $"{(int)response.StatusCode} on {Path(path)}");
+                    throw new Trading212Exception(
+                        response.StatusCode == HttpStatusCode.Forbidden ? Trading212Failure.Forbidden : Trading212Failure.Unauthorized,
+                        $"{(int)response.StatusCode} on {Path(path)}");
                 }
 
                 if (response.StatusCode == HttpStatusCode.TooManyRequests || (int)response.StatusCode >= 500)

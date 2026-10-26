@@ -151,7 +151,7 @@ internal sealed class ConnectionService(
             }
             catch (Trading212Exception exception)
             {
-                var message = exception.Kind == Trading212Failure.Unauthorized
+                var message = exception.Kind is Trading212Failure.Unauthorized or Trading212Failure.Forbidden
                     ? await globalizationHelper.TranslateAsync(nameof(TranslationKeys.BrokerKeyRejected))
                     : exception.Kind == Trading212Failure.RateLimited
                         ? await globalizationHelper.TranslateAsync(nameof(TranslationKeys.BrokerRateLimited))

@@ -158,8 +158,10 @@ SSMS) or the volume. Everything can also be read again from Trading 212 (Sync �
 ## Connecting Trading 212
 
 1. In the Trading 212 app or website open **Settings › API (Beta)** and accept the terms.
-2. **Generate API key**: name it Obol and tick only **Account data**, **History** and **Portfolio** — Obol never needs
-   the trading permissions.
+2. **Generate API key** for the account you'll connect, name it Obol and tick the read permissions: **Account data**,
+   **History - Dividends**, **History - Orders**, **History - Transactions**, **Metadata** and **Portfolio**. Leave the
+   order and pie permissions off — Obol never trades. A key without one of them still syncs the rest, and Sync says
+   which permission to turn on.
 3. Copy the **key** and the **secret** (the secret is shown only once) into **Sync › Connect Trading 212**, pick
    *Real money* or *Practice*.
 
