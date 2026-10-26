@@ -893,19 +893,18 @@ html[data-theme="ledger"] .table tr.pie-row[aria-expanded="true"] td { backgroun
 html[data-theme="ledger"] .chip-live { height: auto; padding: 0; border: 0; background: none; font-family: var(--mono); font-size: 11px; }
 
 @media (min-width: 900px) {
-  /* A side menu: the brand, the sections, then the sync state and the account at the bottom. */
-  html[data-theme="ledger"] .app { padding-left: 240px; }
-  html[data-theme="ledger"] .topbar { position: fixed; left: 0; top: 0; bottom: 0; width: 240px; max-width: none; margin: 0; padding: 26px 16px 20px; background: #0A0D0C; border-right: 1px solid rgba(255, 255, 255, 0.07); }
-  html[data-theme="ledger"] .topbar-in { flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 28px; height: 100%; padding: 0; }
-  html[data-theme="ledger"] .brand { padding: 0 8px; font-size: 20px; }
-  html[data-theme="ledger"] .nav { flex-direction: column; flex-wrap: nowrap; gap: 2px; padding: 0; border: 0; border-radius: 0; background: none; }
-  html[data-theme="ledger"] .nav a { height: 40px; padding: 0 12px; border-radius: 10px; font-size: 14px; font-weight: 500; }
-  html[data-theme="ledger"] .nav a[aria-current="page"] { background: #151B19; color: var(--text); font-weight: 600; box-shadow: inset 2px 0 0 var(--lime); }
-  html[data-theme="ledger"] .top-acts { margin-top: auto; flex-direction: column; align-items: stretch; gap: 10px; }
-  html[data-theme="ledger"] .chip-sync { height: auto; padding: 12px 14px; border-radius: 12px; white-space: normal; line-height: 1.35; background: transparent; border: 1px solid rgba(255, 255, 255, 0.08); color: var(--text-2); }
+  /* The top bar, flat: the sections as words underlined, a hairline under it. */
+  html[data-theme="ledger"] .topbar { background: rgba(10, 13, 12, 0.94); border-bottom: 1px solid rgba(255, 255, 255, 0.07); padding-top: 12px; padding-bottom: 12px; }
+  html[data-theme="ledger"] .brand { font-size: 20px; }
+  html[data-theme="ledger"] .nav { gap: 26px; padding: 0; border: 0; border-radius: 0; background: none; }
+  html[data-theme="ledger"] .nav a { height: 40px; padding: 0 2px; border-radius: 0; font-size: 14px; font-weight: 500; background: none; color: var(--muted); }
+  html[data-theme="ledger"] .nav a:hover { background: none; color: var(--text); }
+  html[data-theme="ledger"] .nav a[aria-current="page"] { background: none; color: var(--text); font-weight: 600; box-shadow: inset 0 -2px 0 var(--lime); }
+  html[data-theme="ledger"] .chip-sync { background: transparent; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; color: var(--text-2); font-family: var(--mono); font-size: 11.5px; font-weight: 500; }
   html[data-theme="ledger"] .chip-sync .dot.ok { box-shadow: none; }
-  html[data-theme="ledger"] .avatar { align-self: flex-start; border-radius: 10px; }
-  html[data-theme="ledger"] .page { max-width: 1268px; margin: 0 auto; padding: 32px 44px 56px; gap: 24px; }
+  html[data-theme="ledger"] .avatar { border-radius: 10px; }
+  html[data-theme="ledger"] .page { padding-top: 28px; gap: 24px; }
+  html[data-theme="ledger"] .bento { column-gap: 44px; }
 }
 
 @media (max-width: 899px) {
@@ -920,4 +919,3 @@ html[data-theme="ledger"] .chip-live { height: auto; padding: 0; border: 0; back
   html[data-theme="ledger"] .card,
   html[data-theme="ledger"] .card.flat { padding: 16px 0 6px; }
 }
-@media (min-width: 900px) { html[data-theme="ledger"] .bento { column-gap: 44px; } }
