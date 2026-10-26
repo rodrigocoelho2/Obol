@@ -86,7 +86,7 @@ public sealed class Trading212CsvTests
         Assert.Equal("DIVIDEND", dividend.Kind);
 
         Assert.Equal(1000m, batch.Cash.Single(static movement => movement.Kind == CashKind.Deposit).Amount);
-        Assert.Equal("Bank Transfer", batch.Cash.Single(static movement => movement.Kind == CashKind.Deposit).Note);
+        Assert.Equal("Bank transfer", batch.Cash.Single(static movement => movement.Kind == CashKind.Deposit).Note);
         Assert.Equal(1.23m, batch.Cash.Single(static movement => movement.Kind == CashKind.Interest).Amount);
         Assert.Equal(-100m, batch.Cash.Single(static movement => movement.Kind == CashKind.Withdrawal).Amount);
     }
