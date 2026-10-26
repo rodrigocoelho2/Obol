@@ -1,0 +1,202 @@
+@model PerformancePageModel
+@{
+    Layout = "_App";
+    ViewData["Title"] = "Performance";
+    var data = Model.Data!;
+    var currency = data.Currency;
+    var series = data.Series;
+    var benchmarks = data.Benchmarks;
+    var lines = benchmarks.Select((benchmark, index) => (IReadOnlyList<decimal?>)series.Select(point => index < point.Benchmarks.Count ? point.Benchmarks[index] : null).ToList()).ToList();
+    var chart = Charts.Line(
+        series.Select(static point => point.Value).ToList(),
+        series.Select(static point => Fmt.ShortDate(point.Day)).ToList(),
+        series.Select(point => Fmt.Money(point.Value, currency)).ToList(),
+        260,
+        series.Select(static point => point.Invested).ToList(),
+        series.Select(point => string.Join(" · ", benchmarks.Select((benchmark, index) => index < point.Benchmarks.Count && point.Benchmarks[index] is { } value ? $"{benchmark.Label} {Fmt.Money(value, currency, 0)}" : null).Where(static text => text is not null))).ToList(),
+        extras: lines);
+    var axis = series.Count < 2 ? [] : Enumerable.Range(0, 6).Select(i => series[(int)Math.Round(i * (series.Count - 1) / 5.0)].Day).ToList();
+    string AxisLabel(DateOnly day) => Model.Range is ChartRange.Week or ChartRange.Month ? Fmt.ShortDate(day) : day.ToString("MMM yy", System.Globalization.CultureInfo.GetCultureInfo("en-IE"));
+    var headline = data.MoneyWeighted ?? data.TimeWeighted;
+    var down = headline is < 0;
+    var years = data.Months.Select(static month => month.Year).Distinct().OrderByDescending(static year => year).ToList();
+    var biggestMonth = data.Months.Count > 0 ? data.Months.Max(static month => Math.Abs(month.Return)) : 0m;
+    string Heat(decimal value)
+    {
+        if (biggestMonth <= 0 || value == 0)
+        {
+            return "h0";
+        }
+
+        var level = Math.Abs(value) / biggestMonth;
+        var step = level > 0.66m ? 3 : level > 0.33m ? 2 : 1;
+        return (value > 0 ? "hp" : "hn") + step;
+    }
+}
+
+<partial name="_Tabs" model="Model" />
+
+@if (!data.HasData)
+{
+    <section class="card empty minted">
+        @Icons.Rings()
+        <div class="pad" style="display: flex; flex-direction: column; gap: 12px">
+            <span class="ico-chip">@Icons.Get("overview")</span>
+            <h2>Nothing to measure yet</h2>
+            <p>Performance needs a few days of history. Connect Trading 212 or import a CSV export, and come back after the first sync.</p>
+            <div class="row wrap"><a class="btn" href="/sync">@Icons.Get("link")Go to Sync</a></div>
+        </div>
+    </section>
+}
+else
+{
+    <section class="card minted" aria-labelledby="return">
+        @Icons.Rings()
+        <div class="pad hero-top">
+            <div>
+                <div class="eyebrow" id="return">Your return · @Fmt.RangeWords(Model.Range)</div>
+                <div class="big@(down ? " loss" : string.Empty)" style="margin-top: 8px">@(headline is { } h ? (h >= 0 ? "+" : "−") + Fmt.Number(Math.Abs(h) * 100m, 1) : "—")<span class="c">%</span></div>
+                <div class="hero-chips">
+                    <span class="pill solid@(data.Gain < 0 ? " loss" : string.Empty)">@(data.Gain >= 0 ? "▲" : "▼") @Fmt.Money(Math.Abs(data.Gain), currency, 0) gained</span>
+                    @if (data.MoneyWeightedYearly is { } yearly && data.Days >= 300)
+                    {
+                        <span class="pill soft@(yearly < 0 ? " loss" : string.Empty)">@Fmt.SignedPct(yearly, 1) a year</span>
+                    }
+                    @if (data.TimeWeighted is { } twr)
+                    {
+                        <span class="pill soft@(twr < 0 ? " loss" : string.Empty)" title="Time-weighted: how a fund would report it">TWR @Fmt.SignedPct(twr, 1)</span>
+                    }
+                </div>
+            </div>
+            <nav class="seg desk-only" aria-label="Range">
+                @foreach (var range in ScreenModel.Ranges)
+                {
+                    <a href="/insights?range=@Fmt.RangeQuery(range)" aria-current="@(range == Model.Range ? "page" : null)">@Fmt.Range(range)</a>
+                }
+            </nav>
+        </div>
+
+        @if (chart.HasLine)
+        {
+            ViewData["Height"] = 260;
+            ViewData["PhoneHeight"] = 170;
+            ViewData["Down"] = false;
+            ViewData["Class"] = "perf";
+            ViewData["Label"] = $"Your value against the same money in {string.Join(" and ", benchmarks.Where(static b => b.Available).Select(static b => b.Label))}";
+            <partial name="_Chart" model="chart" view-data="ViewData" />
+            <div class="axis desk-only">
+                @foreach (var day in axis)
+                {
+                    <span>@AxisLabel(day)</span>
+                }
+            </div>
+        }
+
+        <nav class="seg full phone-only" aria-label="Range" style="margin: 10px 14px 0; width: auto">
+            @foreach (var range in ScreenModel.Ranges)
+            {
+                <a href="/insights?range=@Fmt.RangeQuery(range)" aria-current="@(range == Model.Range ? "page" : null)">@Fmt.Range(range)</a>
+            }
+        </nav>
+
+        <div class="pad">
+            <div class="legend wrap">
+                <span><i class="ln"></i>You</span>
+                @for (var i = 0; i < benchmarks.Count; i++)
+                {
+                    if (benchmarks[i].Available)
+                    {
+                        <span><i class="ln extra-@i"></i>Same money in @benchmarks[i].Label</span>
+                    }
+                }
+                <span><i class="ln dash grey"></i>Money in</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="vs-grid">
+        @foreach (var benchmark in benchmarks)
+        {
+            <article class="card vs@(benchmark.Available ? string.Empty : " off")">
+                <div class="card-head">
+                    <h2>vs @benchmark.Label</h2>
+                    <span class="aside">@(benchmark.Available ? "same deposits, same days" : "no prices yet")</span>
+                </div>
+                @if (benchmark is { Available: true, Difference: { } diff })
+                {
+                    var ahead = diff >= 0;
+                    <div class="vs-big @(ahead ? "up" : "down")">@(ahead ? "+" : "−")@Fmt.Money(Math.Abs(diff), currency, 0)</div>
+                    <p class="vs-line">@(ahead ? "You're ahead of" : "You're behind") @benchmark.Label: the same money there would be worth <b>@Fmt.Money(benchmark.Value ?? 0, currency, 0)</b>.</p>
+                    <div class="vs-bars">
+                        @{
+                            var you = data.TimeWeighted ?? 0m;
+                            var them = benchmark.Return ?? 0m;
+                            var scale = Math.Max(Math.Abs(you), Math.Abs(them));
+                        }
+                        <div><small>You</small><span class="bar"><i class="bg-eq" style="width: @Charts.N(scale > 0 ? (double)(Math.Abs(you) / scale) * 100 : 0)%"></i></span><b class="@Fmt.Trend(you)">@Fmt.SignedPct(you, 1)</b></div>
+                        <div><small>@benchmark.Label</small><span class="bar"><i class="bg-@(benchmark.Key.EndsWith("SP500", StringComparison.Ordinal) ? "stock" : "bond")" style="width: @Charts.N(scale > 0 ? (double)(Math.Abs(them) / scale) * 100 : 0)%"></i></span><b class="@Fmt.Trend(them)">@Fmt.SignedPct(them, 1)</b></div>
+                    </div>
+                    <small class="muted">Time-weighted, so your deposits' timing doesn't count. @benchmark.Name.</small>
+                }
+                else
+                {
+                    <p class="muted" style="margin-top: 10px; font-size: 13px">Obol fetches the index's daily closes with the price history (OBOL_PRICE_HISTORY). They show up after the next price refresh.</p>
+                }
+            </article>
+        }
+    </section>
+
+    @if (data.Months.Count > 0)
+    {
+        <section class="card" style="margin-top: 16px">
+            <div class="card-head">
+                <h2>Month by month</h2>
+                <span class="aside">time-weighted · deposits left out</span>
+            </div>
+            <div class="heat" role="table" aria-label="Monthly returns">
+                <div class="heat-row head" role="row">
+                    <span role="columnheader"></span>
+                    @for (var m = 1; m <= 12; m++)
+                    {
+                        <span role="columnheader">@Fmt.Month(m)[..1]<span class="desk-only">@Fmt.Month(m)[1..]</span></span>
+                    }
+                    <span role="columnheader" class="desk-only">Year</span>
+                </div>
+                @foreach (var year in years)
+                {
+                    var months = data.Months.Where(month => month.Year == year).ToDictionary(static month => month.Month, static month => month.Return);
+                    var compounded = months.Values.Aggregate(1m, static (total, value) => total * (1m + value)) - 1m;
+                    <div class="heat-row" role="row">
+                        <span role="rowheader" class="yr">@year</span>
+                        @for (var m = 1; m <= 12; m++)
+                        {
+                            if (months.TryGetValue(m, out var value))
+                            {
+                                <span role="cell" class="cell @Heat(value)" title="@Fmt.Month(m) @year: @Fmt.SignedPct(value, 2)"><b>@Fmt.Number(value * 100m, 1)</b></span>
+                            }
+                            else
+                            {
+                                <span role="cell" class="cell none"></span>
+                            }
+                        }
+                        <span role="cell" class="cell total desk-only @Fmt.Trend(compounded)">@Fmt.SignedPct(compounded, 1)</span>
+                    </div>
+                }
+            </div>
+        </section>
+    }
+
+    <section class="card flat explain" style="margin-top: 16px">
+        <div class="card-head"><h2>Two ways to measure</h2></div>
+        <div class="explain-grid">
+            <div>
+                <b>Money-weighted (the big number)</b>
+                <p>How <i>your</i> money did, counting when it went in. A deposit just before a rally helps it; one just before a drop hurts it. It's the rate (XIRR) that turns everything you put in into what's there now@(data.FromTransfers ? string.Empty : ", measured on what's invested, since the deposits aren't synced").</p>
+            </div>
+            <div>
+                <b>Time-weighted (TWR)</b>
+                <p>How your picks did, with the deposits taken out of each day. It's how funds and indexes report, so it's the fair one to put next to MSCI World or the S&amp;P 500.</p>
+            </div>
+        </div>
+    </section>
+}

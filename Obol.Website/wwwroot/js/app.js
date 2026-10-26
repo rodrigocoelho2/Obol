@@ -335,6 +335,126 @@
     flash.timer = setTimeout(() => toast.classList.remove('on'), 5000);
   }
 
+  /* ----- Insights › Goals: the projection follows the sliders ----- */
+  const goals = document.querySelector('[data-goals]');
+  if (goals) {
+    const value = parseFloat(goals.dataset.value) || 0;
+    const income = parseFloat(goals.dataset.income) || 0;
+    const thisYear = parseInt(goals.dataset.year, 10) || new Date().getFullYear();
+    let scenarios = [];
+    try { scenarios = JSON.parse(goals.dataset.scenarios || '[]'); } catch { scenarios = []; }
+    const rate = key => (scenarios.find(item => item.key === key) || { rate: key === 'low' ? 0.04 : key === 'high' ? 0.1 : 0.07 }).rate;
+    const money = new Intl.NumberFormat('en-IE', { style: 'currency', currency: goals.dataset.currency || 'EUR', maximumFractionDigits: 0 });
+    const inputs = {};
+    goals.querySelectorAll('[data-in]').forEach(input => { inputs[input.dataset.in] = input; });
+    const out = name => goals.querySelector(`[data-out="${name}"]`);
+    const show = name => goals.querySelector(`[data-show="${name}"]`);
+    const path = name => goals.querySelector(`[data-path="${name}"]`);
+
+    function grow(months, monthly, yearly) {
+      const step = Math.pow(1 + yearly, 1 / 12) - 1;
+      const values = [value];
+      let v = value;
+      for (let i = 1; i <= months; i++) { v = v * (1 + step) + monthly; values.push(v); }
+      return values;
+    }
+
+    function line(values, x, y) {
+      return values.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+    }
+
+    function fill(input) {
+      const min = parseFloat(input.min), max = parseFloat(input.max), now = parseFloat(input.value);
+      input.style.setProperty('--fill', ((now - min) / (max - min) * 100) + '%');
+    }
+
+    function draw() {
+      const monthly = parseFloat(inputs.monthly.value) || 0;
+      const years = parseInt(inputs.years.value, 10) || 1;
+      const goal = parseFloat(inputs.goal.value) || 0;
+      const yieldRate = (parseFloat(inputs.yield.value) || 0) / 100;
+      Object.values(inputs).forEach(fill);
+      show('monthly').textContent = money.format(monthly);
+      show('years').textContent = years + (years === 1 ? ' year' : ' years');
+      show('goal').textContent = money.format(goal);
+      show('yield').textContent = (yieldRate * 100).toFixed(1) + ' %';
+
+      const months = years * 12;
+      const low = grow(months, monthly, rate('low'));
+      const mid = grow(months, monthly, rate('mid'));
+      const high = grow(months, monthly, rate('high'));
+      const put = Array.from({ length: months + 1 }, (_, i) => value + monthly * i);
+      const top = Math.max(high[months], put[months], 1) * 1.06;
+      const x = i => i / months * 1000;
+      const y = v => 250 - v / top * 238;
+      path('low').setAttribute('d', line(low, x, y));
+      path('mid').setAttribute('d', line(mid, x, y));
+      path('high').setAttribute('d', line(high, x, y));
+      path('in').setAttribute('d', line(put, x, y));
+      path('band').setAttribute('d', line(high, x, y) + ' ' + low.slice().reverse().map((v, i) => `L${x(months - i).toFixed(1)},${y(v).toFixed(1)}`).join(' ') + ' Z');
+
+      out('years').textContent = years;
+      out('mid').textContent = money.format(mid[months]);
+      out('low').textContent = money.format(low[months]);
+      out('high').textContent = money.format(high[months]);
+      out('in').textContent = money.format(put[months]);
+
+      const axis = goals.querySelector('[data-axis]');
+      const marks = [0, 0.25, 0.5, 0.75, 1].map(share => thisYear + Math.round(years * share));
+      axis.replaceChildren(...marks.map(year => { const span = document.createElement('span'); span.textContent = year; return span; }));
+
+      // The income goal: how far today's income gets, and when the steady path gets there.
+      const nowMonthly = income / 12;
+      const share = goal > 0 ? Math.min(1, nowMonthly / goal) : 0;
+      const ring = goals.querySelector('[data-ring]');
+      ring.setAttribute('stroke-dasharray', `${(share * 276.46).toFixed(1)} 276.46`);
+      out('goal-pct').textContent = Math.round(share * 100) + ' %';
+      out('goal-label').textContent = money.format(goal) + ' a month';
+      const text = out('goal-text');
+      const far = grow(60 * 12, monthly, rate('mid'));
+      const reach = far.findIndex(v => v * yieldRate / 12 >= goal);
+      text.replaceChildren();
+      if (goal <= 0) {
+        text.textContent = 'Set an income you would like a month.';
+      } else if (reach === 0) {
+        text.append('Your portfolio already yields ', bold(money.format(value * yieldRate / 12)), ' a month at this yield.');
+      } else if (reach > 0) {
+        const when = thisYear + Math.ceil(reach / 12);
+        text.append('At a steady 7 % and ', bold(money.format(monthly)), ' a month, you reach ', bold(money.format(goal)), ' a month around ', bold(String(when)), ` (${Math.ceil(reach / 12)} years).`);
+      } else {
+        text.textContent = 'Not within 60 years at this pace: add a little more each month or aim lower.';
+      }
+    }
+
+    function bold(textValue) { const b = document.createElement('b'); b.textContent = textValue; return b; }
+
+    Object.values(inputs).forEach(input => input.addEventListener('input', draw));
+    draw();
+  }
+
+  /* ----- Insights › Coach: ask for a review and follow it ----- */
+  const coach = document.querySelector('[data-coach]');
+  if (coach) {
+    const run = coach.querySelector('[data-coach-run]');
+    const follow = async () => {
+      try {
+        const response = await fetch('/insights/coach/status', { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+        const result = await response.json();
+        if (result?.isValid && result.data && !result.data.running) { location.reload(); return; }
+      } catch { /* try again */ }
+      setTimeout(follow, 3000);
+    };
+    run?.addEventListener('click', async () => {
+      busy(run, true);
+      run.lastChild.textContent = 'Reading your portfolio…';
+      const result = await post('/insights/coach/run');
+      if (!result) return;
+      if (!result.isValid) { busy(run, false); flash(errors(result)); return; }
+      if (result.data?.running) setTimeout(follow, 2500); else location.reload();
+    });
+    if (coach.dataset.running === 'true') setTimeout(follow, 2500);
+  }
+
   /* ----- Installable app ----- */
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => { /* not installable here */ }));

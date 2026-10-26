@@ -11,6 +11,7 @@ public static class Icons
     {
         ["overview"] = "<path d=\"M3 17l5-5 4 3 8-8\"/><path d=\"M15 7h5v5\"/>",
         ["holdings"] = "<rect x=\"3.5\" y=\"4\" width=\"17\" height=\"6.5\" rx=\"2\"/><rect x=\"3.5\" y=\"13.5\" width=\"17\" height=\"6.5\" rx=\"2\"/>",
+        ["insights"] = "<path d=\"M4 20V13\"/><path d=\"M10 20V8\"/><path d=\"M16 20v-5\"/><path d=\"M20.5 4.5l-5 5-3-3-4.5 4.5\"/>",
         ["income"] = "<circle cx=\"12\" cy=\"12\" r=\"8.5\"/><circle cx=\"12\" cy=\"12\" r=\"3.8\"/>",
         ["sync"] = "<path d=\"M19.5 10.5A7.8 7.8 0 0 0 5.6 7.4M4.5 4v4h4\"/><path d=\"M4.5 13.5a7.8 7.8 0 0 0 13.9 3.1M19.5 20v-4h-4\"/>",
         ["activity"] = "<path d=\"M4 7h16M4 12h16M4 17h10\"/>",

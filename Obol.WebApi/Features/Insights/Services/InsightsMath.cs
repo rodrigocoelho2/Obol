@@ -98,9 +98,8 @@ internal static class InsightsMath
             return null;
         }
 
-        var all = items.Select(item => (Years: (item.Day.DayNumber - first.DayNumber) / 365.0, item.Amount))
-            .Append(((end.DayNumber - first.DayNumber) / 365.0, (double)endValue))
-            .ToList();
+        var all = items.Select(item => (Years: (item.Day.DayNumber - first.DayNumber) / 365.0, item.Amount)).ToList();
+        all.Add((Years: (end.DayNumber - first.DayNumber) / 365.0, Amount: (double)endValue));
         if (!all.Any(static item => item.Amount > 0))
         {
             return null;

@@ -1,0 +1,132 @@
+@model RealizedPageModel
+@{
+    Layout = "_App";
+    ViewData["Title"] = "Realized";
+    var data = Model.Data!;
+    var currency = data.Currency;
+    var logos = Model.Connection?.Logos == true;
+    var biggestYear = data.ByYear.Count > 0 ? data.ByYear.Max(static year => Math.Abs(year.Gain)) : 0m;
+    var biggestInstrument = data.ByInstrument.Count > 0 ? data.ByInstrument.Max(static item => Math.Abs(item.Gain)) : 0m;
+    var winRate = data.Wins + data.Losses > 0 ? (decimal)data.Wins / (data.Wins + data.Losses) : (decimal?)null;
+}
+
+<partial name="_Tabs" model="Model" />
+
+@if (data.Years.Count > 1)
+{
+    <nav class="chips" aria-label="Year" style="margin-bottom: 14px">
+        @foreach (var year in data.Years.Take(6))
+        {
+            <a href="/insights/realized?year=@year" aria-current="@(year == data.Year ? "page" : null)">@year</a>
+        }
+    </nav>
+}
+
+<div class="bento">
+    <section class="card minted wide" aria-labelledby="realized">
+        @Icons.Rings()
+        <div class="pad">
+            <div class="eyebrow" id="realized">Realized in @data.Year</div>
+            <div class="big@(data.Gain < 0 ? " loss" : string.Empty)" style="margin-top: 8px">@(data.Gain >= 0 ? "+" : "−")@Ui.BigMoney(Math.Abs(data.Gain), currency)</div>
+            <div class="hero-chips">
+                <span class="pill solid">@data.Sales.Count sale@(data.Sales.Count == 1 ? string.Empty : "s")</span>
+                @if (winRate is { } rate)
+                {
+                    <span class="pill soft">@data.Wins with a gain · @data.Losses with a loss</span>
+                }
+            </div>
+            <div class="hero-stats" style="margin-top: 18px">
+                <div><small>Sold for</small><b>@Fmt.Money(data.Proceeds, currency)</b></div>
+                <div><small>Had cost</small><b>@Fmt.Money(data.Cost, currency)</b></div>
+                <div><small>Hit rate</small><b>@Fmt.Pct(winRate, 0)</b></div>
+            </div>
+            @if (data.Unknown > 0)
+            {
+                <p class="hint" style="margin-top: 12px">@data.Unknown sale@(data.Unknown == 1 ? " has" : "s have") no known cost (bought before the history Obol has): import the older CSV exports to count them.</p>
+            }
+        </div>
+    </section>
+
+    <section class="card side" aria-labelledby="years">
+        <div class="card-head"><h2 id="years">Year by year</h2><span class="aside">realized</span></div>
+        @if (data.ByYear.Count == 0)
+        {
+            <p class="muted" style="margin-top: 10px; font-size: 13px">No sales yet.</p>
+        }
+        else
+        {
+            <div class="ybars">
+                @foreach (var year in data.ByYear.TakeLast(6))
+                {
+                    var height = biggestYear > 0 ? (double)(Math.Abs(year.Gain) / biggestYear) * 100 : 0;
+                    <a class="ybar@(year.Year == data.Year ? " on" : string.Empty)" href="/insights/realized?year=@year.Year">
+                        <span class="val @Fmt.Trend(year.Gain)">@Fmt.Compact(year.Gain, currency)</span>
+                        <span class="col"><i class="@(year.Gain >= 0 ? "pos" : "neg")" style="height: @Charts.N(Math.Max(height, 3))%"></i></span>
+                        <small>@year.Year</small>
+                    </a>
+                }
+            </div>
+        }
+    </section>
+</div>
+
+@if (data.ByInstrument.Count > 0)
+{
+    <section class="card" style="margin-top: 16px">
+        <div class="card-head"><h2>By position</h2><span class="aside">@data.Year</span></div>
+        <div class="bars">
+            @foreach (var item in data.ByInstrument)
+            {
+                <div class="bar-row split-bar">
+                    <div class="bar-top">@Ui.Asset(item.Instrument, logos, "sm")<b class="ellipsis">@item.Instrument!.Name</b><span class="muted">@item.Sales sale@(item.Sales == 1 ? string.Empty : "s")</span><b class="@Fmt.Trend(item.Gain)">@Fmt.SignedMoney(item.Gain, currency)</b></div>
+                    <span class="bar two"><i class="@(item.Gain >= 0 ? "pos" : "neg")" style="width: @Charts.N(biggestInstrument > 0 ? (double)(Math.Abs(item.Gain) / biggestInstrument) * 50 : 0)%"></i></span>
+                </div>
+            }
+        </div>
+    </section>
+}
+
+<section class="card" style="margin-top: 16px">
+    <div class="card-head"><h2>Sales in @data.Year</h2><span class="aside">average cost, as Trading 212 counts it</span></div>
+    @if (data.Sales.Count == 0)
+    {
+        <p class="muted" style="margin-top: 10px">No sales in @data.Year.</p>
+    }
+    else
+    {
+        <div class="table-box desk-only">
+            <table class="table">
+                <thead>
+                    <tr><th scope="col">Asset</th><th scope="col">Date</th><th scope="col">Shares</th><th scope="col">Price</th><th scope="col">Sold for</th><th scope="col">Cost</th><th scope="col">Gain</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var sale in data.Sales)
+                    {
+                        <tr class="link" data-href="@Ui.Href(sale.Instrument)">
+                            <td><a class="who" href="@Ui.Href(sale.Instrument)">@Ui.Asset(sale.Instrument, logos, "sm")<span class="ellipsis" style="max-width: 240px">@sale.Instrument.Name</span></a></td>
+                            <td>@Fmt.ShortDate(sale.At)</td>
+                            <td>@Fmt.Qty(sale.Quantity)</td>
+                            <td>@Fmt.Price(sale.Price, sale.PriceCurrency)</td>
+                            <td>@Fmt.Money(sale.Proceeds, currency)</td>
+                            <td>@(sale.Cost is { } cost ? Fmt.Money(cost, currency) : "—")</td>
+                            <td class="strong @Fmt.Trend(sale.Gain)">@(sale.Gain is { } gain ? Fmt.SignedMoney(gain, currency) + (sale.GainPct is { } pct ? " · " + Fmt.Pct(Math.Abs(pct), 1) : string.Empty) : "—")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="list phone-only" style="margin-top: 4px">
+            @foreach (var sale in data.Sales)
+            {
+                <a class="item" href="@Ui.Href(sale.Instrument)">
+                    @Ui.Asset(sale.Instrument, logos)
+                    <div class="grow">
+                        <div class="name">@sale.Instrument.Name</div>
+                        <small class="muted">@Fmt.ShortDate(sale.At) · @Fmt.Qty(sale.Quantity) at @Fmt.Price(sale.Price, sale.PriceCurrency)</small>
+                    </div>
+                    <div class="end"><b class="@Fmt.Trend(sale.Gain)">@(sale.Gain is { } gain ? Fmt.SignedMoney(gain, currency) : "—")</b><small>@Fmt.Money(sale.Proceeds, currency)</small></div>
+                </a>
+            }
+        </div>
+    }
+</section>

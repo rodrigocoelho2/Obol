@@ -145,6 +145,71 @@
     </section>
 </div>
 
+@if (data.Positions.Count > 0)
+{
+    var topReceived = data.Positions.Max(static item => item.Received);
+    <section class="card" style="margin-bottom: 16px">
+        <div class="card-head">
+            <h2>By position</h2>
+            <span class="aside">last 12 months@(data.Withheld > 0 ? " · " + Fmt.Money(data.Withheld, currency) + " withheld abroad" : string.Empty)</span>
+        </div>
+        <div class="table-box desk-only">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Asset</th>
+                        <th scope="col" style="text-align: left">Paid</th>
+                        <th scope="col">Yield</th>
+                        <th scope="col">On cost</th>
+                        <th scope="col">Last per share</th>
+                        <th scope="col">Payments</th>
+                        <th scope="col">Withheld</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in data.Positions)
+                    {
+                        <tr class="link" data-href="@Ui.Href(item.Instrument)">
+                            <td><a class="who" href="@Ui.Href(item.Instrument)">@Ui.Asset(item.Instrument, logos, "sm")<span class="ellipsis" style="max-width: 240px">@item.Instrument.Name</span></a></td>
+                            <td class="wcell"><div class="weight" style="margin: 0"><span class="bar"><i class="bg-eq" style="width: @Charts.N(topReceived > 0 ? (double)(item.Received / topReceived) * 100 : 0)%"></i></span><small class="strong" style="color: var(--text)">@Fmt.Money(item.Received, currency)</small></div></td>
+                            <td>@Fmt.Pct(item.Yield, 2)</td>
+                            <td>@Fmt.Pct(item.YieldOnCost, 2)</td>
+                            <td>
+                                @(item.LastPerShare is { } last ? Fmt.Price(last, item.Instrument.Currency) : "—")
+                                @if (item.Trend.Length > 0)
+                                {
+                                    <span class="trend-tag @item.Trend">@(item.Trend == "raised" ? "▲" : item.Trend == "cut" ? "▼" : "=") @(item.Change is { } change && item.Trend != "steady" ? Fmt.Pct(Math.Abs(change), 1) : item.Trend)</span>
+                                }
+                            </td>
+                            <td>@item.Payments</td>
+                            <td class="@(item.Withheld > 0 ? "down" : "muted")">@(item.Withheld > 0 ? "−" + Fmt.Money(item.Withheld, currency) : "—")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="list phone-only" style="margin-top: 4px">
+            @foreach (var item in data.Positions)
+            {
+                <a class="item" href="@Ui.Href(item.Instrument)">
+                    @Ui.Asset(item.Instrument, logos)
+                    <div class="grow">
+                        <div class="name">@item.Instrument.Name</div>
+                        <small class="muted">@Fmt.Pct(item.Yield, 2) yield · @item.Payments payment@(item.Payments == 1 ? string.Empty : "s")@(item.Withheld > 0 ? " · −" + Fmt.Money(item.Withheld, currency) + " tax" : string.Empty)</small>
+                    </div>
+                    <div class="end">
+                        <b>@Fmt.Money(item.Received, currency)</b>
+                        @if (item.Trend is "raised" or "cut")
+                        {
+                            <span class="trend-tag @item.Trend">@(item.Trend == "raised" ? "▲" : "▼") @Fmt.Pct(Math.Abs(item.Change ?? 0), 1)</span>
+                        }
+                    </div>
+                </a>
+            }
+        </div>
+    </section>
+}
+
 <section class="card">
     <div class="card-head">
         <h2>Payments in @data.Year</h2>

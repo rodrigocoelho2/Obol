@@ -1,0 +1,95 @@
+@model CoachPageModel
+@{
+    Layout = "_App";
+    ViewData["Title"] = "Coach";
+    var data = Model.Data!;
+    var report = data.Report;
+}
+
+<partial name="_Tabs" model="Model" />
+
+<div data-coach data-running="@(data.Running ? "true" : "false")">
+    @if (report is null && !data.Enabled)
+    {
+        <section class="card minted coach-setup">
+            @Icons.Rings()
+            <div class="pad" style="display: flex; flex-direction: column; gap: 12px">
+                <span class="ico-chip">@Icons.Get("sparkle")</span>
+                <h2>Turn on the AI coach</h2>
+                <p>The coach reads your positions, sectors, currencies, income and returns, and writes a short review: what's working, what to watch, three things to look at. Bring a Claude or Gemini key, or run a local model with Ollama so nothing leaves your network. Only numbers and symbols are sent, never your name or account.</p>
+                <pre class="code">OBOL_AI_PROVIDER=anthropic
+OBOL_AI_API_KEY=sk-ant-...
+# or: OBOL_AI_PROVIDER=openai and OBOL_AI_BASE_URL=http://&lt;nas-ip&gt;:11434/v1 (Ollama)</pre>
+                <p class="hint">In the .env next to docker-compose.yml, then <span class="mono">docker compose up -d</span>.</p>
+            </div>
+        </section>
+    }
+    else
+    {
+        <section class="card minted coach-hero">
+            @Icons.Rings()
+            <div class="pad">
+                <div class="row wrap" style="justify-content: space-between; gap: 12px">
+                    <span class="eyebrow">@Icons.Get("sparkle") @(report?.Example == true ? "Example review · demo data" : report is null ? "No review yet" : "Review of " + Fmt.When(report.GeneratedAt))</span>
+                    @if (data.Enabled)
+                    {
+                        <button class="btn small@(data.Running ? " busy" : string.Empty)" type="button" data-coach-run disabled="@(data.Running ? "disabled" : null)">@Icons.Get("sync")@(data.Running ? "Reading your portfolio…" : report is null ? "Review my portfolio" : "New review")</button>
+                    }
+                </div>
+                @if (report is not null)
+                {
+                    <h2 class="coach-headline">@report.Headline</h2>
+                    <p class="coach-summary">@report.Summary</p>
+                }
+                else
+                {
+                    <h2 class="coach-headline">Ask for a review</h2>
+                    <p class="coach-summary">It takes a few seconds with Claude or Gemini, a minute or two with a local model.</p>
+                }
+                @if (data.Error.Length > 0)
+                {
+                    <div class="msg err" style="margin-top: 12px">@data.Error</div>
+                }
+                @if (data.Enabled)
+                {
+                    <small class="muted">@data.Provider · @data.Model</small>
+                }
+            </div>
+        </section>
+
+        @if (report is not null)
+        {
+            <div class="coach-grid">
+                <section class="card coach-col good">
+                    <div class="card-head"><h2>Working for you</h2></div>
+                    <ul>
+                        @foreach (var line in report.Strengths)
+                        {
+                            <li><span class="k">@Icons.Get("check")</span><span>@line</span></li>
+                        }
+                    </ul>
+                </section>
+                <section class="card coach-col watch">
+                    <div class="card-head"><h2>Keep an eye on</h2></div>
+                    <ul>
+                        @foreach (var line in report.Watch)
+                        {
+                            <li><span class="k">!</span><span>@line</span></li>
+                        }
+                    </ul>
+                </section>
+                <section class="card coach-col act">
+                    <div class="card-head"><h2>Look at next</h2></div>
+                    <ol>
+                        @for (var i = 0; i < report.Actions.Count; i++)
+                        {
+                            <li><span class="k">@(i + 1)</span><span>@report.Actions[i]</span></li>
+                        }
+                    </ol>
+                </section>
+            </div>
+        }
+    }
+
+    <p class="hint" style="margin-top: 14px">The coach describes risks and options; it doesn't tell you to buy or sell anything, and it isn't financial advice.</p>
+</div>

@@ -6,10 +6,11 @@
     var phoneHeight = ViewData["PhoneHeight"] as int? ?? 150;
     var down = ViewData["Down"] is true;
     var label = ViewData["Label"] as string ?? "Chart";
+    var extraClass = ViewData["Class"] as string;
     var h = Charts.N(Model.Height);
     var last = Model.Last;
 }
-<div class="chart@(down ? " down" : string.Empty)" data-chart data-points="@Model.PointsJson" style="--h: @(height)px; --hp: @(phoneHeight)px">
+<div class="chart@(down ? " down" : string.Empty)@(extraClass is { Length: > 0 } ? " " + extraClass : string.Empty)" data-chart data-points="@Model.PointsJson" style="--h: @(height)px; --hp: @(phoneHeight)px">
     <svg viewBox="0 0 1000 @h" preserveAspectRatio="none" role="img" aria-label="@label">
         <defs>
             <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C6F36D" stop-opacity="0.22" /><stop offset="1" stop-color="#C6F36D" stop-opacity="0" /></linearGradient>
@@ -26,6 +27,13 @@
         @if (Model.GuideY is { } guide)
         {
             <line class="guide" x1="0" y1="@Charts.N(guide)" x2="1000" y2="@Charts.N(guide)" />
+        }
+        @for (var i = 0; i < Model.Extras.Count; i++)
+        {
+            if (Model.Extras[i].Length > 0)
+            {
+                <path class="extra extra-@i" d="@Model.Extras[i]" />
+            }
         }
         <path class="line" d="@Model.Line" />
     </svg>

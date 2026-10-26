@@ -1,0 +1,134 @@
+@model ExposurePageModel
+@{
+    Layout = "_App";
+    ViewData["Title"] = "Exposure";
+    var data = Model.Data!;
+    var currency = data.Currency;
+    var colours = new[] { "var(--c-eq)", "var(--c-bond)", "var(--c-stock)", "var(--c-gold)", "#F2A65A", "var(--c-cash)" };
+    var move = data.Foreign * 0.05m;
+    var concentration = data.Concentration;
+}
+
+<partial name="_Tabs" model="Model" />
+
+@if (data.Concentration.Positions == 0)
+{
+    <section class="card empty minted">
+        @Icons.Rings()
+        <div class="pad" style="display: flex; flex-direction: column; gap: 12px">
+            <span class="ico-chip">@Icons.Get("holdings")</span>
+            <h2>No positions yet</h2>
+            <p>Exposure shows where your money is: currencies, sectors and countries. It fills in with your first positions.</p>
+        </div>
+    </section>
+}
+else
+{
+    <div class="bento">
+        <section class="card minted wide" aria-labelledby="fx">
+            @Icons.Rings()
+            <div class="pad">
+                <div class="card-head">
+                    <h2 id="fx">Currencies</h2>
+                    <span class="aside">@Fmt.Money(data.Total, currency, 0) with cash</span>
+                </div>
+                <div class="stack" role="img" aria-label="@string.Join(", ", data.Currencies.Select(slice => slice.Key + " " + Fmt.Pct(slice.Percent, 0)))">
+                    @for (var i = 0; i < data.Currencies.Count; i++)
+                    {
+                        <i style="flex: @Charts.N((double)Math.Max(data.Currencies[i].Percent, 0.004m)); background: @colours[i % colours.Length]"></i>
+                    }
+                </div>
+                <div class="fx-rows">
+                    @for (var i = 0; i < data.Currencies.Count; i++)
+                    {
+                        var slice = data.Currencies[i];
+                        <div class="fx-row">
+                            <span class="sw" style="background: @colours[i % colours.Length]"></span>
+                            <b class="mono">@slice.Key</b>
+                            <span class="grow muted ellipsis">@(slice.Key == currency ? "home currency" + (slice.Count > 0 ? $" · {slice.Count} position{(slice.Count == 1 ? string.Empty : "s")} and cash" : " · cash") : $"{slice.Count} position{(slice.Count == 1 ? string.Empty : "s")} · {string.Join(" ", slice.Symbols.Take(4))}")</span>
+                            <span class="num">@Fmt.Money(slice.Value, currency, 0)</span>
+                            <span class="pct">@Fmt.Pct(slice.Percent, 1)</span>
+                            <span class="fxi @Fmt.Trend(slice.FxImpact)">@(slice.FxImpact is { } fx ? Fmt.SignedMoney(fx, currency, 0) : "")</span>
+                        </div>
+                    }
+                </div>
+                <div class="fx-callouts">
+                    <div>
+                        <small>Exchange rates since you bought</small>
+                        <b class="@Fmt.Trend(data.FxImpact)">@Fmt.SignedMoney(data.FxImpact, currency, 0)</b>
+                        <span class="muted">@(data.FxImpact >= 0 ? "added to" : "taken from") your positions just by currencies moving.</span>
+                    </div>
+                    <div>
+                        <small>If the @currency gets 5 % stronger</small>
+                        <b class="down">−@Fmt.Money(move, currency, 0)</b>
+                        <span class="muted">on the @Fmt.Money(data.Foreign, currency, 0) (@Fmt.Pct(data.Total > 0 ? data.Foreign / data.Total : 0, 0)) held in other currencies; 5 % weaker adds the same.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card side conc" aria-labelledby="conc">
+            <div class="card-head"><h2 id="conc">Concentration</h2><span class="aside">@concentration.Positions positions</span></div>
+            <div class="conc-ring">
+                <svg width="132" height="132" viewBox="0 0 104 104" role="img" aria-label="Biggest position @concentration.TopSymbol @Fmt.Pct(concentration.TopWeight, 0), top five @Fmt.Pct(concentration.Top5Weight, 0)">
+                    <circle cx="52" cy="52" r="44" fill="none" stroke="var(--track)" stroke-width="9" />
+                    <circle cx="52" cy="52" r="44" fill="none" stroke="var(--c-stock)" stroke-width="9" stroke-linecap="round" stroke-dasharray="@Charts.Ring((double)concentration.Top5Weight, 44)" transform="rotate(-90 52 52)" />
+                    <circle cx="52" cy="52" r="31" fill="none" stroke="var(--track)" stroke-width="9" />
+                    <circle cx="52" cy="52" r="31" fill="none" stroke="var(--lime)" stroke-width="9" stroke-linecap="round" stroke-dasharray="@Charts.Ring((double)concentration.TopWeight, 31)" transform="rotate(-90 52 52)" />
+                </svg>
+                <div class="conc-legend">
+                    <div><i style="background: var(--lime)"></i><span>Biggest · <b class="mono">@concentration.TopSymbol</b></span><b>@Fmt.Pct(concentration.TopWeight, 1)</b></div>
+                    <div><i style="background: var(--c-stock)"></i><span>Top 5</span><b>@Fmt.Pct(concentration.Top5Weight, 1)</b></div>
+                </div>
+            </div>
+            <div class="eff">
+                <div><b>@Fmt.Number(concentration.Effective, 1)</b><small>effective positions</small></div>
+                <p class="muted">Your portfolio moves like one with @Fmt.Number(concentration.Effective, 1) equal positions@(concentration.Effective < concentration.Positions / 2m ? ": a few big ones drive it" : ": well spread across them").</p>
+            </div>
+        </section>
+    </div>
+
+    <div class="bento" style="margin-top: 16px">
+        <section class="card wide-half" aria-labelledby="sectors">
+            <div class="card-head"><h2 id="sectors">Sectors</h2><span class="aside">of what's invested</span></div>
+            <div class="bars">
+                @foreach (var slice in data.Sectors)
+                {
+                    <div class="bar-row">
+                        <div class="bar-top"><b>@slice.Label</b><span class="muted mono">@string.Join(" ", slice.Symbols.Take(5))</span><b>@Fmt.Pct(slice.Percent, 1)</b></div>
+                        <span class="bar"><i class="@SectorCss(slice.Key)" style="width: @Charts.N((double)slice.Percent * 100)%"></i></span>
+                    </div>
+                }
+            </div>
+            @if (data.Sectors.Any(static slice => slice.Key == "OTHER"))
+            {
+                <p class="hint" style="margin-top: 10px">Sectors come from Yahoo Finance with the price history; shares it doesn't know are under Other.</p>
+            }
+        </section>
+
+        <section class="card wide-half" aria-labelledby="countries">
+            <div class="card-head"><h2 id="countries">Countries</h2><span class="aside">where each share is from</span></div>
+            <div class="bars">
+                @foreach (var slice in data.Countries)
+                {
+                    <div class="bar-row">
+                        <div class="bar-top"><span class="cc">@(slice.Key == "FUND" ? "∗" : slice.Key)</span><b>@slice.Label</b><span class="muted mono">@string.Join(" ", slice.Symbols.Take(5))</span><b>@Fmt.Pct(slice.Percent, 1)</b></div>
+                        <span class="bar"><i class="@(slice.Key == "FUND" ? "bg-eq" : "bg-stock")" style="width: @Charts.N((double)slice.Percent * 100)%"></i></span>
+                    </div>
+                }
+            </div>
+            <p class="hint" style="margin-top: 10px">Shares by the country in their ISIN; funds hold many countries, so they're apart.</p>
+        </section>
+    </div>
+}
+
+@functions {
+    private static string SectorCss(string key) => key switch
+    {
+        "EQUITY_ETF" => "bg-eq",
+        "BOND_ETF" => "bg-bond",
+        "COMMODITY" => "bg-gold",
+        "OTHER" => "bg-cash",
+        _ => "bg-stock",
+    };
+}

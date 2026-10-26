@@ -36,6 +36,9 @@ public sealed class LineChart
     /// <summary>Gets the points.</summary>
     public IReadOnlyList<ChartPoint> Points { get; init; } = [];
 
+    /// <summary>Gets the extra lines (benchmarks), as paths, in the order given.</summary>
+    public IReadOnlyList<string> Extras { get; init; } = [];
+
     /// <summary>Gets the points as JSON for the page script.</summary>
     public string PointsJson => JsonSerializer.Serialize(Points.Select(static point => new object[]
     {
@@ -69,7 +72,8 @@ public static class Charts
     /// <returns>The chart.</returns>
     public static LineChart Line(
         IReadOnlyList<decimal> values, IReadOnlyList<string> labels, IReadOnlyList<string> texts, double height,
-        IReadOnlyList<decimal>? second = null, IReadOnlyList<string>? notes = null, decimal? guide = null)
+        IReadOnlyList<decimal>? second = null, IReadOnlyList<string>? notes = null, decimal? guide = null,
+        IReadOnlyList<IReadOnlyList<decimal?>>? extras = null)
     {
         const double width = 1000;
         const double top = 14;
@@ -83,6 +87,11 @@ public static class Charts
         if (second is not null)
         {
             all.AddRange(second.Select(static value => (double)value));
+        }
+
+        if (extras is not null)
+        {
+            all.AddRange(extras.SelectMany(static line => line).Where(static value => value is not null).Select(static value => (double)value!.Value));
         }
 
         if (guide is { } g)
@@ -110,8 +119,12 @@ public static class Charts
         var area = points.Count > 1 ? $"{line} L{N(width)},{N(height)} L0,{N(height)} Z" : string.Empty;
         var secondPath = second is { Count: > 1 } s ? Polyline(s.Select((value, index) => (X(index), Y((double)value))).ToList()) : string.Empty;
 
+        var extraPaths = (extras ?? []).Select(line => Smooth(line.Select((value, index) => (Index: index, Value: value)).Where(static point => point.Value is not null)
+            .Select(point => (X(point.Index), Y((double)point.Value!.Value))).ToList())).ToList();
+
         return new LineChart
         {
+            Extras = extraPaths,
             Width = width,
             Height = height,
             Line = line,

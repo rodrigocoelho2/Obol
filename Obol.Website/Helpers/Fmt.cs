@@ -168,7 +168,17 @@ public static class Fmt
     /// <returns>The month (upper case) and the day.</returns>
     public static (string Month, string Day) Tile(DateOnly date) => (date.ToString("MMM", English).ToUpperInvariant(), date.Day.ToString(English));
 
-    /// <summary>yyyy-MM-dd.</summary>
+    /// <summary>A whole number, for HTML attributes.</summary>
+    /// <param name="value">The number.</param>
+    /// <returns>The text.</returns>
+    public static string Iso0(decimal value) => Math.Round(value, 0).ToString("0", CultureInfo.InvariantCulture);
+
+    /// <summary>A number with one decimal, for HTML attributes (always a dot).</summary>
+    /// <param name="value">The number.</param>
+    /// <returns>The text.</returns>
+    public static string Iso1(decimal value) => Math.Round(value, 1).ToString("0.0", CultureInfo.InvariantCulture);
+
+    /// <summary>A day as yyyy-MM-dd.</summary>
     /// <param name="date">The day.</param>
     /// <returns>The text.</returns>
     public static string Iso(DateOnly date) => date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);

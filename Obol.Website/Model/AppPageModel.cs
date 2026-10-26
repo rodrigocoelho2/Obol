@@ -166,3 +166,82 @@ public sealed class LandingModel
     /// <summary>Gets or sets a value indicating whether anyone may create an account.</summary>
     public bool CanCreateAccount { get; set; }
 }
+
+/// <summary>The pages of the Insights tab.</summary>
+public enum InsightsTab
+{
+    /// <summary>Returns against the indexes.</summary>
+    Performance,
+
+    /// <summary>Currencies, sectors, countries.</summary>
+    Exposure,
+
+    /// <summary>Realized gains.</summary>
+    Realized,
+
+    /// <summary>The projection.</summary>
+    Goals,
+
+    /// <summary>The AI coach.</summary>
+    Coach,
+}
+
+/// <summary>A page of the Insights tab.</summary>
+public abstract class InsightsPageModel : AppPageModel
+{
+    /// <summary>Gets the page.</summary>
+    public abstract InsightsTab Tab { get; }
+}
+
+/// <summary>Insights › Performance.</summary>
+public sealed class PerformancePageModel : InsightsPageModel
+{
+    /// <inheritdoc />
+    public override InsightsTab Tab => InsightsTab.Performance;
+
+    /// <summary>Gets or sets the data.</summary>
+    public PerformanceDTO? Data { get; set; }
+
+    /// <summary>Gets or sets the range.</summary>
+    public ChartRange Range { get; set; } = ChartRange.Year;
+}
+
+/// <summary>Insights › Exposure.</summary>
+public sealed class ExposurePageModel : InsightsPageModel
+{
+    /// <inheritdoc />
+    public override InsightsTab Tab => InsightsTab.Exposure;
+
+    /// <summary>Gets or sets the data.</summary>
+    public ExposureDTO? Data { get; set; }
+}
+
+/// <summary>Insights › Realized.</summary>
+public sealed class RealizedPageModel : InsightsPageModel
+{
+    /// <inheritdoc />
+    public override InsightsTab Tab => InsightsTab.Realized;
+
+    /// <summary>Gets or sets the data.</summary>
+    public RealizedDTO? Data { get; set; }
+}
+
+/// <summary>Insights › Goals.</summary>
+public sealed class GoalsPageModel : InsightsPageModel
+{
+    /// <inheritdoc />
+    public override InsightsTab Tab => InsightsTab.Goals;
+
+    /// <summary>Gets or sets the data.</summary>
+    public GoalsDTO? Data { get; set; }
+}
+
+/// <summary>Insights › Coach.</summary>
+public sealed class CoachPageModel : InsightsPageModel
+{
+    /// <inheritdoc />
+    public override InsightsTab Tab => InsightsTab.Coach;
+
+    /// <summary>Gets or sets the data.</summary>
+    public CoachDTO? Data { get; set; }
+}

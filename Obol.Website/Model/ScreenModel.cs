@@ -67,6 +67,62 @@ public sealed class ScreenModel(ObolClient apiClient) : WebsiteBaseModel(apiClie
         return await ShellAsync(page, userId, result);
     }
 
+    /// <summary>Fills Insights › Performance.</summary>
+    /// <param name="page">The page.</param>
+    /// <param name="userId">The account.</param>
+    /// <returns>The page.</returns>
+    public async Task<PerformancePageModel> PerformanceAsync(PerformancePageModel page, string userId)
+    {
+        var result = await CallAsync(() => ApiClient.InsightsPerformanceAsync(userId, page.Range));
+        page.Data = result.Data;
+        return await ShellAsync(page, userId, result);
+    }
+
+    /// <summary>Fills Insights › Exposure.</summary>
+    /// <param name="page">The page.</param>
+    /// <param name="userId">The account.</param>
+    /// <returns>The page.</returns>
+    public async Task<ExposurePageModel> ExposureAsync(ExposurePageModel page, string userId)
+    {
+        var result = await CallAsync(() => ApiClient.InsightsExposureAsync(userId));
+        page.Data = result.Data;
+        return await ShellAsync(page, userId, result);
+    }
+
+    /// <summary>Fills Insights › Realized.</summary>
+    /// <param name="page">The page.</param>
+    /// <param name="userId">The account.</param>
+    /// <param name="year">The year.</param>
+    /// <returns>The page.</returns>
+    public async Task<RealizedPageModel> RealizedAsync(RealizedPageModel page, string userId, int? year)
+    {
+        var result = await CallAsync(() => ApiClient.InsightsRealizedAsync(userId, year));
+        page.Data = result.Data;
+        return await ShellAsync(page, userId, result);
+    }
+
+    /// <summary>Fills Insights › Goals.</summary>
+    /// <param name="page">The page.</param>
+    /// <param name="userId">The account.</param>
+    /// <returns>The page.</returns>
+    public async Task<GoalsPageModel> GoalsAsync(GoalsPageModel page, string userId)
+    {
+        var result = await CallAsync(() => ApiClient.InsightsGoalsAsync(userId));
+        page.Data = result.Data;
+        return await ShellAsync(page, userId, result);
+    }
+
+    /// <summary>Fills Insights › Coach.</summary>
+    /// <param name="page">The page.</param>
+    /// <param name="userId">The account.</param>
+    /// <returns>The page.</returns>
+    public async Task<CoachPageModel> CoachAsync(CoachPageModel page, string userId)
+    {
+        var result = await CallAsync(() => ApiClient.InsightsCoachAsync(userId));
+        page.Data = result.Data;
+        return await ShellAsync(page, userId, result);
+    }
+
     /// <summary>Fills Sync.</summary>
     /// <param name="page">The page.</param>
     /// <param name="userId">The account.</param>

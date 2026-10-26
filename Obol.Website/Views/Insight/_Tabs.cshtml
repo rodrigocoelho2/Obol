@@ -1,0 +1,37 @@
+@model InsightsPageModel
+@{
+    var tabs = new (InsightsTab Tab, string Href, string Label)[]
+    {
+        (InsightsTab.Performance, "/insights", "Performance"),
+        (InsightsTab.Exposure, "/insights/exposure", "Exposure"),
+        (InsightsTab.Realized, "/insights/realized", "Realized"),
+        (InsightsTab.Goals, "/insights/goals", "Goals"),
+        (InsightsTab.Coach, "/insights/coach", "Coach"),
+    };
+    var subtitle = Model.Tab switch
+    {
+        InsightsTab.Performance => "How your money did, against the market",
+        InsightsTab.Exposure => "Where your money really is",
+        InsightsTab.Realized => "What your sales made",
+        InsightsTab.Goals => "Where it could be in a few years",
+        _ => "A second opinion on your portfolio",
+    };
+}
+<header class="head">
+    <div>
+        <h1>Insights</h1>
+        <div class="sub">@subtitle</div>
+    </div>
+</header>
+<nav class="subnav" aria-label="Insights">
+    @foreach (var (tab, href, label) in tabs)
+    {
+        <a href="@href" aria-current="@(tab == Model.Tab ? "page" : null)">
+            @if (tab == InsightsTab.Coach)
+            {
+                @Icons.Get("sparkle")
+            }
+            @label
+        </a>
+    }
+</nav>

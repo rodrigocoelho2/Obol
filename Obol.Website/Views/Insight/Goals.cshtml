@@ -1,0 +1,98 @@
+@model GoalsPageModel
+@{
+    Layout = "_App";
+    ViewData["Title"] = "Goals";
+    var data = Model.Data!;
+    var currency = data.Currency;
+    var monthly = Math.Clamp(Math.Round(data.MonthlyAverage / 25m) * 25m, 0m, 5000m);
+    var yieldPct = Math.Clamp(Math.Round((data.Yield ?? 0.03m) * 1000m) / 10m, 0.5m, 10m);
+    var goal = Math.Max(100m, Math.Round(Math.Max(data.IncomeNext12 / 12m * 4m, 300m) / 50m) * 50m);
+    var scenarios = System.Text.Json.JsonSerializer.Serialize(data.Scenarios.Select(static scenario => new { key = scenario.Key, label = scenario.Label, rate = scenario.Rate }));
+    var symbol = Fmt.Symbol(currency);
+}
+
+<partial name="_Tabs" model="Model" />
+
+<div class="goals" data-goals data-value="@Fmt.Iso0(data.Value)" data-income="@Fmt.Iso0(data.IncomeNext12)" data-scenarios="@scenarios" data-symbol="@symbol" data-currency="@currency" data-year="@Clock.Today.Year">
+    <section class="card minted" aria-labelledby="projection">
+        @Icons.Rings()
+        <div class="pad hero-top">
+            <div>
+                <div class="eyebrow" id="projection">In <span data-out="years">15</span> years, at a steady 7 %</div>
+                <div class="big" style="margin-top: 8px" data-out="mid">@Ui.BigMoney(data.Value, currency)</div>
+                <div class="hero-chips">
+                    <span class="pill soft">Careful <b data-out="low">—</b></span>
+                    <span class="pill soft">Strong <b data-out="high">—</b></span>
+                    <span class="pill soft">You put in <b data-out="in">—</b></span>
+                </div>
+            </div>
+            <div class="goal-now desk-only">
+                <small>Today</small>
+                <b>@Fmt.Money(data.Value, currency, 0)</b>
+                @if (data.YearlyReturn is { } pace)
+                {
+                    <small>your pace so far: @Fmt.SignedPct(pace, 1) a year</small>
+                }
+            </div>
+        </div>
+        <div class="proj" data-proj role="img" aria-label="Projection of the portfolio under three growth scenarios">
+            <svg viewBox="0 0 1000 260" preserveAspectRatio="none">
+                <path class="grid" d="M0,65 H1000 M0,130 H1000 M0,195 H1000" />
+                <path class="band" data-path="band" d="" />
+                <path class="in" data-path="in" d="" />
+                <path class="low" data-path="low" d="" />
+                <path class="high" data-path="high" d="" />
+                <path class="mid" data-path="mid" d="" />
+            </svg>
+            <div class="proj-axis" data-axis></div>
+        </div>
+        <div class="pad">
+            <div class="legend wrap">
+                <span><i class="ln"></i>Steady 7 %</span>
+                <span><i class="ln extra-0"></i>Careful 4 % · Strong 10 %</span>
+                <span><i class="ln dash grey"></i>What you put in</span>
+            </div>
+        </div>
+    </section>
+
+    <div class="bento" style="margin-top: 16px">
+        <section class="card wide" aria-labelledby="levers">
+            <div class="card-head"><h2 id="levers">Your plan</h2><span class="aside">move the sliders</span></div>
+            <div class="sliders">
+                <label class="slider">
+                    <span class="s-top"><span>Each month you add</span><b data-show="monthly">@(symbol + Fmt.Number(monthly, 0))</b></span>
+                    <input type="range" min="0" max="3000" step="25" value="@Fmt.Iso0(monthly)" data-in="monthly" />
+                    <small>Your last 12 months: @Fmt.Money(data.MonthlyAverage, currency, 0) a month</small>
+                </label>
+                <label class="slider">
+                    <span class="s-top"><span>For</span><b data-show="years">15 years</b></span>
+                    <input type="range" min="1" max="40" step="1" value="15" data-in="years" />
+                </label>
+                <label class="slider">
+                    <span class="s-top"><span>Income you'd like a month</span><b data-show="goal">@(symbol + Fmt.Number(goal, 0))</b></span>
+                    <input type="range" min="50" max="5000" step="50" value="@Fmt.Iso0(goal)" data-in="goal" />
+                </label>
+                <label class="slider">
+                    <span class="s-top"><span>Dividend yield of the portfolio</span><b data-show="yield">@Fmt.Number(yieldPct, 1) %</b></span>
+                    <input type="range" min="0.5" max="10" step="0.1" value="@Fmt.Iso1(yieldPct)" data-in="yield" />
+                    <small>Yours today: @(data.Yield is { } y ? Fmt.Pct(y, 2) : "—") (the next 12 months' dividends on today's value)</small>
+                </label>
+            </div>
+        </section>
+
+        <section class="card side" aria-labelledby="income-goal">
+            <div class="card-head"><h2 id="income-goal">Income goal</h2><span class="aside" data-out="goal-label">—</span></div>
+            <div class="goal-ring">
+                <svg width="150" height="150" viewBox="0 0 104 104" role="img" aria-label="Share of the income goal reached today">
+                    <circle cx="52" cy="52" r="44" fill="none" stroke="var(--track)" stroke-width="10" />
+                    <circle cx="52" cy="52" r="44" fill="none" stroke="var(--lime)" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 277" transform="rotate(-90 52 52)" data-ring />
+                </svg>
+                <div class="center"><div><b data-out="goal-pct">0 %</b><small>reached today</small></div></div>
+            </div>
+            <p class="goal-text" data-out="goal-text">—</p>
+            <p class="hint">Income = the portfolio × the yield. Dividends are assumed to be reinvested until then.</p>
+        </section>
+    </div>
+
+    <p class="hint" style="margin-top: 14px">A projection, not a promise: markets don't move in straight lines. Careful, steady and strong are 4 %, 7 % and 10 % a year before inflation.</p>
+</div>
