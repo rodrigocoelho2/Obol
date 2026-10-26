@@ -213,8 +213,8 @@ public sealed class Trading212MapperTests
     {
         var web = new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web);
         var detail = System.Text.Json.JsonSerializer.Deserialize<T212PieDetail>(
-            $$"""{"instruments": [{"ticker": "TSLA_US_EQ", "ownedQuantity": 0.25, "currentShare": null, "result": {"priceAvgValue": 99.5, "priceAvgInvestedValue": null}}],
-                 "settings": {"id": 9, "name": "Mag 7", "goal": null, "creationDate": {{creationDate}}, "endDate": null}}""", web)!;
+            """{"instruments": [{"ticker": "TSLA_US_EQ", "ownedQuantity": 0.25, "currentShare": null, "result": {"priceAvgValue": 99.5, "priceAvgInvestedValue": null}}], "settings": {"id": 9, "name": "Mag 7", "goal": null, "endDate": null, "creationDate": """
+            + creationDate + "}}", web)!;
 
         var pie = Trading212Mapper.Pie(new T212Pie { Id = 9, Cash = null }, detail);
         var owned = Assert.Single(Trading212Mapper.PieHoldings(9, detail, static _ => 3));
