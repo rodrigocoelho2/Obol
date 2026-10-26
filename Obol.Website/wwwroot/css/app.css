@@ -905,7 +905,7 @@ html[data-theme="ledger"] .chip-live { height: auto; padding: 0; border: 0; back
   html[data-theme="ledger"] .chip-sync { height: auto; padding: 12px 14px; border-radius: 12px; white-space: normal; line-height: 1.35; background: transparent; border: 1px solid rgba(255, 255, 255, 0.08); color: var(--text-2); }
   html[data-theme="ledger"] .chip-sync .dot.ok { box-shadow: none; }
   html[data-theme="ledger"] .avatar { align-self: flex-start; border-radius: 10px; }
-  html[data-theme="ledger"] .page { max-width: 1180px; margin: 0; padding: 32px 44px 56px; gap: 24px; }
+  html[data-theme="ledger"] .page { max-width: 1268px; margin: 0 auto; padding: 32px 44px 56px; gap: 24px; }
 }
 
 @media (max-width: 899px) {
