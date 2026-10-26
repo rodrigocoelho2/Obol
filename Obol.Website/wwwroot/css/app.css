@@ -920,3 +920,4 @@ html[data-theme="ledger"] .chip-live { height: auto; padding: 0; border: 0; back
   html[data-theme="ledger"] .card,
   html[data-theme="ledger"] .card.flat { padding: 16px 0 6px; }
 }
+@media (min-width: 900px) { html[data-theme="ledger"] .bento { column-gap: 44px; } }

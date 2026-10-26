@@ -48,6 +48,9 @@
   one line per stock.
 - **Movers of the day**, the **next dividends** and how far this year's income has come.
 
+**Two looks** (Settings › Look, per device): **Mint**, the coin from the landing with glows, engraved rings and soft
+cards, and **Ledger**, calm and editorial with a side menu, hairlines instead of cards and the numbers in mono columns.
+
 **Holdings**
 
 - Every position with its **logo** (logo.dev, cached on the server; a ticker badge without a key), weight, value,
