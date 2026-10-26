@@ -52,10 +52,30 @@
 - **A position**: the price chart with every buy and sell marked, the average price you paid as a guide line, the
   dividends it paid, what you put in and what you took out.
 
+**Insights**
+
+- **Performance against the market**: your **money-weighted** return (XIRR: how your money did, deposits' timing
+  included) and **time-weighted** return (TWR: how funds and indexes report), and what **the same deposits, on the same
+  days**, would be worth in **MSCI World** or the **S&P 500** — "am I beating the index?" in one chart. Plus a heatmap
+  of every month's return.
+- **Exposure**: how much is in each **currency** and what the exchange rate added or took since you bought (and what a
+  5 % stronger euro would do), **sectors**, **countries**, and **concentration** (biggest position, top 5, effective
+  number of positions).
+- **Realized**: what every sale made, at average cost as Trading 212 counts it, by year and by position, with the hit
+  rate.
+- **Goals**: where the portfolio could be in N years adding Y a month, in careful, steady and strong scenarios, and when
+  the dividends would reach the income you'd like a month. Sliders, worked out live.
+- **AI coach** (optional): an AI reads your positions, sectors, currencies, income and returns and writes a short
+  review — what's working, what to keep an eye on (concentration, repeated bets, dividends at risk, currency) and three
+  things to look at. Bring a **Claude** or **Gemini** key, or run a **local model with Ollama** so nothing leaves your
+  network. It never tells you to buy or sell anything.
+
 **Income**
 
 - A **calendar** of what each month paid and what the rest of the year should bring, **yield on cost**, the next 12
   months and where the income comes from. Interest on cash counts too.
+- **By position**: what each one paid in the last 12 months, its yield and yield on cost, whether the last payment per
+  share was **raised or cut**, and the **tax withheld abroad**.
 
 **Activity**
 
@@ -87,26 +107,33 @@
 ### Your portfolio
 <img src="docs/images/portfolio.png" alt="Phone: overview, holdings, a position and income">
 
-### Activity, sync and settings
-<img src="docs/images/tracking.png" alt="Phone: activity, sync, a position in dollars and settings">
+### Insights
+<img src="docs/images/insights.png" alt="Phone: performance against the indexes, exposure, goals and the AI coach">
+
+### Realized, activity and sync
+<img src="docs/images/tracking.png" alt="Phone: realized gains, activity, sync and settings">
 
 ### On the computer
 <table>
 <tr>
-<td width="50%"><b>Overview, all time</b><br><img src="docs/images/desktop-overview-all.png" alt="The overview since the first deposit: value against money put in"></td>
+<td width="50%"><b>Performance</b><br><img src="docs/images/desktop-insights.png" alt="Your return against the same deposits in MSCI World and the S&P 500, and every month's return"></td>
+<td width="50%"><b>Exposure</b><br><img src="docs/images/desktop-exposure.png" alt="Currencies with the exchange rate's effect, concentration, sectors and countries"></td>
+</tr>
+<tr>
+<td width="50%"><b>Realized</b><br><img src="docs/images/desktop-realized.png" alt="What the sales made, by year and by position"></td>
+<td width="50%"><b>Goals</b><br><img src="docs/images/desktop-goals.png" alt="Where the portfolio could be in a few years, and when the dividends reach your goal"></td>
+</tr>
+<tr>
+<td width="50%"><b>AI coach</b><br><img src="docs/images/desktop-coach.png" alt="A short review of the portfolio: what's working, what to watch, what to look at"></td>
 <td width="50%"><b>Holdings</b><br><img src="docs/images/desktop-holdings.png" alt="Every position with its weight, average cost, today and return"></td>
 </tr>
 <tr>
 <td width="50%"><b>A position</b><br><img src="docs/images/desktop-position.png" alt="The price over a year with every buy marked and the average price paid"></td>
-<td width="50%"><b>In dollars</b><br><img src="docs/images/desktop-position-usd.png" alt="A US stock priced in dollars, valued in euros at each day's rate"></td>
+<td width="50%"><b>Income</b><br><img src="docs/images/desktop-income.png" alt="The calendar of dividends, the next payouts and the income by position"></td>
 </tr>
 <tr>
-<td width="50%"><b>Income</b><br><img src="docs/images/desktop-income.png" alt="The calendar of dividends and interest, the year's progress and the next payouts"></td>
 <td width="50%"><b>Activity</b><br><img src="docs/images/desktop-activity.png" alt="Every buy, sell, dividend, deposit and interest, newest first"></td>
-</tr>
-<tr>
 <td width="50%"><b>Sync</b><br><img src="docs/images/desktop-sync.png" alt="Trading 212 connected, what syncs, the CSV import and the last run"></td>
-<td width="50%"><b>Settings</b><br><img src="docs/images/desktop-settings.png" alt="Password, accounts and the version"></td>
 </tr>
 </table>
 
@@ -145,6 +172,11 @@ the first account with the setup key (it becomes the admin) and you land on **Sy
 | `SQL_PORT` | `1436` | Host port for SSMS / Azure Data Studio (`<nas-ip>,1436`, user `sa`). |
 | `SQL_MEMORY_LIMIT_MB` · `SQL_CPUS` · `OBOL_CPUS` | `1024` · `2` · `1` | Keep the stack small on the NAS. |
 | `OBOL_WEBAPI_MEMORY` · `OBOL_WEBSITE_MEMORY` | `512m` · `384m` | Memory caps of the WebApi and the website. |
+| `OBOL_AI_PROVIDER` | — (off) | `anthropic` (Claude), `gemini` (Google AI Studio key) or `openai` (OpenAI, **Ollama**, LM Studio — anything OpenAI-compatible). Empty: the coach explains how to turn it on. |
+| `OBOL_AI_API_KEY` | — | The provider's API key (not needed for a local Ollama). |
+| `OBOL_AI_MODEL` | `claude-haiku-5-5` · `gemini-3.8-flash` · `gpt-4o-mini` | The model, e.g. `claude-sonnet-5-5` or `llama3.1:8b`. |
+| `OBOL_AI_BASE_URL` | OpenAI | For `openai`: e.g. `http://192.168.1.10:11434/v1` for Ollama on the NAS. |
+| `OBOL_AI_LANGUAGE` | `English` | The language the coach writes in, e.g. `Portuguese (Portugal)`. |
 | `OBOL_DEMO_MODE` | `false` | `true` runs on a sample portfolio in memory (sign in as `demo` / `obol-demo`; every new account gets it too). |
 
 **Nginx Proxy Manager:** the website joins `nas-net`, so a proxy host can forward to `http://obol-website:8080` (with
@@ -182,6 +214,12 @@ are found by their names). Stock splits and other corporate actions in the file 
   trades fill in prices and exchange rates when Yahoo has none. Pence (GBX) and pounds are told apart.
 - **Gain over a range** = value at the end − value at the start − money put in meanwhile, as a share of what was there
   (plus what was added). **Total return** = net worth − net deposits.
+- **Money-weighted return (XIRR)** is the one yearly rate that turns every deposit, on its day, into today's value.
+  **Time-weighted (TWR)** chains each day's move with that day's deposits taken out. **The same money in an index**
+  buys units of the index ETF (EUNL, SXR8, in euros) with the first day's value and every later deposit at that day's
+  close. When the deposits aren't synced, the trades are the flows and only what's invested is measured.
+- **Exchange-rate effect** is Trading 212's figure per position, or the shares at today's price times the change of the
+  rate since the average buy.
 - **Expected income** repeats every payment of the last 12 months on the shares you hold today (per share), a year
   later. It's an estimate: companies change their dividends.
 
@@ -199,7 +237,7 @@ Obol.slnx
 ├── Obol.Library/             enums, ServiceApiResponse, validation types, header names (no ASP.NET)
 ├── Obol.WebApi/              ASP.NET Core API (x-api-key): the sync, prices, logos and the portfolio maths
 │   ├── Extensions/           API-key authentication, data (Dapper over stored procedures, memory store), time, secrets
-│   └── Features/             Users, Connections, Trading212, Csv, Instruments, Portfolio, Prices, Logos, Syncs, Demo, Health
+│   └── Features/             Users, Connections, Trading212, Csv, Instruments, Portfolio, Insights, Prices, Logos, Syncs, Demo, Health
 │       └── <Feature>/        Controllers, Models (Entities, DTOs), Repositories (SQL + memory), Services, Http samples
 ├── Obol.Sdk/                 typed client of the WebApi and copies of its DTOs (the Website never references the WebApi)
 ├── Obol.Website/             ASP.NET Core MVC: the landing page, sign-in and the app
@@ -254,6 +292,11 @@ JSON, every call with the `x-api-key` header. `userId` is the account's id (32 h
 | `GET portfolio/position?userId=&key=&range=` | one instrument: prices, trades, dividends |
 | `GET portfolio/activity?userId=&kind=&skip=&take=` | the activity, newest first |
 | `GET portfolio/income?userId=&year=` | the income calendar of a year |
+| `GET insights/performance?userId=&range=` | money- and time-weighted returns, against MSCI World and the S&P 500, monthly returns |
+| `GET insights/exposure?userId=` | currencies (with the exchange rate's effect), sectors, countries, concentration |
+| `GET insights/realized?userId=&year=` | what the sales of a year made |
+| `GET insights/goals?userId=` | where the portfolio is now, for the projection |
+| `GET`/`POST insights/coach?userId=` | the AI coach; POST starts a review in the background, poll GET |
 | `GET logo?key=&symbol=` | an instrument's logo (PNG, cached) |
 | `GET health` | status (no key needed) |
 

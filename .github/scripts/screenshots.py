@@ -91,7 +91,8 @@ with sync_playwright() as p:
 
         for shot, path in [("landing", "/about"), ("sign-in", "/sign-in"), ("create-account", "/create-account")]:
             page.goto(base + path)
-            page.wait_for_timeout(1200)
+            # The landing page animates in: let it settle.
+            page.wait_for_timeout(4500 if shot == "landing" else 1200)
             page.screenshot(path=str(out / f"{name}-{shot}.png"))
             if shot == "landing":
                 page.screenshot(path=str(out / f"{name}-{shot}-full.png"), full_page=True)
