@@ -360,34 +360,38 @@ else
                 </section>
             }
 
-            <section class="card dividends">
+            <section class="card">
                 <div class="card-head">
-                    <h2>Next dividends</h2>
+                    <h2>Income @Clock.Today.Year</h2>
                     <a href="/income">Calendar →</a>
+                </div>
+                <div class="row" style="margin-top: 14px; gap: 16px">
+                    <div class="ring-box" style="width: 84px; height: 84px">
+                        <svg width="84" height="84" viewBox="0 0 104 104" role="img" aria-label="@Fmt.Pct(data.IncomeProgress, 0) of this year's expected income received">
+                            <circle cx="52" cy="52" r="44" fill="none" stroke="var(--track)" stroke-width="11" />
+                            <circle cx="52" cy="52" r="44" fill="none" stroke="var(--lime)" stroke-width="11" stroke-linecap="round" stroke-dasharray="@Charts.Ring((double)(data.IncomeProgress ?? 0), 44)" />
+                        </svg>
+                        <div class="center"><b style="font-size: 17px">@Fmt.Pct(data.IncomeProgress, 0)</b></div>
+                    </div>
+                    <div>
+                        <div class="num" style="font-size: 28px">@Fmt.Money(data.IncomeThisYear, currency)</div>
+                        <div class="muted" style="font-size: 12px">received · ≈ @Fmt.Money(data.IncomeNext12, currency, 0) next 12 months</div>
+                    </div>
                 </div>
                 @if (data.Upcoming.Count > 0)
                 {
-                    <div class="next-list">
-                        @foreach (var payment in data.Upcoming.Take(3))
+                    <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 8px">
+                        @foreach (var payment in data.Upcoming.Take(2))
                         {
                             var (month, day) = Fmt.Tile(payment.Day);
-                            <a class="next" href="@Ui.Href(payment.Instrument)">
-                                <span class="when"><small>@month</small><b>@day</b></span>
-                                <span class="grow"><b class="ellipsis">@payment.Instrument.Name</b><small>@payment.Instrument.Symbol · expected, from last year's</small></span>
-                                <b class="amt">+@Fmt.Money(payment.Amount, currency)</b>
-                            </a>
+                            <div class="payout">
+                                <div class="when"><small>@month</small><b>@day</b></div>
+                                <div class="grow"><div class="mono" style="font-size: 13px; font-weight: 600">@payment.Instrument.Symbol</div><div class="muted ellipsis" style="font-size: 11.5px">Expected, from last year's</div></div>
+                                <b>≈ @Fmt.Money(payment.Amount, currency)</b>
+                            </div>
                         }
                     </div>
                 }
-                else
-                {
-                    <p class="muted" style="margin-top: 12px; font-size: 13px">No dividends expected in the next months.</p>
-                }
-                <div class="income-line">
-                    <div class="row" style="justify-content: space-between; font-size: 12.5px"><span class="muted">@Fmt.Money(data.IncomeThisYear, currency) received in @Clock.Today.Year@(incomeYear is { } y ? " of ≈ " + Fmt.Money(y, currency, 0) : string.Empty)</span><b>@Fmt.Pct(data.IncomeProgress, 0)</b></div>
-                    <div class="bar"><i style="width: @Charts.N((double)(data.IncomeProgress ?? 0) * 100)%"></i></div>
-                    <small class="muted">≈ @Fmt.Money(data.IncomeNext12, currency, 0) over the next 12 months</small>
-                </div>
             </section>
 
             <a class="card flat row phone-only" href="/activity" style="color: var(--text)">

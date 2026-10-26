@@ -750,7 +750,8 @@ a.pill.violet:hover { background: rgba(180, 162, 255, 0.2); color: #E2DBFF; }
 .tick .ellipsis { max-width: 170px; }
 .tick .up { color: var(--lime); font-weight: 600; } .tick .down { color: var(--loss); font-weight: 600; }
 @keyframes ticker { to { transform: translateX(-50%); } }
-@media (prefers-reduced-motion: reduce) { .ticker-track { animation: none; } .ticker { overflow-x: auto; } }
+.ticker:focus-within .ticker-track { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { .ticker-track { animation-duration: 90s; } }
 
 .table th { text-transform: uppercase; letter-spacing: 0.06em; font-size: 10.5px; color: var(--dim); }
 .ret { gap: 9px; }
@@ -882,11 +883,7 @@ html[data-theme="ledger"] .seg.full { display: flex; justify-content: space-betw
 html[data-theme="ledger"] .chips button, html[data-theme="ledger"] .chips a { border-radius: 0; border-width: 0 0 2px; background: none; padding-left: 2px; padding-right: 2px; }
 html[data-theme="ledger"] .chips [aria-pressed="true"], html[data-theme="ledger"] .chips [aria-current="page"] { background: none; color: var(--text); }
 
-/* The day's moves: a still list instead of the running ticker. */
-html[data-theme="ledger"] .ticker { -webkit-mask-image: none; mask-image: none; overflow-x: auto; scrollbar-width: none; }
-html[data-theme="ledger"] .ticker::-webkit-scrollbar { display: none; }
-html[data-theme="ledger"] .ticker-track { animation: none; }
-html[data-theme="ledger"] .ticker-lap[aria-hidden="true"] { display: none; }
+/* The day's moves keep running, in mono. */
 html[data-theme="ledger"] .tick b, html[data-theme="ledger"] .tick .up, html[data-theme="ledger"] .tick .down { font-family: var(--mono); }
 
 html[data-theme="ledger"] .next .when { width: 52px; padding: 0; background: none; color: var(--muted); text-align: left; font-family: var(--mono); }
