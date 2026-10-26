@@ -12,6 +12,9 @@ public enum AppSection
     /// <summary>Holdings (and a position).</summary>
     Holdings,
 
+    /// <summary>Insights: performance, exposure, realized gains, goals and the coach.</summary>
+    Insights,
+
     /// <summary>Income.</summary>
     Income,
 
