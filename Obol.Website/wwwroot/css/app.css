@@ -823,7 +823,7 @@ a.pill.violet:hover { background: rgba(180, 162, 255, 0.2); color: #E2DBFF; }
 .swatch.ledger i:nth-child(3) { position: absolute; left: 24px; right: 8px; top: 28px; height: 16px; border-top: 1px solid rgba(255, 255, 255, 0.16); border-bottom: 1px solid rgba(255, 255, 255, 0.16); }
 
 /* ==========================================================================
-   Theme "Ledger" (Settings › Look): calm and editorial. A side menu on the computer, a flat tab bar on the phone,
+   Theme "Ledger" (Settings › Look): calm and editorial. A flat top bar on the computer, a flat tab bar on the phone,
    hairlines instead of cards, labels and numbers in Geist Mono, no glows or rings; lime only for gains.
    ========================================================================== */
 html[data-theme="ledger"] .app { background: #0A0D0C; }
