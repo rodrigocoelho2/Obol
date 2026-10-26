@@ -60,7 +60,7 @@ internal static class Trading212Mapper
             pie.Id,
             InstrumentNames.Truncate(name, 100),
             InstrumentNames.Truncate(settings?.Icon ?? string.Empty, 40),
-            pie.Cash,
+            pie.Cash ?? 0m,
             pie.Result?.PriceAvgInvestedValue ?? 0m,
             pie.Result?.PriceAvgValue ?? 0m,
             pie.Result?.PriceAvgResult ?? 0m,
@@ -81,7 +81,7 @@ internal static class Trading212Mapper
         var rows = new List<PieHoldingInput>();
         foreach (var item in detail.Instruments ?? [])
         {
-            if (string.IsNullOrWhiteSpace(item.Ticker) || item.OwnedQuantity <= 0 || instrumentId(item.Ticker.Trim()) is not { } id)
+            if (string.IsNullOrWhiteSpace(item.Ticker) || (item.OwnedQuantity ?? 0m) <= 0 || instrumentId(item.Ticker.Trim()) is not { } id)
             {
                 continue;
             }
@@ -89,7 +89,7 @@ internal static class Trading212Mapper
             rows.Add(new PieHoldingInput(
                 pieId,
                 id,
-                item.OwnedQuantity,
+                item.OwnedQuantity!.Value,
                 item.Result?.PriceAvgInvestedValue ?? 0m,
                 item.Result?.PriceAvgValue ?? 0m,
                 item.Result?.PriceAvgResult ?? 0m,

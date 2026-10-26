@@ -1,3 +1,6 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
 namespace Obol.WebApi.Features.Trading212;
 
 /// <summary>The key, secret and kind of account a call is made with.</summary>
@@ -254,23 +257,23 @@ internal enum Trading212Failure
 /// <summary>The money of a pie or of an instrument in a pie (GET /api/v0/equity/pies), in the account currency.</summary>
 internal sealed class T212PieResult
 {
-    public decimal PriceAvgInvestedValue { get; set; }
+    public decimal? PriceAvgInvestedValue { get; set; }
 
-    public decimal PriceAvgResult { get; set; }
+    public decimal? PriceAvgResult { get; set; }
 
     public decimal? PriceAvgResultCoef { get; set; }
 
-    public decimal PriceAvgValue { get; set; }
+    public decimal? PriceAvgValue { get; set; }
 }
 
 /// <summary>The dividends of a pie.</summary>
 internal sealed class T212PieDividends
 {
-    public decimal Gained { get; set; }
+    public decimal? Gained { get; set; }
 
-    public decimal InCash { get; set; }
+    public decimal? InCash { get; set; }
 
-    public decimal Reinvested { get; set; }
+    public decimal? Reinvested { get; set; }
 }
 
 /// <summary>GET /api/v0/equity/pies: one pie.</summary>
@@ -278,7 +281,7 @@ internal sealed class T212Pie
 {
     public long Id { get; set; }
 
-    public decimal Cash { get; set; }
+    public decimal? Cash { get; set; }
 
     public T212PieDividends? DividendDetails { get; set; }
 
@@ -304,7 +307,7 @@ internal sealed class T212PieInstrument
 
     public decimal? ExpectedShare { get; set; }
 
-    public decimal OwnedQuantity { get; set; }
+    public decimal? OwnedQuantity { get; set; }
 
     public T212PieResult? Result { get; set; }
 
@@ -314,6 +317,8 @@ internal sealed class T212PieInstrument
 /// <summary>The settings of a pie.</summary>
 internal sealed class T212PieSettings
 {
+    /// <summary>Gets or sets when the pie was made: an ISO date, or seconds since 1970 as older pies give it.</summary>
+    [JsonConverter(typeof(T212TimeConverter))]
     public DateTimeOffset? CreationDate { get; set; }
 
     public decimal? Goal { get; set; }
@@ -323,4 +328,42 @@ internal sealed class T212PieSettings
     public long Id { get; set; }
 
     public string? Name { get; set; }
+}
+
+/// <summary>
+/// Reads a time Trading 212 gives as an ISO 8601 string or as seconds (or milliseconds) since 1970; anything else is null.
+/// </summary>
+internal sealed class T212TimeConverter : JsonConverter<DateTimeOffset?>
+{
+    /// <inheritdoc />
+    public override DateTimeOffset? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        switch (reader.TokenType)
+        {
+            case JsonTokenType.Number when reader.TryGetDouble(out var number):
+                var seconds = number > 100_000_000_000d ? number / 1000d : number;
+                return seconds is > 0 and < 253_402_300_799d ? DateTimeOffset.FromUnixTimeMilliseconds((long)(seconds * 1000d)) : null;
+            case JsonTokenType.String:
+                var text = reader.GetString();
+                return DateTimeOffset.TryParse(text, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AssumeUniversal, out var time) ? time
+                    : double.TryParse(text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var fromText) && fromText > 0 && fromText < 253_402_300_799d
+                        ? DateTimeOffset.FromUnixTimeMilliseconds((long)(fromText * 1000d)) : null;
+            default:
+                reader.Skip();
+                return null;
+        }
+    }
+
+    /// <inheritdoc />
+    public override void Write(Utf8JsonWriter writer, DateTimeOffset? value, JsonSerializerOptions options)
+    {
+        if (value is { } time)
+        {
+            writer.WriteStringValue(time);
+        }
+        else
+        {
+            writer.WriteNullValue();
+        }
+    }
 }

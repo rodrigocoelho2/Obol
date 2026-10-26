@@ -203,4 +203,26 @@ public sealed class Trading212MapperTests
         Assert.Equal(string.Empty, pie.Icon);
         Assert.Equal(10m, pie.Value);
     }
+
+    [Theory]
+    [InlineData("1709287200.0")]
+    [InlineData("1709287200000")]
+    [InlineData("\"2024-03-01T10:00:00Z\"")]
+    [InlineData("\"2024-03-01T10:00:00.000+00:00\"")]
+    public void APieDateCanBeSecondsMillisecondsOrIso(string creationDate)
+    {
+        var web = new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web);
+        var detail = System.Text.Json.JsonSerializer.Deserialize<T212PieDetail>(
+            $$"""{"instruments": [{"ticker": "TSLA_US_EQ", "ownedQuantity": 0.25, "currentShare": null, "result": {"priceAvgValue": 99.5, "priceAvgInvestedValue": null}}],
+                 "settings": {"id": 9, "name": "Mag 7", "goal": null, "creationDate": {{creationDate}}, "endDate": null}}""", web)!;
+
+        var pie = Trading212Mapper.Pie(new T212Pie { Id = 9, Cash = null }, detail);
+        var owned = Assert.Single(Trading212Mapper.PieHoldings(9, detail, static _ => 3));
+
+        Assert.Equal("2024-03-01T10:00:00", pie.CreatedAt);
+        Assert.Equal(0m, pie.Cash);
+        Assert.Equal(99.5m, owned.Value);
+        Assert.Equal(0m, owned.Invested);
+        Assert.Null(owned.CurrentShare);
+    }
 }
