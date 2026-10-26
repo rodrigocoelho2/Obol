@@ -7,6 +7,7 @@ using Obol.WebApi.Extensions.Time;
 using Obol.WebApi.Features.Connections.Repositories;
 using Obol.WebApi.Features.Instruments.Models.Entities;
 using Obol.WebApi.Features.Instruments.Repositories;
+using Obol.WebApi.Features.Instruments.Services;
 using Obol.WebApi.Features.Portfolio.Repositories;
 using Obol.WebApi.Features.Prices.Repositories;
 
@@ -144,7 +145,9 @@ internal sealed class PriceService(
         if (since.Count > 0)
         {
             var first = since.Values.Min();
+            saved += await UpdateBenchmarksAsync(first, today, cancellationToken);
             foreach (var currency in instruments.Select(static row => row.Currency.ToUpperInvariant() == "GBX" ? "GBP" : row.Currency.ToUpperInvariant())
+                .Concat(Benchmarks.All.Select(static benchmark => benchmark.Currency))
                 .Where(currency => currency != quote && currency.Length == 3).Distinct())
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -152,7 +155,59 @@ internal sealed class PriceService(
             }
         }
 
+        await UpdateProfilesAsync(instruments, cancellationToken);
         return saved;
+    }
+
+    /// <summary>
+    /// The daily closes of the benchmark indexes from <paramref name="from"/> (shared by every account).
+    /// </summary>
+    /// <param name="from">The first day needed.</param>
+    /// <param name="today">Today.</param>
+    /// <param name="cancellationToken">Cancels the work.</param>
+    /// <returns>The prices saved.</returns>
+    internal async Task<int> UpdateBenchmarksAsync(DateOnly from, DateOnly today, CancellationToken cancellationToken)
+    {
+        var saved = 0;
+        foreach (var row in await instrumentRepository.UpsertAsync(Benchmarks.Inputs))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (Benchmarks.All.FirstOrDefault(benchmark => benchmark.Key == row.InstrumentKey) is not { } benchmark)
+            {
+                continue;
+            }
+
+            if (row.PriceSymbol != benchmark.YahooSymbol)
+            {
+                await instrumentRepository.SetPriceSymbolAsync(row.InstrumentID, benchmark.YahooSymbol, null);
+                row.PriceSymbol = benchmark.YahooSymbol;
+            }
+
+            saved += await UpdateInstrumentAsync(row, from, today, cancellationToken);
+        }
+
+        return saved;
+    }
+
+    /// <summary>
+    /// The sector and industry of the shares that don't have one yet, from Yahoo Finance's search (once per share).
+    /// Funds are grouped by their asset class instead.
+    /// </summary>
+    private async Task UpdateProfilesAsync(IEnumerable<InstrumentRow> instruments, CancellationToken cancellationToken)
+    {
+        foreach (var instrument in instruments.Where(static row => row.Sector is null && row.Class == AssetClass.Stock && !row.IsBenchmark))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var query = instrument.Isin is { Length: 12 } isin ? isin : instrument.Symbol;
+            if (query.Length == 0)
+            {
+                continue;
+            }
+
+            var quotes = await yahoo.SearchAsync(query, cancellationToken);
+            var best = quotes.FirstOrDefault(static quote => quote.Sector.Length > 0);
+            await instrumentRepository.SetProfileAsync(instrument.InstrumentID, best?.Sector ?? string.Empty, best?.Industry ?? string.Empty);
+        }
     }
 
     /// <summary>

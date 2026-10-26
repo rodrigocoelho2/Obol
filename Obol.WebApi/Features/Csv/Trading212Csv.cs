@@ -141,12 +141,12 @@ internal static class Trading212Csv
                     continue;
                 }
 
-                var tax = Number(withholding);
-                var taxCurrency = Cell(withholdingCurrency);
+                var held = Number(shares) is { } count && count != 0 ? Math.Abs(count) : (decimal?)null;
+                var perShare = Number(price);
                 batch.Add(instrument);
                 batch.Dividends.Add(new ImportedDividend(
-                    instrument.Key, at, Number(shares) is { } held && held != 0 ? Math.Abs(held) : null, Number(price),
-                    amount, tax is { } withheld && string.Equals(taxCurrency, currency, StringComparison.OrdinalIgnoreCase) ? Math.Abs(withheld) : null,
+                    instrument.Key, at, held, perShare, amount,
+                    Withheld(Number(withholding), Cell(withholdingCurrency), currency, instrument.Currency, amount, held, perShare),
                     (InParentheses(what) ?? "dividend").ToUpperInvariant(), DataSource.Csv));
             }
             else if (CashKindOf(what) is { } kind)
@@ -291,6 +291,33 @@ internal static class Trading212Csv
         return DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AllowWhiteSpaces, out var zoned)
             ? zoned.UtcDateTime
             : null;
+    }
+
+    /// <summary>
+    /// The tax withheld at source, in the account currency. Trading 212 gives it in the share's currency (USD for a US
+    /// share) next to the net amount per share and the net total in euros, so the rate of that very payment converts it.
+    /// </summary>
+    internal static decimal? Withheld(decimal? tax, string taxCurrency, string accountCurrency, string instrumentCurrency, decimal amount, decimal? shares, decimal? perShare)
+    {
+        if (tax is not { } value || value == 0)
+        {
+            return null;
+        }
+
+        value = Math.Abs(value);
+        if (taxCurrency.Length == 0 || string.Equals(taxCurrency, accountCurrency, StringComparison.OrdinalIgnoreCase))
+        {
+            return value;
+        }
+
+        if (string.Equals(Trading212Mapper.Currency(taxCurrency), instrumentCurrency, StringComparison.OrdinalIgnoreCase)
+            && shares is > 0 && perShare is > 0 && amount > 0)
+        {
+            var rate = amount / (shares.Value * perShare.Value);
+            return Math.Round(value * rate, 2);
+        }
+
+        return null;
     }
 
     private static CashKind? CashKindOf(string action) => action switch

@@ -11,10 +11,12 @@ CREATE TABLE [dbo].[Instrument]
     [PriceSymbol]   NVARCHAR (30)  NULL,
     [PricesFrom]    DATE           NULL,
     [UpdatedAt]     DATETIME2 (0)  NOT NULL CONSTRAINT [DF_Instrument_UpdatedAt] DEFAULT (SYSUTCDATETIME()),
+    [Sector]        NVARCHAR (60)  NULL,
+    [Industry]      NVARCHAR (80)  NULL,
     CONSTRAINT [PK_Instrument] PRIMARY KEY CLUSTERED ([InstrumentID] ASC),
     CONSTRAINT [UQ_Instrument_InstrumentKey] UNIQUE NONCLUSTERED ([InstrumentKey] ASC)
 );
 GO
 
-EXECUTE sp_addextendedproperty @name = N'MS_Description', @value = N'Shares, ETFs and the rest, shared by every account. InstrumentKey is the ISIN (or "T212:" + the ticker when there is none). Ticker is the Trading 212 ticker (AAPL_US_EQ) or the plain symbol of a CSV export; Symbol is what the screens show. PriceSymbol is the Yahoo Finance symbol daily prices come from ('''' = looked up, none found; NULL = not looked up yet).',
+EXECUTE sp_addextendedproperty @name = N'MS_Description', @value = N'Shares, ETFs and the rest, shared by every account. InstrumentKey is the ISIN (or "T212:" + the ticker when there is none). Ticker is the Trading 212 ticker (AAPL_US_EQ) or the plain symbol of a CSV export; Symbol is what the screens show. PriceSymbol is the Yahoo Finance symbol daily prices come from ('''' = looked up, none found; NULL = not looked up yet). Sector and Industry come from Yahoo Finance for shares ('''' = looked up, none found). Keys starting with "BENCH:" are the benchmark indexes the returns are compared with.',
     @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'Instrument';

@@ -1,0 +1,27 @@
+@HostAddress = http://127.0.0.1:5096
+@apiKey = devkey
+@userId = 00000000000000000000000000000000
+
+### Performance against MSCI World and the S&P 500 (range: Week, Month, Quarter, YearToDate, Year, All)
+GET {{HostAddress}}/insights/performance?userId={{userId}}&range=Year
+x-api-key: {{apiKey}}
+
+### Currencies, sectors, countries, concentration
+GET {{HostAddress}}/insights/exposure?userId={{userId}}
+x-api-key: {{apiKey}}
+
+### Realized gains of a year
+GET {{HostAddress}}/insights/realized?userId={{userId}}&year=2026
+x-api-key: {{apiKey}}
+
+### The goals' starting point
+GET {{HostAddress}}/insights/goals?userId={{userId}}
+x-api-key: {{apiKey}}
+
+### The AI coach
+GET {{HostAddress}}/insights/coach?userId={{userId}}
+x-api-key: {{apiKey}}
+
+### Start a review (poll the GET above)
+POST {{HostAddress}}/insights/coach?userId={{userId}}
+x-api-key: {{apiKey}}

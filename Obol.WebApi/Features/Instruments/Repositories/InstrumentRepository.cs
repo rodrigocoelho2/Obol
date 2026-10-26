@@ -1,5 +1,6 @@
 using Obol.WebApi.Extensions.Data;
 using Obol.WebApi.Features.Instruments.Models.Entities;
+using Obol.WebApi.Features.Instruments.Services;
 
 namespace Obol.WebApi.Features.Instruments.Repositories;
 
@@ -23,6 +24,15 @@ internal interface IInstrumentRepository
     /// <param name="pricesFrom">The first day fetched (null keeps it).</param>
     /// <returns>A task.</returns>
     Task SetPriceSymbolAsync(int instrumentId, string priceSymbol, DateOnly? pricesFrom);
+
+    /// <summary>
+    /// Records the sector and industry of an instrument ('' = looked up, none found).
+    /// </summary>
+    /// <param name="instrumentId">The instrument.</param>
+    /// <param name="sector">The sector.</param>
+    /// <param name="industry">The industry.</param>
+    /// <returns>A task.</returns>
+    Task SetProfileAsync(int instrumentId, string sector, string industry);
 }
 
 /// <summary>Instruments in SQL Server.</summary>
@@ -39,6 +49,10 @@ internal sealed class InstrumentRepository(ISqlConnectionFactory connectionFacto
     /// <inheritdoc />
     public Task SetPriceSymbolAsync(int instrumentId, string priceSymbol, DateOnly? pricesFrom) =>
         ExecuteAsync("[dbo].[InstrumentSetPriceSymbol]", new { InstrumentID = instrumentId, PriceSymbol = priceSymbol, PricesFrom = pricesFrom is { } day ? Date(day) : (DateTime?)null });
+
+    /// <inheritdoc />
+    public Task SetProfileAsync(int instrumentId, string sector, string industry) =>
+        ExecuteAsync("[dbo].[InstrumentSetProfile]", new { InstrumentID = instrumentId, Sector = InstrumentNames.Truncate(sector, 60), Industry = InstrumentNames.Truncate(industry, 80) });
 }
 
 /// <summary>Instruments in demo mode (<see cref="MemoryStore"/>): same rules as the stored procedures.</summary>
@@ -100,6 +114,21 @@ internal sealed class MemoryInstrumentRepository(MemoryStore store) : IInstrumen
         return Task.CompletedTask;
     }
 
+    /// <inheritdoc />
+    public Task SetProfileAsync(int instrumentId, string sector, string industry)
+    {
+        lock (store.Gate)
+        {
+            if (store.Instruments.FirstOrDefault(row => row.InstrumentID == instrumentId) is { } row)
+            {
+                row.Sector = sector;
+                row.Industry = industry;
+            }
+        }
+
+        return Task.CompletedTask;
+    }
+
     private static InstrumentRow Copy(InstrumentRow row) => new()
     {
         InstrumentID = row.InstrumentID,
@@ -112,5 +141,7 @@ internal sealed class MemoryInstrumentRepository(MemoryStore store) : IInstrumen
         AssetClass = row.AssetClass,
         PriceSymbol = row.PriceSymbol,
         PricesFrom = row.PricesFrom,
+        Sector = row.Sector,
+        Industry = row.Industry,
     };
 }

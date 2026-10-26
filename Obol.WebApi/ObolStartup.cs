@@ -11,6 +11,7 @@ using Obol.WebApi.Features;
 using Obol.WebApi.Features.Connections.Repositories;
 using Obol.WebApi.Features.Connections.Services;
 using Obol.WebApi.Features.Demo.Services;
+using Obol.WebApi.Features.Insights.Services;
 using Obol.WebApi.Features.Instruments.Repositories;
 using Obol.WebApi.Features.Logos.Repositories;
 using Obol.WebApi.Features.Logos.Services;
@@ -108,6 +109,11 @@ internal static class ObolStartup
         services.AddSingleton<PortfolioWriter>();
         services.AddSingleton<PortfolioLoader>();
         services.AddSingleton<IPortfolioService, PortfolioService>();
+
+        // Insights and the AI coach
+        services.AddSingleton<IInsightsService, InsightsService>();
+        services.AddSingleton<IAiModelClient, AiModelClient>();
+        services.AddSingleton<ICoachService, CoachService>();
 
         // Prices and logos
         services.AddSingleton<IYahooClient, YahooClient>();

@@ -85,6 +85,12 @@ services:
       Obol__PriceHistory: ${OBOL_PRICE_HISTORY:-true}
       # Company and fund logos from logo.dev (free key at https://logo.dev). Empty = ticker badges.
       Obol__LogoToken: ${OBOL_LOGO_TOKEN:-}
+      # AI coach (optional): anthropic + API key, gemini + API key, or openai + the address of Ollama / an OpenAI-compatible API.
+      Obol__AiProvider: ${OBOL_AI_PROVIDER:-}
+      Obol__AiApiKey: ${OBOL_AI_API_KEY:-}
+      Obol__AiModel: ${OBOL_AI_MODEL:-}
+      Obol__AiBaseUrl: ${OBOL_AI_BASE_URL:-}
+      Obol__AiLanguage: ${OBOL_AI_LANGUAGE:-English}
       # "true" runs on a sample portfolio in memory, without SQL Server or Trading 212 (to try it out).
       Obol__DemoMode: ${OBOL_DEMO_MODE:-false}
       DOTNET_gcServer: "0"

@@ -138,7 +138,7 @@ internal sealed class TestApp
         Connections = new MemoryConnectionRepository(Store, Time);
         Protector = new SecretProtector(Options);
         Writer = new PortfolioWriter(Instruments, Portfolio);
-        Seeder = demo ? new DemoSeeder(Writer, Portfolio, Prices, Connections, Protector, Clock) : new NoDemoSeeder();
+        Seeder = demo ? new DemoSeeder(Writer, Instruments, Portfolio, Prices, Connections, Protector, Clock) : new NoDemoSeeder();
         UserService = new UserService(Users, Seeder, globalization, Options);
         Loader = new PortfolioLoader(Portfolio, Instruments, Prices, Connections, Clock, Options);
         PortfolioService = new PortfolioService(Loader, Connections, globalization);

@@ -7,7 +7,7 @@ namespace Obol.WebApi.Features.Prices.Services;
 /// <param name="Symbol">The Yahoo symbol (IWDA.AS).</param>
 /// <param name="Exchange">The exchange code (AMS, NMS…).</param>
 /// <param name="Type">EQUITY, ETF…</param>
-internal sealed record YahooQuote(string Symbol, string Exchange, string Type);
+internal sealed record YahooQuote(string Symbol, string Exchange, string Type, string Sector = "", string Industry = "");
 
 /// <summary>Daily closes of a symbol.</summary>
 /// <param name="Currency">The currency Yahoo prices it in (GBp for pence).</param>
@@ -58,7 +58,9 @@ internal sealed class YahooClient(IHttpClientFactory httpClientFactory, ILogger<
                 var symbol = Text(item, "symbol");
                 if (symbol.Length > 0)
                 {
-                    quotes.Add(new YahooQuote(symbol, Text(item, "exchange"), Text(item, "quoteType")));
+                    quotes.Add(new YahooQuote(
+                        symbol, Text(item, "exchange"), Text(item, "quoteType"),
+                        FirstText(item, "sectorDisp", "sector"), FirstText(item, "industryDisp", "industry")));
                 }
             }
         }
@@ -141,5 +143,8 @@ internal sealed class YahooClient(IHttpClientFactory httpClientFactory, ILogger<
     /// <summary>Formats a day for logs.</summary>
     /// <param name="day">The day.</param>
     /// <returns>yyyy-MM-dd.</returns>
+    private static string FirstText(JsonElement element, params string[] names) =>
+        names.Select(name => Text(element, name)).FirstOrDefault(static value => value.Length > 0) ?? string.Empty;
+
     internal static string Day(DateOnly day) => day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 }

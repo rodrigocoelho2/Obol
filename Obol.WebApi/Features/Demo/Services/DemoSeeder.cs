@@ -6,6 +6,8 @@ using Obol.WebApi.Extensions.Security;
 using Obol.WebApi.Extensions.Time;
 using Obol.WebApi.Features.Connections.Models.Entities;
 using Obol.WebApi.Features.Connections.Repositories;
+using Obol.WebApi.Features.Instruments.Repositories;
+using Obol.WebApi.Features.Instruments.Services;
 using Obol.WebApi.Features.Portfolio.Models.Entities;
 using Obol.WebApi.Features.Portfolio.Repositories;
 using Obol.WebApi.Features.Portfolio.Services;
@@ -43,6 +45,7 @@ internal sealed class NoDemoSeeder : IDemoSeeder
 /// Trading 212 connection that looks like it synced a minute ago.
 /// </summary>
 /// <param name="writer">Saves the trades, dividends and cash.</param>
+/// <param name="instrumentRepository">The benchmarks and the sectors.</param>
 /// <param name="portfolioRepository">Positions and snapshots.</param>
 /// <param name="priceRepository">Prices.</param>
 /// <param name="connectionRepository">The connection and the sync log.</param>
@@ -50,6 +53,7 @@ internal sealed class NoDemoSeeder : IDemoSeeder
 /// <param name="clock">The app's clock.</param>
 internal sealed class DemoSeeder(
     PortfolioWriter writer,
+    IInstrumentRepository instrumentRepository,
     IPortfolioRepository portfolioRepository,
     IPriceRepository priceRepository,
     IConnectionRepository connectionRepository,
@@ -69,6 +73,22 @@ internal sealed class DemoSeeder(
             if (counts.Ids.TryGetValue(isin, out var id))
             {
                 prices.AddRange(series.Select(pair => new PriceInput(id, DbTime.Day(pair.Key), pair.Value, (byte)DataSource.Demo)));
+            }
+        }
+
+        foreach (var row in await instrumentRepository.UpsertAsync(Benchmarks.Inputs))
+        {
+            if (demo.Benchmarks.TryGetValue(row.InstrumentKey, out var closes))
+            {
+                prices.AddRange(closes.Select(pair => new PriceInput(row.InstrumentID, DbTime.Day(pair.Key), pair.Value, (byte)DataSource.Demo)));
+            }
+        }
+
+        foreach (var (isin, profile) in demo.Sectors)
+        {
+            if (counts.Ids.TryGetValue(isin, out var id))
+            {
+                await instrumentRepository.SetProfileAsync(id, profile.Sector, profile.Industry);
             }
         }
 

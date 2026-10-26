@@ -82,7 +82,7 @@ public sealed class Trading212CsvTests
         Assert.Equal(0.20m, dividend.Amount);
         Assert.Equal(1.0m, dividend.Quantity);
         Assert.Equal(0.25m, dividend.PerShare);
-        Assert.Null(dividend.Withheld);
+        Assert.Equal(0.03m, dividend.Withheld);
         Assert.Equal("DIVIDEND", dividend.Kind);
 
         Assert.Equal(1000m, batch.Cash.Single(static movement => movement.Kind == CashKind.Deposit).Amount);
@@ -204,7 +204,7 @@ public sealed class Trading212CsvTests
         Assert.NotNull(batch);
         Assert.Equal(0, batch.Skipped);
         Assert.Equal(2, batch.Trades.Count);
-        Assert.Single(batch.Dividends);
+        Assert.Equal(0.08m, Assert.Single(batch.Dividends).Withheld);
         Assert.Equal(3, batch.Cash.Count);
         Assert.Equal(new DateTime(2026, 1, 13, 16, 37, 31, DateTimeKind.Utc), batch.Trades[0].ExecutedAt);
         Assert.Equal(0.46m, batch.Trades[0].Fees);

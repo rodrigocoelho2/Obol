@@ -42,6 +42,9 @@ internal sealed class PortfolioData
     /// <summary>Gets the local day of a UTC time.</summary>
     public required Func<DateTime, DateOnly> LocalDay { get; init; }
 
+    /// <summary>Gets the benchmark indexes: instrument key (BENCH:…) → instrument id.</summary>
+    public IReadOnlyDictionary<string, int> Benchmarks { get; init; } = new Dictionary<string, int>();
+
     /// <summary>Gets a value indicating whether there is anything at all.</summary>
     public bool HasData => Holdings.Count > 0 || Trades.Count > 0 || Cash.Count > 0 || Dividends.Count > 0;
 }
@@ -81,13 +84,17 @@ internal sealed class Position
 
     /// <summary>Gets or sets when it was opened (UTC).</summary>
     public DateTime? OpenedAt { get; set; }
+
+    /// <summary>Gets or sets what the exchange rate added to or took from the value since bought (Trading 212's figure).</summary>
+    public decimal? FxImpact { get; set; }
 }
 
 /// <summary>One day of the value chart.</summary>
 /// <param name="Day">The day.</param>
 /// <param name="Value">What everything was worth at the end of the day.</param>
 /// <param name="Deposits">Money put in (minus taken out) up to that day.</param>
-internal sealed record ValuePoint(DateOnly Day, decimal Value, decimal Deposits);
+/// <param name="Cash">The cash part of the value.</param>
+internal sealed record ValuePoint(DateOnly Day, decimal Value, decimal Deposits, decimal Cash = 0m);
 
 /// <summary>
 /// The portfolio maths: positions now, the value of every past day, today's change, the allocation. Pure functions
@@ -124,6 +131,7 @@ internal static class PortfolioMath
                     Value = holding.Value,
                     Cost = holding.Cost,
                     OpenedAt = holding.OpenedAt,
+                    FxImpact = holding.FxImpact,
                 });
             }
         }
@@ -301,7 +309,7 @@ internal static class PortfolioMath
                 }
             }
 
-            points.Add(new ValuePoint(day, Math.Round(value, 2), 0m));
+            points.Add(new ValuePoint(day, Math.Round(value, 2), 0m, Math.Round(Math.Max(0m, cash), 2)));
 
             // Undo the day: the state at the end of the day before.
             if (tradesByDay.TryGetValue(day, out var trades))

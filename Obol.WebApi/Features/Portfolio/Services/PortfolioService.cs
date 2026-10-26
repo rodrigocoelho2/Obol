@@ -266,6 +266,7 @@ internal sealed class PortfolioService(
         var positions = PortfolioMath.Positions(data);
         var received = IncomeMath.Received(data);
         var expected = IncomeMath.Expected(data, positions);
+        var byPosition = IncomeMath.ByPosition(data, positions);
         var years = received.Select(static payment => payment.Day.Year).Append(data.Today.Year).Distinct().OrderByDescending(static value => value).ToList();
         var shown = year is { } asked && years.Contains(asked) ? asked : data.Today.Year;
         var isCurrent = shown == data.Today.Year;
@@ -328,6 +329,20 @@ internal sealed class PortfolioService(
             Upcoming = expected.Take(6).Select(payment => ToDTO(payment, data)).ToList(),
             Sources = sources,
             Payments = AllActivity(data).Where(item => item.Kind is ActivityKind.Dividend or ActivityKind.Interest && data.LocalDay(item.At.UtcDateTime).Year == shown).ToList(),
+            Positions = byPosition.Where(item => data.Instruments.ContainsKey(item.InstrumentId)).Select(item => new IncomePositionDTO
+            {
+                Instrument = ToDTO(data.Instruments[item.InstrumentId]),
+                Value = item.Value,
+                Received = item.Received,
+                Yield = item.Value > 0 && item.Received > 0 ? item.Received / item.Value : null,
+                YieldOnCost = item.Cost > 0 && item.Received > 0 ? item.Received / item.Cost : null,
+                Payments = item.Payments,
+                LastPerShare = item.LastPerShare,
+                Change = item.Change,
+                Trend = item.Trend,
+                Withheld = item.Withheld,
+            }).ToList(),
+            Withheld = byPosition.Sum(static item => item.Withheld),
         });
     }
 

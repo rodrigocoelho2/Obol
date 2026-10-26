@@ -48,6 +48,21 @@ public sealed class ObolOptions
     /// <summary>Gets or sets the password of the "demo" account in demo mode.</summary>
     public string DemoPassword { get; set; } = "obol-demo";
 
+    /// <summary>Gets or sets the AI coach's provider: anthropic, gemini or openai (any OpenAI-compatible API, Ollama included). Empty = off.</summary>
+    public string AiProvider { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the provider's API key (not needed for a local Ollama). Never commit a real value.</summary>
+    public string AiApiKey { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the model (empty = the provider's default).</summary>
+    public string AiModel { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the address of an OpenAI-compatible API (Ollama: http://host:11434/v1).</summary>
+    public string AiBaseUrl { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the language the coach writes in.</summary>
+    public string AiLanguage { get; set; } = "English";
+
     /// <summary>Gets or sets the Trading 212 address of real-money accounts.</summary>
     public string Trading212LiveUrl { get; set; } = "https://live.trading212.com/";
 

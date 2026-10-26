@@ -17,7 +17,9 @@ BEGIN
            i.[Currency],
            i.[AssetClass],
            i.[PriceSymbol],
-           i.[PricesFrom]
+           i.[PricesFrom],
+           i.[Sector],
+           i.[Industry]
     FROM [dbo].[Instrument] i
     ORDER BY i.[InstrumentID];
 END

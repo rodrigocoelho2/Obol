@@ -92,7 +92,43 @@ public sealed class ObolClient(HttpClient httpClient)
     public Task<IncomeDTO> PortfolioIncomeAsync(string userId, int? year) =>
         GetAsync<IncomeDTO>($"portfolio/income?userId={Uri.EscapeDataString(userId)}{(year is { } value ? "&year=" + value.ToString(CultureInfo.InvariantCulture) : string.Empty)}");
 
-    // ----- Connection -----
+    // ----- Insights -----
+
+    /// <summary>Money- and time-weighted returns, against MSCI World and the S&amp;P 500.</summary>
+    /// <param name="userId">The account.</param>
+    /// <param name="range">The range.</param>
+    /// <returns>The performance.</returns>
+    public Task<PerformanceDTO> InsightsPerformanceAsync(string userId, ChartRange range) =>
+        GetAsync<PerformanceDTO>($"insights/performance?userId={Uri.EscapeDataString(userId)}&range={range}");
+
+    /// <summary>Currencies, sectors, countries and concentration.</summary>
+    /// <param name="userId">The account.</param>
+    /// <returns>The exposure.</returns>
+    public Task<ExposureDTO> InsightsExposureAsync(string userId) => GetAsync<ExposureDTO>($"insights/exposure?userId={Uri.EscapeDataString(userId)}");
+
+    /// <summary>What the sales of a year made.</summary>
+    /// <param name="userId">The account.</param>
+    /// <param name="year">The year (this one when null).</param>
+    /// <returns>The realized gains.</returns>
+    public Task<RealizedDTO> InsightsRealizedAsync(string userId, int? year) =>
+        GetAsync<RealizedDTO>($"insights/realized?userId={Uri.EscapeDataString(userId)}{(year is { } value ? "&year=" + value.ToString(CultureInfo.InvariantCulture) : string.Empty)}");
+
+    /// <summary>Where the portfolio is now, for the projection.</summary>
+    /// <param name="userId">The account.</param>
+    /// <returns>The goals' starting point.</returns>
+    public Task<GoalsDTO> InsightsGoalsAsync(string userId) => GetAsync<GoalsDTO>($"insights/goals?userId={Uri.EscapeDataString(userId)}");
+
+    /// <summary>The AI coach and its last review.</summary>
+    /// <param name="userId">The account.</param>
+    /// <returns>The coach.</returns>
+    public Task<CoachDTO> InsightsCoachAsync(string userId) => GetAsync<CoachDTO>($"insights/coach?userId={Uri.EscapeDataString(userId)}");
+
+    /// <summary>Starts a new review (poll <see cref="InsightsCoachAsync"/>).</summary>
+    /// <param name="userId">The account.</param>
+    /// <returns>The coach, running.</returns>
+    public Task<CoachDTO> InsightsCoachAnalyseAsync(string userId) => PostAsync<CoachDTO>($"insights/coach?userId={Uri.EscapeDataString(userId)}", null);
+
+        // ----- Connection -----
 
     /// <summary>The Trading 212 connection, its state and the last runs.</summary>
     /// <param name="userId">The account.</param>

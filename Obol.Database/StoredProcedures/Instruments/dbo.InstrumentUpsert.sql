@@ -48,7 +48,9 @@ BEGIN
            i.[Currency],
            i.[AssetClass],
            i.[PriceSymbol],
-           i.[PricesFrom]
+           i.[PricesFrom],
+           i.[Sector],
+           i.[Industry]
     FROM [dbo].[Instrument] i
     INNER JOIN @Source s ON s.[InstrumentKey] = i.[InstrumentKey];
 END

@@ -364,6 +364,40 @@ public sealed class IncomeSourceDTO
     public decimal Percent { get; set; }
 }
 
+/// <summary>The income of one instrument over the last 12 months.</summary>
+public sealed class IncomePositionDTO
+{
+    /// <summary>Gets or sets the instrument.</summary>
+    public InstrumentDTO Instrument { get; set; } = new();
+
+    /// <summary>Gets or sets what's held of it now.</summary>
+    public decimal Value { get; set; }
+
+    /// <summary>Gets or sets what it paid in the last 12 months.</summary>
+    public decimal Received { get; set; }
+
+    /// <summary>Gets or sets the yield: the last 12 months' income on today's value.</summary>
+    public decimal? Yield { get; set; }
+
+    /// <summary>Gets or sets the yield on what was paid for it.</summary>
+    public decimal? YieldOnCost { get; set; }
+
+    /// <summary>Gets or sets the payments in the last 12 months.</summary>
+    public int Payments { get; set; }
+
+    /// <summary>Gets or sets the last payment per share, in the instrument currency.</summary>
+    public decimal? LastPerShare { get; set; }
+
+    /// <summary>Gets or sets the change of the last payment per share against the one before.</summary>
+    public decimal? Change { get; set; }
+
+    /// <summary>Gets or sets raised, cut, steady or empty.</summary>
+    public string Trend { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the tax withheld at source in the last 12 months.</summary>
+    public decimal Withheld { get; set; }
+}
+
 /// <summary>The Income screen.</summary>
 public sealed class IncomeDTO
 {
@@ -408,4 +442,10 @@ public sealed class IncomeDTO
 
     /// <summary>Gets or sets every payment received in the year, newest first.</summary>
     public List<ActivityItemDTO> Payments { get; set; } = [];
+
+    /// <summary>Gets or sets the income by instrument (last 12 months).</summary>
+    public List<IncomePositionDTO> Positions { get; set; } = [];
+
+    /// <summary>Gets or sets the tax withheld at source in the last 12 months.</summary>
+    public decimal Withheld { get; set; }
 }

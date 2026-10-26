@@ -48,6 +48,7 @@
     <Build Include="StoredProcedures\Connections\dbo.SyncRunSave.sql" />
     <Build Include="StoredProcedures\Instruments\dbo.InstrumentList.sql" />
     <Build Include="StoredProcedures\Instruments\dbo.InstrumentSetPriceSymbol.sql" />
+    <Build Include="StoredProcedures\Instruments\dbo.InstrumentSetProfile.sql" />
     <Build Include="StoredProcedures\Instruments\dbo.InstrumentUpsert.sql" />
     <Build Include="StoredProcedures\Logos\dbo.InstrumentLogoGet.sql" />
     <Build Include="StoredProcedures\Logos\dbo.InstrumentLogoSave.sql" />

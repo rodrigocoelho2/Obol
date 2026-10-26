@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Obol.Library.Enums;
+using Obol.WebApi.Features.Instruments.Services;
 
 namespace Obol.WebApi.Features.Instruments.Models.Entities;
 
@@ -37,6 +38,16 @@ public sealed class InstrumentRow
 
     /// <summary>Gets or sets the first day prices were fetched from.</summary>
     public DateTime? PricesFrom { get; set; }
+
+    /// <summary>Gets or sets the sector (shares; '' = looked up, none found; null = not looked up).</summary>
+    public string? Sector { get; set; }
+
+    /// <summary>Gets or sets the industry.</summary>
+    public string? Industry { get; set; }
+
+    /// <summary>Gets a value indicating whether this is a benchmark index, not something anyone holds.</summary>
+    [JsonIgnore]
+    public bool IsBenchmark => InstrumentKey.StartsWith(Benchmarks.KeyPrefix, StringComparison.Ordinal);
 
     /// <summary>Gets the asset class.</summary>
     [JsonIgnore]

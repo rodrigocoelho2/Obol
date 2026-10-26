@@ -56,6 +56,14 @@ internal static class DemoData
 
         var usdEur = Walk(days, 0.92, -0.01, 0.004, random);
 
+        // The benchmarks: the euro listings of MSCI World and S&P 500 ETFs.
+        var benchmarkRandom = new Random(seed + 1);
+        var benchmarks = new Dictionary<string, SortedList<DateOnly, decimal>>(StringComparer.Ordinal)
+        {
+            [Benchmarks.World.Key] = Walk(days, 103.4, 0.11, 0.0085, benchmarkRandom),
+            [Benchmarks.SP500.Key] = Walk(days, 628.0, 0.14, 0.0105, benchmarkRandom),
+        };
+
         var batch = new ImportBatch { Currency = Currency };
         foreach (var instrument in Catalogue)
         {
@@ -160,6 +168,26 @@ internal static class DemoData
                 case 14:
                     Buy(apple, Trading(day.AddDays(5)), 300m, 27);
                     break;
+                case 10:
+                    Sell(bonds, Trading(day.AddDays(8)), 0.2m);
+                    break;
+                case 12:
+                    Sell(nvidia, Trading(day.AddDays(4)), 0.3m);
+                    break;
+                case 20:
+                    if (Trading(day.AddDays(7)) <= today)
+                    {
+                        Sell(dividend, Trading(day.AddDays(7)), 0.15m);
+                    }
+
+                    break;
+                case 22:
+                    if (Trading(day.AddDays(3)) <= today)
+                    {
+                        Sell(apple, Trading(day.AddDays(3)), 0.2m);
+                    }
+
+                    break;
                 case 17:
                     if (Trading(day.AddDays(11)) <= today)
                     {
@@ -209,8 +237,16 @@ internal static class DemoData
             }
         }
 
-        return new DemoPortfolio(batch, prices, usdEur, Math.Round(cash, 2));
+        return new DemoPortfolio(batch, prices, usdEur, Math.Round(cash, 2), benchmarks, Sectors);
     }
+
+    /// <summary>The sectors Yahoo Finance gives the demo shares.</summary>
+    public static readonly IReadOnlyDictionary<string, (string Sector, string Industry)> Sectors = new Dictionary<string, (string, string)>(StringComparer.Ordinal)
+    {
+        ["PTGAL0AM0009"] = ("Energy", "Oil & Gas Integrated"),
+        ["US67066G1040"] = ("Technology", "Semiconductors"),
+        ["US0378331005"] = ("Technology", "Consumer Electronics"),
+    };
 
     private static bool Pays(DemoInstrument instrument, int month) => instrument.PerYear switch
     {
@@ -272,5 +308,12 @@ internal static class DemoData
 /// <param name="Prices">Daily prices, by ISIN.</param>
 /// <param name="UsdEur">Daily USD → EUR rates.</param>
 /// <param name="Cash">The cash left today.</param>
+/// <param name="Benchmarks">Daily closes of the benchmark indexes, by key.</param>
+/// <param name="Sectors">The sector and industry of the shares, by ISIN.</param>
 internal sealed record DemoPortfolio(
-    ImportBatch Batch, IReadOnlyDictionary<string, SortedList<DateOnly, decimal>> Prices, SortedList<DateOnly, decimal> UsdEur, decimal Cash);
+    ImportBatch Batch,
+    IReadOnlyDictionary<string, SortedList<DateOnly, decimal>> Prices,
+    SortedList<DateOnly, decimal> UsdEur,
+    decimal Cash,
+    IReadOnlyDictionary<string, SortedList<DateOnly, decimal>> Benchmarks,
+    IReadOnlyDictionary<string, (string Sector, string Industry)> Sectors);

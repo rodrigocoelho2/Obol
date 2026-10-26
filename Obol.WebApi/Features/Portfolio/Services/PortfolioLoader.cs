@@ -50,6 +50,10 @@ internal sealed class PortfolioLoader(
         var firstTrade = trades.Count > 0 ? clock.LocalDay(trades[0].ExecutedAt) : today;
         var from = firstTrade.AddDays(-10);
 
+        // The benchmark indexes (shared by every account), for the Performance screen.
+        var benchmarks = instruments.Values.Where(static row => row.IsBenchmark).ToDictionary(static row => row.InstrumentKey, static row => row.InstrumentID, StringComparer.Ordinal);
+        used.AddRange(benchmarks.Values);
+
         foreach (var price in await priceRepository.ListPricesAsync(used, from))
         {
             book.AddPrice(price.InstrumentID, DateOnly.FromDateTime(price.Day), price.Close);
@@ -117,6 +121,7 @@ internal sealed class PortfolioLoader(
             Snapshots = snapshots,
             Prices = book,
             LocalDay = clock.LocalDay,
+            Benchmarks = benchmarks,
         };
     }
 
