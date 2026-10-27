@@ -1,0 +1,50 @@
+/home/runner/work/Obol/Obol/Obol.UnitTest/Obol.UnitTest.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 9.0.4 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
+/home/runner/work/Obol/Obol/Obol.UnitTest/Obol.UnitTest.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 9.0.4 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
+/home/runner/work/Obol/Obol/Obol.WebApi/Obol.WebApi.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 9.0.4 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
+/home/runner/work/Obol/Obol/Obol.WebApi/Obol.WebApi.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 9.0.4 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
+  Creating a model to represent the project...
+  Loading project files...
+  Obol.Library -> /home/runner/work/Obol/Obol/Obol.Library/bin/Release/net10.0/Obol.Library.dll
+  Building the project model and resolving object interdependencies...
+  Validating the project model...
+  Writing model to /home/runner/work/Obol/Obol/Obol.Database/obj/Release/Model.xml...
+  Obol.Database -> /home/runner/work/Obol/Obol/Obol.Database/bin/Release/Obol.Database.dacpac
+/home/runner/work/Obol/Obol/Obol.WebApi/Features/Prices/Services/YahooClient.cs(10,87): warning CS1573: Parameter 'Sector' has no matching param tag in the XML comment for 'YahooQuote.YahooQuote(string, string, string, string, string)' (but other parameters do) [/home/runner/work/Obol/Obol/Obol.WebApi/Obol.WebApi.csproj]
+/home/runner/work/Obol/Obol/Obol.WebApi/Features/Prices/Services/YahooClient.cs(10,107): warning CS1573: Parameter 'Industry' has no matching param tag in the XML comment for 'YahooQuote.YahooQuote(string, string, string, string, string)' (but other parameters do) [/home/runner/work/Obol/Obol/Obol.WebApi/Obol.WebApi.csproj]
+/home/runner/work/Obol/Obol/Obol.WebApi/Features/Prices/Services/YahooClient.cs(144,22): warning CS1572: XML comment has a param tag for 'day', but there is no parameter by that name [/home/runner/work/Obol/Obol/Obol.WebApi/Obol.WebApi.csproj]
+/home/runner/work/Obol/Obol/Obol.WebApi/Features/Prices/Services/YahooClient.cs(146,49): warning CS1573: Parameter 'element' has no matching param tag in the XML comment for 'YahooClient.FirstText(JsonElement, params string[])' (but other parameters do) [/home/runner/work/Obol/Obol/Obol.WebApi/Obol.WebApi.csproj]
+/home/runner/work/Obol/Obol/Obol.WebApi/Features/Prices/Services/YahooClient.cs(146,74): warning CS1573: Parameter 'names' has no matching param tag in the XML comment for 'YahooClient.FirstText(JsonElement, params string[])' (but other parameters do) [/home/runner/work/Obol/Obol/Obol.WebApi/Obol.WebApi.csproj]
+  Obol.Sdk -> /home/runner/work/Obol/Obol/Obol.Sdk/bin/Release/net10.0/Obol.Sdk.dll
+  Obol.WebApi -> /home/runner/work/Obol/Obol/Obol.WebApi/bin/Release/net10.0/Obol.WebApi.dll
+/home/runner/work/Obol/Obol/Obol.Website/Helpers/Charts.cs(76,49): warning CS1573: Parameter 'extras' has no matching param tag in the XML comment for 'Charts.Line(IReadOnlyList<decimal>, IReadOnlyList<string>, IReadOnlyList<string>, double, IReadOnlyList<decimal>?, IReadOnlyList<string>?, decimal?, IReadOnlyList<IReadOnlyList<decimal?>>?)' (but other parameters do) [/home/runner/work/Obol/Obol/Obol.Website/Obol.Website.csproj]
+  Obol.Website -> /home/runner/work/Obol/Obol/Obol.Website/bin/Release/net10.0/Obol.Website.dll
+  Obol.UnitTest -> /home/runner/work/Obol/Obol/Obol.UnitTest/bin/Release/net10.0/Obol.UnitTest.dll
+
+Build succeeded.
+
+/home/runner/work/Obol/Obol/Obol.UnitTest/Obol.UnitTest.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 9.0.4 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
+/home/runner/work/Obol/Obol/Obol.UnitTest/Obol.UnitTest.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 9.0.4 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
+/home/runner/work/Obol/Obol/Obol.WebApi/Obol.WebApi.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 9.0.4 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
+/home/runner/work/Obol/Obol/Obol.WebApi/Obol.WebApi.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 9.0.4 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
+/home/runner/work/Obol/Obol/Obol.WebApi/Features/Prices/Services/YahooClient.cs(10,87): warning CS1573: Parameter 'Sector' has no matching param tag in the XML comment for 'YahooQuote.YahooQuote(string, string, string, string, string)' (but other parameters do) [/home/runner/work/Obol/Obol/Obol.WebApi/Obol.WebApi.csproj]
+/home/runner/work/Obol/Obol/Obol.WebApi/Features/Prices/Services/YahooClient.cs(10,107): warning CS1573: Parameter 'Industry' has no matching param tag in the XML comment for 'YahooQuote.YahooQuote(string, string, string, string, string)' (but other parameters do) [/home/runner/work/Obol/Obol/Obol.WebApi/Obol.WebApi.csproj]
+/home/runner/work/Obol/Obol/Obol.WebApi/Features/Prices/Services/YahooClient.cs(144,22): warning CS1572: XML comment has a param tag for 'day', but there is no parameter by that name [/home/runner/work/Obol/Obol/Obol.WebApi/Obol.WebApi.csproj]
+/home/runner/work/Obol/Obol/Obol.WebApi/Features/Prices/Services/YahooClient.cs(146,49): warning CS1573: Parameter 'element' has no matching param tag in the XML comment for 'YahooClient.FirstText(JsonElement, params string[])' (but other parameters do) [/home/runner/work/Obol/Obol/Obol.WebApi/Obol.WebApi.csproj]
+/home/runner/work/Obol/Obol/Obol.WebApi/Features/Prices/Services/YahooClient.cs(146,74): warning CS1573: Parameter 'names' has no matching param tag in the XML comment for 'YahooClient.FirstText(JsonElement, params string[])' (but other parameters do) [/home/runner/work/Obol/Obol/Obol.WebApi/Obol.WebApi.csproj]
+/home/runner/work/Obol/Obol/Obol.Website/Helpers/Charts.cs(76,49): warning CS1573: Parameter 'extras' has no matching param tag in the XML comment for 'Charts.Line(IReadOnlyList<decimal>, IReadOnlyList<string>, IReadOnlyList<string>, double, IReadOnlyList<decimal>?, IReadOnlyList<string>?, decimal?, IReadOnlyList<IReadOnlyList<decimal?>>?)' (but other parameters do) [/home/runner/work/Obol/Obol/Obol.Website/Obol.Website.csproj]
+    10 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:10.03
+  Determining projects to restore...
+/home/runner/.nuget/packages/microsoft.build.sql/2.1.0/sdk/Sdk.targets(262,5): warning : A newer version of Microsoft.Build.Sql is available: 2.3.0. You are using 2.1.0. [/home/runner/work/Obol/Obol/Obol.Database/Obol.Database.sqlproj]
+  All projects are up-to-date for restore.
+  Obol.Database -> /home/runner/work/Obol/Obol/Obol.Database/bin/Release/Obol.Database.dacpac
+
+Build succeeded.
+
+/home/runner/.nuget/packages/microsoft.build.sql/2.1.0/sdk/Sdk.targets(262,5): warning : A newer version of Microsoft.Build.Sql is available: 2.3.0. You are using 2.1.0. [/home/runner/work/Obol/Obol/Obol.Database/Obol.Database.sqlproj]
+    1 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:01.12
