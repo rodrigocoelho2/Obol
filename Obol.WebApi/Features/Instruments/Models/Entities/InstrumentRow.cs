@@ -49,6 +49,13 @@ public sealed class InstrumentRow
     [JsonIgnore]
     public bool IsBenchmark => InstrumentKey.StartsWith(Benchmarks.KeyPrefix, StringComparison.Ordinal);
 
+    /// <summary>
+    /// Gets the symbol to show: the US ticker Yahoo Finance lists the shares under when Trading 212 still uses an old one
+    /// (a SPAC's, say: Archer Aviation is ACIC_US_EQ on Trading 212, ACHR on the market), else <see cref="Symbol"/>.
+    /// </summary>
+    [JsonIgnore]
+    public string DisplaySymbol => InstrumentNames.DisplaySymbol(Symbol, Ticker, PriceSymbol);
+
     /// <summary>Gets the asset class.</summary>
     [JsonIgnore]
     public AssetClass Class => (AssetClass)AssetClass;

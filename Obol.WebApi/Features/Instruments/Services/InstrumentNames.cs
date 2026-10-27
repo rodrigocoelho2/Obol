@@ -52,6 +52,29 @@ internal static partial class InstrumentNames
     }
 
     /// <summary>
+    /// The symbol to show for an instrument: for a US share whose Yahoo Finance listing (checked against Trading 212's
+    /// price) has another ticker than Trading 212's, the market's ticker (ACHR rather than ACIC); otherwise the symbol.
+    /// Other markets keep Trading 212's symbol: their Yahoo listing can be another exchange's line of the same fund.
+    /// </summary>
+    /// <param name="symbol">The symbol from Trading 212's ticker.</param>
+    /// <param name="ticker">Trading 212's ticker.</param>
+    /// <param name="priceSymbol">The Yahoo Finance symbol, when found.</param>
+    /// <returns>The symbol to show.</returns>
+    public static string DisplaySymbol(string symbol, string? ticker, string? priceSymbol)
+    {
+        if (string.IsNullOrWhiteSpace(priceSymbol) || ticker is null || !ticker.EndsWith("_US_EQ", StringComparison.Ordinal)
+            || priceSymbol.Contains('.', StringComparison.Ordinal) || priceSymbol.Contains('=', StringComparison.Ordinal) || priceSymbol.Contains('^', StringComparison.Ordinal))
+        {
+            return symbol;
+        }
+
+        // Yahoo writes share classes with a dash (BRK-B), Trading 212 with a dot or a slash.
+        var market = priceSymbol.Trim().ToUpperInvariant().Replace('-', '.');
+        var mine = symbol.ToUpperInvariant().Replace('/', '.').Replace('-', '.');
+        return market.Length is > 0 and <= 12 && market != mine ? market : symbol;
+    }
+
+    /// <summary>
     /// The symbol to show for a Trading 212 ticker: "AAPL_US_EQ" → AAPL, "VUSAl_EQ" → VUSA, "IWDAa_EQ" → IWDA.
     /// A plain symbol (from a CSV export) is kept as it is.
     /// </summary>

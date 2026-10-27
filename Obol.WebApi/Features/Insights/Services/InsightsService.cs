@@ -226,7 +226,7 @@ internal sealed class InsightsService(PortfolioLoader loader, IGlobalizationHelp
                 Label = group.Key,
                 Value = group.Sum(static position => position.Value),
                 Count = group.Count(),
-                Symbols = group.OrderByDescending(static position => position.Value).Select(static position => position.Instrument.Symbol).Take(6).ToList(),
+                Symbols = group.OrderByDescending(static position => position.Value).Select(static position => position.Instrument.DisplaySymbol).Take(6).ToList(),
                 FxImpact = group.Key == data.Currency ? null : Math.Round(group.Sum(position => FxImpact(position, data)), 2),
             })
             .ToList();
@@ -386,7 +386,7 @@ internal sealed class InsightsService(PortfolioLoader loader, IGlobalizationHelp
                 Value = group.Sum(static position => position.Value),
                 Percent = total > 0 ? group.Sum(static position => position.Value) / total : 0m,
                 Count = group.Count(),
-                Symbols = group.OrderByDescending(static position => position.Value).Select(static position => position.Instrument.Symbol).Take(6).ToList(),
+                Symbols = group.OrderByDescending(static position => position.Value).Select(static position => position.Instrument.DisplaySymbol).Take(6).ToList(),
             })
             .OrderByDescending(static slice => slice.Value)
             .ToList();

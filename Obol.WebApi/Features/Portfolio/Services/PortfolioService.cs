@@ -299,7 +299,7 @@ internal sealed class PortfolioService(
         var sources = bySource.Take(3).Where(pair => data.Instruments.ContainsKey(pair.Id)).Select(pair => new IncomeSourceDTO
         {
             Instrument = ToDTO(data.Instruments[pair.Id]),
-            Label = data.Instruments[pair.Id].Symbol,
+            Label = data.Instruments[pair.Id].DisplaySymbol,
             Amount = pair.Amount,
         }).ToList();
         var other = bySource.Skip(3).Sum(static pair => pair.Amount);
@@ -360,7 +360,7 @@ internal sealed class PortfolioService(
     {
         Key = instrument.InstrumentKey,
         Isin = instrument.Isin,
-        Symbol = instrument.Symbol,
+        Symbol = instrument.DisplaySymbol,
         Name = instrument.Name,
         Currency = instrument.Currency,
         Class = instrument.Class,

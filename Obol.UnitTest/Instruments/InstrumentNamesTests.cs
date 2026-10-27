@@ -62,4 +62,16 @@ public sealed class InstrumentNamesTests
         Assert.Equal("ab", InstrumentNames.Truncate("abc", 2));
         Assert.Equal(string.Empty, InstrumentNames.Truncate(null, 2));
     }
+
+    [Theory]
+    [InlineData("ACIC", "ACIC_US_EQ", "ACHR", "ACHR")]
+    [InlineData("NPA", "NPA_US_EQ", "ASTS", "ASTS")]
+    [InlineData("AAPL", "AAPL_US_EQ", "AAPL", "AAPL")]
+    [InlineData("BRK.B", "BRK.B_US_EQ", "BRK-B", "BRK.B")]
+    [InlineData("PBR/A", "PBR/A_US_EQ", "PBR-A", "PBR/A")]
+    [InlineData("IWDA", "IWDAa_EQ", "EUNL.DE", "IWDA")]
+    [InlineData("TSLA", "TSLA_US_EQ", "", "TSLA")]
+    [InlineData("TSLA", "TSLA_US_EQ", null, "TSLA")]
+    public void TheMarketTickerReplacesAnOldOneOnUsShares(string symbol, string ticker, string? priceSymbol, string expected) =>
+        Assert.Equal(expected, InstrumentNames.DisplaySymbol(symbol, ticker, priceSymbol));
 }
