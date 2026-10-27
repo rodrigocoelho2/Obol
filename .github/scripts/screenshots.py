@@ -144,6 +144,17 @@ with sync_playwright() as p:
                 page.wait_for_timeout(400)
                 page.screenshot(path=str(out / f"{name}-overview-cursor.png"))
         context.close()
+    # The Overview on a common monitor and an ultrawide one.
+    for label, width, height in [("monitor", 1920, 1080), ("ultrawide", 3440, 1440)]:
+        context = browser.new_context(viewport={"width": width, "height": height})
+        page = context.new_page()
+        watch(page, label)
+        sign_in(page)
+        page.goto(base + "/")
+        page.wait_for_timeout(1500)
+        page.screenshot(path=str(out / f"{label}-overview.png"))
+        page.screenshot(path=str(out / f"{label}-overview-full.png"), full_page=True)
+        context.close()
     browser.close()
 
 for error in errors:
