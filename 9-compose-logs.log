@@ -1,0 +1,275 @@
+obol-db-deploy  | Publishing to database 'Obol' on server 'sqlserver'.
+obol-db-deploy  | Initializing deployment (Start)
+obol-db-deploy  | Initializing deployment (Complete)
+obol-db-deploy  | Analyzing deployment plan (Start)
+obol-db-deploy  | Analyzing deployment plan (Complete)
+obol-db-deploy  | Updating database (Start)
+obol-db-deploy  | Dropping Check Constraint [dbo].[CK_BrokerConnection_Environment]...
+obol-db-deploy  | Dropping Check Constraint [dbo].[CK_CashMovement_Kind]...
+obol-db-deploy  | Dropping Check Constraint [dbo].[CK_Trade_Side]...
+obol-db-deploy  | Creating Check Constraint [dbo].[CK_BrokerConnection_Environment]...
+obol-db-deploy  | Creating Check Constraint [dbo].[CK_CashMovement_Kind]...
+obol-db-deploy  | Creating Check Constraint [dbo].[CK_Trade_Side]...
+obol-db-deploy  | Obol.Database deployed.
+obol-db-deploy  | Checking existing data against newly created constraints
+obol-db-deploy  | Update complete.
+obol-db-deploy  | Updating database (Complete)
+obol-db-deploy  | Successfully published database.
+obol-db-deploy  | Time elapsed 0:00:10.15
+obol-db-deploy  | Obol database (Obol) is up to date.
+obol-website    | info: Microsoft.Hosting.Lifetime[14]
+obol-website    |       Now listening on: http://[::]:8080
+obol-website    | info: Microsoft.Hosting.Lifetime[0]
+obol-webapi     | warn: Microsoft.AspNetCore.DataProtection.Repositories.FileSystemXmlRepository[60]
+obol-webapi     |       Storing keys in a directory '/home/app/.aspnet/DataProtection-Keys' that may not be persisted outside of the container. Protected data will be unavailable when container is destroyed. For more information go to https://aka.ms/aspnet/dataprotectionwarning
+obol-webapi     | warn: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[35]
+obol-webapi     |       No XML encryptor configured. Key {e840fb3d-f23d-49fb-b00d-fc587d6c514f} may be persisted to storage in unencrypted form.
+obol-webapi     | info: Obol.WebApi.Features.Demo.Services.DemoStartup[0]
+obol-webapi     |       Demo mode: sign in as demo / obol-demo
+obol-webapi     | info: Microsoft.Hosting.Lifetime[14]
+obol-webapi     |       Now listening on: http://[::]:8080
+obol-webapi     | info: Microsoft.Hosting.Lifetime[0]
+obol-webapi     |       Application started. Press Ctrl+C to shut down.
+obol-webapi     | info: Microsoft.Hosting.Lifetime[0]
+obol-webapi     |       Hosting environment: Production
+obol-webapi     | info: Microsoft.Hosting.Lifetime[0]
+obol-webapi     |       Content root path: /app
+obol-sql        | SQL Server 2022 will run as non-root by default.
+obol-sql        | This container is running as user mssql.
+obol-sql        | To learn more visit https://go.microsoft.com/fwlink/?linkid=2099216.
+obol-sql        | 2026-10-27 14:15:46.07 Server      The licensing PID was successfully processed. The new edition is [Express Edition].
+obol-sql        | 2026-10-27 14:15:46.24 Server      Setup step is copying system data file 'C:\templatedata\master.mdf' to '/var/opt/mssql/data/master.mdf'.
+obol-sql        | 2026-10-27 14:15:46.24 Server      Did not find an existing master data file /var/opt/mssql/data/master.mdf, copying the missing default master and other system database files. If you have moved the database location, but not moved the database files, startup may fail. To repair: shutdown SQL Server, move the master database to configured location, and restart.
+obol-sql        | 2026-10-27 14:15:46.25 Server      Setup step is copying system data file 'C:\templatedata\mastlog.ldf' to '/var/opt/mssql/data/mastlog.ldf'.
+obol-sql        | 2026-10-27 14:15:46.25 Server      Setup step is copying system data file 'C:\templatedata\model.mdf' to '/var/opt/mssql/data/model.mdf'.
+obol-sql        | 2026-10-27 14:15:46.26 Server      Setup step is copying system data file 'C:\templatedata\modellog.ldf' to '/var/opt/mssql/data/modellog.ldf'.
+obol-sql        | 2026-10-27 14:15:46.26 Server      Setup step is copying system data file 'C:\templatedata\msdbdata.mdf' to '/var/opt/mssql/data/msdbdata.mdf'.
+obol-sql        | 2026-10-27 14:15:46.27 Server      Setup step is copying system data file 'C:\templatedata\msdblog.ldf' to '/var/opt/mssql/data/msdblog.ldf'.
+obol-sql        | 2026-10-27 14:15:46.27 Server      Setup step is FORCE copying system data file 'C:\templatedata\model_replicatedmaster.mdf' to '/var/opt/mssql/data/model_replicatedmaster.mdf'.
+obol-sql        | 2026-10-27 14:15:46.28 Server      Setup step is FORCE copying system data file 'C:\templatedata\model_replicatedmaster.ldf' to '/var/opt/mssql/data/model_replicatedmaster.ldf'.
+obol-sql        | 2026-10-27 14:15:46.28 Server      Setup step is FORCE copying system data file 'C:\templatedata\model_msdbdata.mdf' to '/var/opt/mssql/data/model_msdbdata.mdf'.
+obol-sql        | 2026-10-27 14:15:46.29 Server      Setup step is FORCE copying system data file 'C:\templatedata\model_msdblog.ldf' to '/var/opt/mssql/data/model_msdblog.ldf'.
+obol-sql        | 2026-10-27 14:15:46.31 Server      Microsoft SQL Server 2022 (RTM-CU27-GDR) (KB5126934) - 16.0.4305.5 (X64) 
+obol-sql        | 	Oct  2 2026 17:28:11 
+obol-website    |       Application started. Press Ctrl+C to shut down.
+obol-website    | info: Microsoft.Hosting.Lifetime[0]
+obol-website    |       Hosting environment: Production
+obol-website    | info: Microsoft.Hosting.Lifetime[0]
+obol-website    |       Content root path: /app
+obol-sql        | 	Copyright (C) 2022 Microsoft Corporation
+obol-sql        | 	Express Edition (64-bit) on Linux (Ubuntu 22.04.5 LTS) <X64>
+obol-sql        | 2026-10-27 14:15:46.31 Server      UTC adjustment: 0:00
+obol-sql        | 2026-10-27 14:15:46.31 Server      (c) Microsoft Corporation.
+obol-sql        | 2026-10-27 14:15:46.31 Server      All rights reserved.
+obol-sql        | 2026-10-27 14:15:46.31 Server      Server process ID is 388.
+obol-sql        | 2026-10-27 14:15:46.31 Server      Logging SQL Server messages in file '/var/opt/mssql/log/errorlog'.
+obol-sql        | 2026-10-27 14:15:46.31 Server      Registry startup parameters: 
+obol-sql        | 	 -d /var/opt/mssql/data/master.mdf
+obol-sql        | 	 -l /var/opt/mssql/data/mastlog.ldf
+obol-sql        | 	 -e /var/opt/mssql/log/errorlog
+obol-sql        | 2026-10-27 14:15:46.31 Server      SQL Server detected 1 sockets with 2 cores per socket and 4 logical processors per socket, 4 total logical processors; using 4 logical processors based on SQL Server licensing. This is an informational message; no user action is required.
+obol-sql        | 2026-10-27 14:15:46.32 Server      SQL Server is starting at normal priority base (=7). This is an informational message only. No user action is required.
+obol-sql        | 2026-10-27 14:15:46.32 Server      Detected 2000 MB of RAM, 1614 MB of available memory, 1614 MB of available page file. This is an informational message; no user action is required.
+obol-sql        | 2026-10-27 14:15:46.32 Server      Using conventional memory in the memory manager.
+obol-sql        | 2026-10-27 14:15:46.32 Server      Detected pause instruction latency: 49 cycles.
+obol-sql        | 2026-10-27 14:15:46.32 Server      SQL Server detected the following NUMA node configuration (NUMA Node number 0, Processor Group number 0, CPU Mask 0x000000000000000f).
+obol-sql        | 2026-10-27 14:15:46.33 Server      Page exclusion bitmap is enabled.
+obol-sql        | 2026-10-27 14:15:46.35 Server      Buffer pool extension is not supported on Linux platform.
+obol-sql        | 2026-10-27 14:15:46.35 Server      Buffer Pool: Allocating 2097152 bytes for 249131 hashPages.
+obol-sql        | 2026-10-27 14:15:46.46 Server      Buffer pool extension is already disabled. No action is necessary.
+obol-sql        | 2026-10-27 14:15:46.84 Server      Installing Client TLS certificates to the store.
+obol-sql        | 2026-10-27 14:15:46.85 Server      CPU vectorization level(s) detected:  SSE SSE2 SSE3 SSSE3 SSE41 SSE42 AVX AVX2 POPCNT BMI1 BMI2
+obol-sql        | 2026-10-27 14:15:46.88 Server      Successfully initialized the TLS configuration. Allowed TLS protocol versions are ['1.0 1.1 1.2']. Allowed TLS ciphers are ['ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-ECDSA-AES128-SHA:AES256-GCM-SHA384:AES128-GCM-SHA256:AES256-SHA256:AES128-SHA256:AES256-SHA:AES128-SHA:!DHE-RSA-AES256-GCM-SHA384:!DHE-RSA-AES128-GCM-SHA256:!DHE-RSA-AES256-SHA:!DHE-RSA-AES128-SHA'].
+obol-sql        | 2026-10-27 14:15:46.90 Server      Query Store settings initialized with enabled = 1, 
+obol-sql        | 2026-10-27 14:15:46.91 Server      The maximum number of dedicated administrator connections for this instance is '1'
+obol-sql        | 2026-10-27 14:15:46.91 Server      Node configuration: node 0: CPU mask: 0x000000000000000f:0 Active CPU mask: 0x000000000000000f:0. This message provides a description of the NUMA configuration for this computer. This is an informational message only. No user action is required.
+obol-sql        | 2026-10-27 14:15:46.92 Server      Using dynamic lock allocation.  Initial allocation of 2500 Lock blocks and 5000 Lock Owner blocks per node.  This is an informational message only.  No user action is required.
+obol-sql        | 2026-10-27 14:15:46.93 Server      In-Memory OLTP initialized on lowend machine.
+obol-sql        | 2026-10-27 14:15:46.95 Server      [INFO] Created Extended Events session 'hkenginexesession'
+obol-sql        | 2026-10-27 14:15:46.95 Server      Database Instant File Initialization: enabled. For security and performance considerations see the topic 'Database Instant File Initialization' in SQL Server Books Online. This is an informational message only. No user action is required.
+obol-sql        | ForceFlush is enabled for this instance. 
+obol-sql        | 2026-10-27 14:15:46.96 Server      Total Log Writer threads: 2. This is an informational message; no user action is required.
+obol-sql        | 2026-10-27 14:15:46.96 Server      clwb is selected for pmem flush operation.
+obol-sql        | 2026-10-27 14:15:46.97 Server      Software Usage Metrics is disabled.
+obol-sql        | Failed to open password policy registry path. Using default password policy values.2026-10-27 14:15:46.98 spid19s     [1]. Feature Status: PVS: 0. CTR: 0. ConcurrentPFSUpdate: 1. ConcurrentGAMUpdate: 1. ConcurrentSGAMUpdate: 1, CleanupUnderUserTransaction: 0. TranLevelPVS: 0
+obol-sql        | 2026-10-27 14:15:46.98 spid19s     Starting up database 'master'.
+obol-sql        | BulkAdmin AllowedPathsList cleared (path filtering disabled)2026-10-27 14:15:47.03 Server      CLR version v4.0.30319 loaded.
+obol-sql        | ForceFlush feature is enabled for log durability.
+obol-sql        | 2026-10-27 14:15:47.18 spid19s     Converting database 'master' from version 927 to the current version 957.
+obol-sql        | 2026-10-27 14:15:47.18 spid19s     Database 'master' running the upgrade step from version 927 to version 928.
+obol-sql        | 2026-10-27 14:15:47.20 spid19s     Database 'master' running the upgrade step from version 928 to version 929.
+obol-sql        | 2026-10-27 14:15:47.23 spid19s     Database 'master' running the upgrade step from version 929 to version 930.
+obol-sql        | 2026-10-27 14:15:47.27 spid19s     Database 'master' running the upgrade step from version 930 to version 931.
+obol-sql        | 2026-10-27 14:15:47.27 spid19s     Database 'master' running the upgrade step from version 931 to version 932.
+obol-sql        | 2026-10-27 14:15:47.27 spid19s     Database 'master' running the upgrade step from version 932 to version 933.
+obol-sql        | 2026-10-27 14:15:47.28 spid19s     Database 'master' running the upgrade step from version 933 to version 934.
+obol-sql        | 2026-10-27 14:15:47.29 spid19s     Database 'master' running the upgrade step from version 934 to version 935.
+obol-sql        | 2026-10-27 14:15:47.30 spid19s     Database 'master' running the upgrade step from version 935 to version 936.
+obol-sql        | 2026-10-27 14:15:47.31 spid19s     Database 'master' running the upgrade step from version 936 to version 937.
+obol-sql        | 2026-10-27 14:15:47.32 spid19s     Database 'master' running the upgrade step from version 937 to version 938.
+obol-sql        | 2026-10-27 14:15:47.32 spid19s     Database 'master' running the upgrade step from version 938 to version 939.
+obol-sql        | 2026-10-27 14:15:47.32 spid19s     Database 'master' running the upgrade step from version 939 to version 940.
+obol-sql        | 2026-10-27 14:15:47.33 spid19s     Database 'master' running the upgrade step from version 940 to version 941.
+obol-sql        | 2026-10-27 14:15:47.33 spid19s     Database 'master' running the upgrade step from version 941 to version 942.
+obol-sql        | 2026-10-27 14:15:47.36 spid19s     Database 'master' running the upgrade step from version 942 to version 943.
+obol-sql        | 2026-10-27 14:15:47.39 spid19s     Database 'master' running the upgrade step from version 943 to version 944.
+obol-sql        | 2026-10-27 14:15:47.39 spid19s     Database 'master' running the upgrade step from version 944 to version 945.
+obol-sql        | 2026-10-27 14:15:47.41 spid19s     Database 'master' running the upgrade step from version 945 to version 946.
+obol-sql        | 2026-10-27 14:15:47.41 Server      Common language runtime (CLR) functionality initialized.
+obol-sql        | 2026-10-27 14:15:47.42 spid19s     Database 'master' running the upgrade step from version 946 to version 947.
+obol-sql        | 2026-10-27 14:15:47.42 spid19s     Database 'master' running the upgrade step from version 947 to version 948.
+obol-sql        | 2026-10-27 14:15:47.42 spid19s     Database 'master' running the upgrade step from version 948 to version 949.
+obol-sql        | 2026-10-27 14:15:47.43 spid19s     Database 'master' running the upgrade step from version 949 to version 950.
+obol-sql        | 2026-10-27 14:15:47.43 spid19s     Database 'master' running the upgrade step from version 950 to version 951.
+obol-sql        | 2026-10-27 14:15:47.44 Server      External governance manager initialized
+obol-sql        | 2026-10-27 14:15:47.44 spid19s     Database 'master' running the upgrade step from version 951 to version 952.
+obol-sql        | 2026-10-27 14:15:47.46 spid19s     Database 'master' running the upgrade step from version 952 to version 953.
+obol-sql        | 2026-10-27 14:15:47.47 spid19s     Database 'master' running the upgrade step from version 953 to version 954.
+obol-sql        | 2026-10-27 14:15:47.47 spid19s     Database 'master' running the upgrade step from version 954 to version 955.
+obol-sql        | 2026-10-27 14:15:47.47 spid19s     Database 'master' running the upgrade step from version 955 to version 956.
+obol-sql        | 2026-10-27 14:15:47.49 spid19s     Database 'master' running the upgrade step from version 956 to version 957.
+obol-sql        | 2026-10-27 14:15:47.53 spid19s     SQL Server Audit is starting the audits. This is an informational message. No user action is required.
+obol-sql        | 2026-10-27 14:15:47.53 spid30s     Attribute synchronization initialized
+obol-sql        | 2026-10-27 14:15:47.53 spid19s     SQL Server Audit has started the audits. This is an informational message. No user action is required.
+obol-sql        | 2026-10-27 14:15:47.53 spid30s     Attribute synchronization manager initialized
+obol-sql        | 2026-10-27 14:15:47.55 spid19s     SQL Trace ID 1 was started by login "sa".
+obol-sql        | 2026-10-27 14:15:47.56 spid19s     Server name is 'b046f9c25422'. This is an informational message only. No user action is required.
+obol-sql        | 2026-10-27 14:15:47.56 spid37s     Always On: The availability replica manager is starting. This is an informational message only. No user action is required.
+obol-sql        | 2026-10-27 14:15:47.56 spid37s     Always On: The availability replica manager is waiting for the instance of SQL Server to allow client connections. This is an informational message only. No user action is required.
+obol-sql        | 2026-10-27 14:15:47.57 spid19s     [4]. Feature Status: PVS: 0. CTR: 0. ConcurrentPFSUpdate: 1. ConcurrentGAMUpdate: 1. ConcurrentSGAMUpdate: 1, CleanupUnderUserTransaction: 0. TranLevelPVS: 0
+obol-sql        | 2026-10-27 14:15:47.57 spid22s     [32767]. Feature Status: PVS: 0. CTR: 0. ConcurrentPFSUpdate: 1. ConcurrentGAMUpdate: 1. ConcurrentSGAMUpdate: 1, CleanupUnderUserTransaction: 0. TranLevelPVS: 0
+obol-sql        | 2026-10-27 14:15:47.57 spid19s     Starting up database 'msdb'.
+obol-sql        | 2026-10-27 14:15:47.57 spid22s     Starting up database 'mssqlsystemresource'.
+obol-sql        | 2026-10-27 14:15:47.57 spid34s     Password policy update was successful.
+obol-sql        | 2026-10-27 14:15:47.58 spid22s     The resource database build version is 16.00.4305. This is an informational message only. No user action is required.
+obol-sql        | 2026-10-27 14:15:47.60 spid22s     [3]. Feature Status: PVS: 0. CTR: 0. ConcurrentPFSUpdate: 1. ConcurrentGAMUpdate: 1. ConcurrentSGAMUpdate: 1, CleanupUnderUserTransaction: 0. TranLevelPVS: 0
+obol-sql        | 2026-10-27 14:15:47.60 spid22s     Starting up database 'model'.
+obol-sql        | 2026-10-27 14:15:47.71 spid19s     Converting database 'msdb' from version 927 to the current version 957.
+obol-sql        | 2026-10-27 14:15:47.72 spid19s     Database 'msdb' running the upgrade step from version 927 to version 928.
+obol-sql        | 2026-10-27 14:15:47.72 spid22s     Converting database 'model' from version 927 to the current version 957.
+obol-sql        | 2026-10-27 14:15:47.72 spid22s     Database 'model' running the upgrade step from version 927 to version 928.
+obol-sql        | 2026-10-27 14:15:47.72 spid19s     Database 'msdb' running the upgrade step from version 928 to version 929.
+obol-sql        | 2026-10-27 14:15:47.73 spid22s     Database 'model' running the upgrade step from version 928 to version 929.
+obol-sql        | 2026-10-27 14:15:47.77 spid19s     Database 'msdb' running the upgrade step from version 929 to version 930.
+obol-sql        | 2026-10-27 14:15:47.78 spid22s     Database 'model' running the upgrade step from version 929 to version 930.
+obol-sql        | 2026-10-27 14:15:47.78 spid19s     Database 'msdb' running the upgrade step from version 930 to version 931.
+obol-sql        | 2026-10-27 14:15:47.79 spid22s     Database 'model' running the upgrade step from version 930 to version 931.
+obol-sql        | 2026-10-27 14:15:47.79 spid22s     Database 'model' running the upgrade step from version 931 to version 932.
+obol-sql        | 2026-10-27 14:15:47.79 spid19s     Database 'msdb' running the upgrade step from version 931 to version 932.
+obol-sql        | 2026-10-27 14:15:47.79 spid22s     Database 'model' running the upgrade step from version 932 to version 933.
+obol-sql        | 2026-10-27 14:15:47.79 spid19s     Database 'msdb' running the upgrade step from version 932 to version 933.
+obol-sql        | 2026-10-27 14:15:47.80 spid22s     Database 'model' running the upgrade step from version 933 to version 934.
+obol-sql        | 2026-10-27 14:15:47.80 spid19s     Database 'msdb' running the upgrade step from version 933 to version 934.
+obol-sql        | 2026-10-27 14:15:47.80 spid22s     Database 'model' running the upgrade step from version 934 to version 935.
+obol-sql        | 2026-10-27 14:15:47.81 spid19s     Database 'msdb' running the upgrade step from version 934 to version 935.
+obol-sql        | 2026-10-27 14:15:47.81 spid22s     Database 'model' running the upgrade step from version 935 to version 936.
+obol-sql        | 2026-10-27 14:15:47.81 spid19s     Database 'msdb' running the upgrade step from version 935 to version 936.
+obol-sql        | 2026-10-27 14:15:47.81 spid22s     Database 'model' running the upgrade step from version 936 to version 937.
+obol-sql        | 2026-10-27 14:15:47.82 spid19s     Database 'msdb' running the upgrade step from version 936 to version 937.
+obol-sql        | 2026-10-27 14:15:47.82 spid19s     Database 'msdb' running the upgrade step from version 937 to version 938.
+obol-sql        | 2026-10-27 14:15:47.82 spid22s     Database 'model' running the upgrade step from version 937 to version 938.
+obol-sql        | 2026-10-27 14:15:47.82 spid19s     Database 'msdb' running the upgrade step from version 938 to version 939.
+obol-sql        | 2026-10-27 14:15:47.82 spid22s     Database 'model' running the upgrade step from version 938 to version 939.
+obol-sql        | 2026-10-27 14:15:47.83 spid19s     Database 'msdb' running the upgrade step from version 939 to version 940.
+obol-sql        | 2026-10-27 14:15:47.83 spid22s     Database 'model' running the upgrade step from version 939 to version 940.
+obol-sql        | 2026-10-27 14:15:47.83 spid19s     Database 'msdb' running the upgrade step from version 940 to version 941.
+obol-sql        | 2026-10-27 14:15:47.83 spid22s     Database 'model' running the upgrade step from version 940 to version 941.
+obol-sql        | 2026-10-27 14:15:47.83 spid19s     Database 'msdb' running the upgrade step from version 941 to version 942.
+obol-sql        | 2026-10-27 14:15:47.83 spid22s     Database 'model' running the upgrade step from version 941 to version 942.
+obol-sql        | 2026-10-27 14:15:47.84 spid19s     Database 'msdb' running the upgrade step from version 942 to version 943.
+obol-sql        | 2026-10-27 14:15:47.84 spid22s     Database 'model' running the upgrade step from version 942 to version 943.
+obol-sql        | 2026-10-27 14:15:47.86 spid22s     Database 'model' running the upgrade step from version 943 to version 944.
+obol-sql        | 2026-10-27 14:15:47.87 spid22s     Database 'model' running the upgrade step from version 944 to version 945.
+obol-sql        | 2026-10-27 14:15:47.87 spid19s     Database 'msdb' running the upgrade step from version 943 to version 944.
+obol-sql        | 2026-10-27 14:15:47.87 spid19s     Database 'msdb' running the upgrade step from version 944 to version 945.
+obol-sql        | 2026-10-27 14:15:47.88 spid22s     Database 'model' running the upgrade step from version 945 to version 946.
+obol-sql        | 2026-10-27 14:15:47.88 spid22s     Database 'model' running the upgrade step from version 946 to version 947.
+obol-sql        | 2026-10-27 14:15:47.89 spid19s     Database 'msdb' running the upgrade step from version 945 to version 946.
+obol-sql        | 2026-10-27 14:15:47.89 spid22s     Database 'model' running the upgrade step from version 947 to version 948.
+obol-sql        | 2026-10-27 14:15:47.89 spid19s     Database 'msdb' running the upgrade step from version 946 to version 947.
+obol-sql        | 2026-10-27 14:15:47.89 spid22s     Database 'model' running the upgrade step from version 948 to version 949.
+obol-sql        | 2026-10-27 14:15:47.90 spid22s     Database 'model' running the upgrade step from version 949 to version 950.
+obol-sql        | 2026-10-27 14:15:47.90 spid19s     Database 'msdb' running the upgrade step from version 947 to version 948.
+obol-sql        | 2026-10-27 14:15:47.90 spid22s     Database 'model' running the upgrade step from version 950 to version 951.
+obol-sql        | 2026-10-27 14:15:47.90 spid19s     Database 'msdb' running the upgrade step from version 948 to version 949.
+obol-sql        | 2026-10-27 14:15:47.91 spid19s     Database 'msdb' running the upgrade step from version 949 to version 950.
+obol-sql        | 2026-10-27 14:15:47.91 spid19s     Database 'msdb' running the upgrade step from version 950 to version 951.
+obol-sql        | 2026-10-27 14:15:47.91 spid22s     Database 'model' running the upgrade step from version 951 to version 952.
+obol-sql        | 2026-10-27 14:15:47.92 spid22s     Database 'model' running the upgrade step from version 952 to version 953.
+obol-sql        | 2026-10-27 14:15:47.93 spid19s     Database 'msdb' running the upgrade step from version 951 to version 952.
+obol-sql        | 2026-10-27 14:15:47.93 spid19s     Database 'msdb' running the upgrade step from version 952 to version 953.
+obol-sql        | 2026-10-27 14:15:47.93 spid22s     Database 'model' running the upgrade step from version 953 to version 954.
+obol-sql        | 2026-10-27 14:15:47.93 spid22s     Database 'model' running the upgrade step from version 954 to version 955.
+obol-sql        | 2026-10-27 14:15:47.94 spid22s     Database 'model' running the upgrade step from version 955 to version 956.
+obol-sql        | 2026-10-27 14:15:47.94 spid19s     Database 'msdb' running the upgrade step from version 953 to version 954.
+obol-sql        | 2026-10-27 14:15:47.96 spid19s     Database 'msdb' running the upgrade step from version 954 to version 955.
+obol-sql        | 2026-10-27 14:15:47.96 spid22s     Database 'model' running the upgrade step from version 956 to version 957.
+obol-sql        | 2026-10-27 14:15:47.96 spid19s     Database 'msdb' running the upgrade step from version 955 to version 956.
+obol-sql        | 2026-10-27 14:15:47.98 spid22s     Clearing tempdb database.
+obol-sql        | 2026-10-27 14:15:47.99 spid19s     Database 'msdb' running the upgrade step from version 956 to version 957.
+obol-sql        | 2026-10-27 14:15:48.13 spid22s     [2]. Feature Status: PVS: 0. CTR: 0. ConcurrentPFSUpdate: 1. ConcurrentGAMUpdate: 1. ConcurrentSGAMUpdate: 1, CleanupUnderUserTransaction: 0. TranLevelPVS: 0
+obol-sql        | 2026-10-27 14:15:48.13 spid22s     Starting up database 'tempdb'.
+obol-sql        | 2026-10-27 14:15:48.21 spid39s     The Service Broker endpoint is in disabled or stopped state.
+obol-sql        | 2026-10-27 14:15:48.21 spid39s     The Database Mirroring endpoint is in disabled or stopped state.
+obol-sql        | 2026-10-27 14:15:48.23 spid39s     Service Broker manager has started.
+obol-sql        | 2026-10-27 14:15:48.39 spid34s     A self-generated certificate was successfully loaded for encryption.
+obol-sql        | 2026-10-27 14:15:48.39 spid34s     Server is listening on [ 'any' <ipv6> 1433] accept sockets 1.
+obol-sql        | 2026-10-27 14:15:48.39 spid34s     Server is listening on [ 'any' <ipv4> 1433] accept sockets 1.
+obol-sql        | 2026-10-27 14:15:48.40 spid34s     Dedicated administrator connection support was not started because it is disabled on this edition of SQL Server. If you want to use a dedicated administrator connection, restart SQL Server using the trace flag 7806. This is an informational message only. No user action is required.
+obol-sql        | 2026-10-27 14:15:48.40 spid34s     Server is listening on [ ::1 <ipv6> 1431] accept sockets 1.
+obol-sql        | 2026-10-27 14:15:48.40 spid34s     Server is listening on [ 127.0.0.1 <ipv4> 1431] accept sockets 1.
+obol-sql        | 2026-10-27 14:15:48.40 spid34s     Recovery is complete. This is an informational message only. No user action is required.
+obol-sql        | 2026-10-27 14:15:48.40 spid34s     SQL Server is now ready for client connections. This is an informational message; no user action is required.
+obol-sql        | 2026-10-27 14:15:48.41 spid28s     The default language (LCID 0) has been set for engine and full-text services.
+obol-sql        | 2026-10-27 14:15:50.61 spid51      Attempting to load library 'xplog70.dll' into memory. This is an informational message only. No user action is required.
+obol-sql        | 2026-10-27 14:15:50.62 spid51      Using 'xplog70.dll' version '2022.160.4305' to execute extended stored procedure 'xp_msver'. This is an informational message only; no user action is required.
+obol-sql        | 2026-10-27 14:15:50.82 spid51      Attempting to load library 'xpstar.dll' into memory. This is an informational message only. No user action is required.
+obol-sql        | 2026-10-27 14:15:50.83 spid51      Using 'xpstar.dll' version '2022.160.4305' to execute extended stored procedure 'xp_instance_regread'. This is an informational message only; no user action is required.
+obol-sql        | 2026-10-27 14:15:59.70 spid51      [5]. Feature Status: PVS: 0. CTR: 0. ConcurrentPFSUpdate: 1. ConcurrentGAMUpdate: 1. ConcurrentSGAMUpdate: 1, CleanupUnderUserTransaction: 0. TranLevelPVS: 0
+obol-sql        | 2026-10-27 14:15:59.70 spid51      Starting up database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.70 spid51      RemoveStaleDbEntries: Cleanup of stale DB entries called for database ID: [5]
+obol-sql        | 2026-10-27 14:15:59.70 spid51      RemoveStaleDbEntries: Cleanup of stale DB entries skipped because master db is not memory optimized. DbId: 5.
+obol-sql        | 2026-10-27 14:15:59.77 spid51      Parallel redo is started for database 'Obol' with worker pool size [2].
+obol-sql        | 2026-10-27 14:15:59.78 spid51      Parallel redo is shutdown for database 'Obol' with worker pool size [2].
+obol-sql        | 2026-10-27 14:15:59.83 spid51      Setting database option AUTO_CLOSE to OFF for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.86 spid51      Setting database option ANSI_NULLS to ON for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.86 spid51      Setting database option ANSI_PADDING to ON for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.86 spid51      Setting database option ANSI_WARNINGS to ON for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.86 spid51      Setting database option ARITHABORT to ON for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.86 spid51      Setting database option CONCAT_NULL_YIELDS_NULL to ON for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.87 spid51      Setting database option NUMERIC_ROUNDABORT to OFF for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.87 spid51      Setting database option QUOTED_IDENTIFIER to ON for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.87 spid51      Setting database option ANSI_NULL_DEFAULT to ON for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.87 spid51      Setting database option CURSOR_DEFAULT to LOCAL for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.87 spid51      Setting database option RECOVERY to FULL for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.87 spid51      Setting database option CURSOR_CLOSE_ON_COMMIT to OFF for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.87 spid51      Setting database option AUTO_CREATE_STATISTICS to ON for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.87 spid51      Setting database option AUTO_SHRINK to OFF for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.87 spid51      Setting database option AUTO_UPDATE_STATISTICS to ON for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.88 spid51      Setting database option RECURSIVE_TRIGGERS to OFF for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.88 spid51      Setting database option ALLOW_SNAPSHOT_ISOLATION to OFF for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.89 spid51      Setting database option READ_COMMITTED_SNAPSHOT to OFF for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.89 spid51      Setting database option AUTO_UPDATE_STATISTICS_ASYNC to OFF for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.89 spid51      Setting database option PAGE_VERIFY to NONE for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.90 spid51      Setting database option DATE_CORRELATION_OPTIMIZATION to OFF for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.90 spid51      Setting database option DISABLE_BROKER to ON for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.90 spid51      Setting database option PARAMETERIZATION to SIMPLE for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.90 spid51      Setting database option SUPPLEMENTAL_LOGGING to OFF for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.91 spid51      Setting database option TRUSTWORTHY to OFF for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.91 spid51      Setting database option DB_CHAINING to OFF for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.91 spid51      Setting database option HONOR_BROKER_PRIORITY to OFF for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.91 spid51      Setting database option target_recovery_time to 0 for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.92 spid51      Setting database option FILESTREAM NON_TRANSACTED_ACCESS to OFF for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.92 spid51      Setting database option contained to none for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.93 spid51      Setting database option INCREMENTAL to OFF for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.93 spid51      Setting database option AUTO_CREATE_STATISTICS to ON for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.93 spid51      Setting database option MEMORY_OPTIMIZED_ELEVATE_TO_SNAPSHOT to OFF for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.93 spid51      Setting database option delayed_durability to disabled for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.94 spid51      Setting database option query_store to read_write for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.94 spid51      Setting database option query_store max_storage_size_mb to 100 for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.94 spid51      Setting database option query_store flush_interval_seconds to 900 for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.94 spid51      Setting database option query_store interval_length_minutes to 60 for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.94 spid51      Setting database option query_store max_plans_per_query to 200 for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.94 spid51      Setting database option query_store query_capture_mode to all for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.94 spid51      Setting database option query_store stale_query_threshold_days to 367 for database 'Obol'.
+obol-sql        | 2026-10-27 14:15:59.97 spid51      Setting database option TEMPORAL_HISTORY_RETENTION to ON for database 'Obol'.

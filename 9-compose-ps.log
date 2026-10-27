@@ -1,0 +1,5 @@
+NAME             IMAGE                                        COMMAND                  SERVICE     CREATED              STATUS                          PORTS
+obol-db-deploy   obol-db-deploy:latest                        "/bin/bash /deploy/d…"   db-deploy   About a minute ago   Exited (0) About a minute ago   
+obol-sql         mcr.microsoft.com/mssql/server:2022-latest   "/opt/mssql/bin/laun…"   sqlserver   4 minutes ago        Up 4 minutes (healthy)          0.0.0.0:1436->1433/tcp, [::]:1436->1433/tcp
+obol-webapi      obol-webapi:latest                           "dotnet Obol.WebApi.…"   webapi      About a minute ago   Up About a minute               8080/tcp
+obol-website     obol-website:latest                          "dotnet Obol.Website…"   website     About a minute ago   Up About a minute               0.0.0.0:5095->8080/tcp, [::]:5095->8080/tcp

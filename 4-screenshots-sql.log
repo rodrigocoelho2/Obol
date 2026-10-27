@@ -1,0 +1,3 @@
+csv import 1: CSV: 6 trades, 2 dividends, 4 transfers added | 12 lines read: 6 trades, 2 dividends, 4 transfers | 6 new trades, 2 new dividends, 4 new transfers | Not kept: 1 × stock split | See the overview →
+csv import 2: CSV: nothing new | 12 lines read: 6 trades, 2 dividends, 4 transfers | 0 new trades, 0 new dividends, 0 new transfers | 12 already in Obol (imported before or synced) | Not kept: 1 × stock split | See the overview →
+91 screenshots in ci-output/screenshots-sql
